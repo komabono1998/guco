@@ -2,6 +2,7 @@
 $config = require __DIR__ . '/../config.php';
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
+date_default_timezone_set('Africa/Kampala');
 
 const STAFF_ROLES = ['super_admin', 'secretariat', 'communications', 'newsletter_editor', 'chapter_coordinator'];
 
@@ -63,6 +64,7 @@ function db(): PDO
             [
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+03:00'",
             ]
         );
     }
@@ -306,3 +308,5 @@ function pagination(int $total, int $per, int $page, string $baseQuery = ''): st
     }
     return $html . '</nav>';
 }
+
+require_once __DIR__ . '/events.php';

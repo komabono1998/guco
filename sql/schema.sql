@@ -73,12 +73,17 @@ CREATE TABLE news (
 CREATE TABLE events (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
+    category VARCHAR(60) NOT NULL DEFAULT 'Other',
     description TEXT,
+    extra_details TEXT,
+    flyer VARCHAR(200),
     location VARCHAR(200),
     online_link VARCHAR(300),
     audience VARCHAR(200),
-    starts_at DATETIME NOT NULL,
+    starts_at DATETIME NULL,
     ends_at DATETIME NULL,
+    show_countdown TINYINT(1) NOT NULL DEFAULT 1,
+    featured TINYINT(1) NOT NULL DEFAULT 0,
     registration_open TINYINT(1) NOT NULL DEFAULT 0,
     accessibility_info VARCHAR(300),
     contact VARCHAR(200),
@@ -210,6 +215,13 @@ INSERT INTO awards (name, description, eligibility) VALUES
  ('Distinguished Service Award', 'For an alumnus who has made a significant contribution to the community or country.', 'To be confirmed by the Secretariat.'),
  ('Distinguished Service Senior Alumnus Award', 'For an alumnus over 40 years of age with remarkable achievements.', 'Alumnus over 40 years of age. Further criteria to be confirmed.'),
  ('Distinguished Service Youth Alumnus Award', 'For an alumnus under 40 years of age with significant achievements.', 'Alumnus under 40 years of age. Further criteria to be confirmed.');
+
+-- Recurring events. Dates are left blank ("to be announced") until the Secretariat confirms them;
+-- set the date, venue and flyer in Admin > Events to publish them and start the countdown.
+INSERT INTO events (title, category, description, extra_details) VALUES
+ ('GUCO Alumni & Stakeholders Dinner', 'Dinner', 'An evening for alumni and stakeholders of Gulu University: celebrating excellence, strengthening partnerships and investing in the future of the University.', 'Dress code, programme and attendance details will be added once confirmed.'),
+ ('Annual General Meeting (AGM)', 'AGM', 'The Annual General Meeting of Gulu University Convocation. Under the Constitution the AGM is held not later than November each year, with written notice, the annual statement of accounts and the agenda sent at least 21 days before the meeting.', 'The official notice is published here and under Notices only after it is formally issued by the Association.'),
+ ('GUCO League', 'Sports', 'The GUCO League brings alumni together through sport. Fixtures, teams and registration details will be announced.', 'Rules, categories and fixtures will be added once confirmed.');
 
 -- Placeholder positions for the governing organs (Constitution Articles 10-16).
 -- Edit them in Admin > Leadership to add names, photos and profiles.

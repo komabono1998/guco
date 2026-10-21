@@ -9,7 +9,7 @@ $count = fn($sql) => (int) db()->query($sql)->fetchColumn();
 $cards = [
     'members' => ['members.php', 'Members', $count("SELECT COUNT(*) FROM users WHERE status='pending'") . ' applications pending'],
     'news' => ['news.php', 'News', $count("SELECT COUNT(*) FROM news WHERE status='pending'") . ' awaiting review, ' . $count("SELECT COUNT(*) FROM news WHERE status='published'") . ' published'],
-    'events' => ['events.php', 'Events', $count('SELECT COUNT(*) FROM events WHERE starts_at >= NOW()') . ' upcoming'],
+    'events' => ['events.php', 'Events', $count('SELECT COUNT(*) FROM events WHERE starts_at >= NOW() OR starts_at IS NULL') . ' upcoming or to be announced'],
     'chapters' => ['chapters.php', 'Chapters', $count('SELECT COUNT(*) FROM chapters') . ' chapters'],
     'leaders' => ['leaders.php', 'Leadership', $count('SELECT COUNT(*) FROM leaders WHERE is_public = 1') . ' published profiles'],
     'programmes' => ['programmes.php', 'Programmes', $count('SELECT COUNT(*) FROM programmes') . ' reports'],

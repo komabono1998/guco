@@ -4,7 +4,7 @@ $ev = q('SELECT * FROM events WHERE id = ? AND is_public = 1', [(int) ($_GET['id
 if (!$ev) {
     http_response_code(404);
 }
-$canRegister = $ev && $ev['registration_open'] && $ev['status'] === 'scheduled' && strtotime($ev['starts_at']) > time();
+$canRegister = $ev && $ev['registration_open'] && $ev['status'] === 'scheduled' && $ev['starts_at'] && strtotime($ev['starts_at']) > time();
 if ($ev && $canRegister && $_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $name = trim($_POST['name'] ?? '');
@@ -24,17 +24,31 @@ $pageDesc = $ev ? excerpt((string) $ev['description'], 150) : null;
 require __DIR__ . '/includes/header.php';
 if (!$ev): ?>
   <h1>Event not found</h1>
-<?php else: $me = current_user(); ?>
-  <h1><?= e($ev['title']) ?></h1>
-  <?php if ($ev['status'] !== 'scheduled'): ?><p class="notice"><strong>This event has been <?= e($ev['status']) ?>.</strong></p><?php endif; ?>
-  <div class="card" style="max-width:760px">
-    <p><strong>When:</strong> <?= e(fmt_date($ev['starts_at'], 'l j M Y, g:ia')) ?><?= $ev['ends_at'] ? ' to ' . e(fmt_date($ev['ends_at'], 'g:ia')) : '' ?></p>
-    <?php if ($ev['location']): ?><p><strong>Venue:</strong> <?= e($ev['location']) ?></p><?php endif; ?>
-    <?php if ($ev['online_link']): ?><p><strong>Online:</strong> <a href="<?= e($ev['online_link']) ?>" rel="noopener"><?= e($ev['online_link']) ?></a></p><?php endif; ?>
-    <?php if ($ev['audience']): ?><p><strong>Audience:</strong> <?= e($ev['audience']) ?></p><?php endif; ?>
-    <?php if ($ev['accessibility_info']): ?><p><strong>Accessibility:</strong> <?= e($ev['accessibility_info']) ?></p><?php endif; ?>
-    <?php if ($ev['contact']): ?><p><strong>Contact:</strong> <?= e($ev['contact']) ?></p><?php endif; ?>
-    <div><?= nl2br(e($ev['description'])) ?></div>
+<?php else: $me = current_user(); $fl = event_flyer_url($ev); ?>
+  <p><a href="<?= url('events.php') ?>">&larr; Events calendar</a></p>
+  <div class="event-page" style="<?= $fl ? '' : 'grid-template-columns:1fr' ?>">
+    <?php if ($fl): ?><div><a href="<?= e($fl) ?>" target="_blank" rel="noopener"><img class="flyer" src="<?= e($fl) ?>" alt="Flyer for <?= e($ev['title']) ?>"></a></div><?php endif; ?>
+    <div>
+      <span class="badge"><?= e($ev['category']) ?></span> <?= event_status_badge($ev) ?>
+      <h1 style="margin:6px 0"><?= e($ev['title']) ?></h1>
+      <?php if ($ev['status'] !== 'scheduled'): ?><p class="notice"><strong>This event has been <?= e($ev['status']) ?>.</strong> Please check <a href="<?= url('news.php?category=Notices') ?>">Notices</a> for updates.</p><?php endif; ?>
+      <?= event_countdown($ev) ?>
+      <div class="event-facts">
+        <p><strong>When:</strong> <?= e(event_when($ev, 'l j M Y, g:ia')) ?><?php
+            if ($ev['starts_at'] && $ev['ends_at']) {
+                $sameDay = fmt_date($ev['ends_at'], 'Ymd') === fmt_date($ev['starts_at'], 'Ymd');
+                echo ' to ' . e(fmt_date($ev['ends_at'], $sameDay ? 'g:ia' : 'D j M Y, g:ia'));
+            } ?></p>
+        <?php if ($ev['location']): ?><p><strong>Venue:</strong> <?= e($ev['location']) ?></p><?php endif; ?>
+        <?php if ($ev['online_link']): ?><p><strong>Online:</strong> <a href="<?= e($ev['online_link']) ?>" rel="noopener"><?= e($ev['online_link']) ?></a></p><?php endif; ?>
+        <?php if ($ev['audience']): ?><p><strong>Audience:</strong> <?= e($ev['audience']) ?></p><?php endif; ?>
+        <?php if ($ev['accessibility_info']): ?><p><strong>Accessibility:</strong> <?= e($ev['accessibility_info']) ?></p><?php endif; ?>
+        <?php if ($ev['contact']): ?><p><strong>Contact:</strong> <?= e($ev['contact']) ?></p><?php endif; ?>
+      </div>
+      <?php if ($ev['description']): ?><p><?= nl2br(e($ev['description'])) ?></p><?php endif; ?>
+      <?php if ($ev['extra_details']): ?><h2>More details</h2><p><?= nl2br(e($ev['extra_details'])) ?></p><?php endif; ?>
+      <?php if ($ev['starts_at']): ?><p><a class="btn secondary" href="<?= url('event_ics.php?id=' . (int) $ev['id']) ?>">Add to calendar</a></p><?php endif; ?>
+    </div>
   </div>
   <?php if ($canRegister): ?>
     <section id="register" class="section">
@@ -48,6 +62,5 @@ if (!$ev): ?>
       </form>
     </section>
   <?php endif; ?>
-  <p><a href="<?= url('events.php') ?>">&larr; Events calendar</a></p>
 <?php endif;
 require __DIR__ . '/includes/footer.php'; ?>

@@ -40,5 +40,6 @@
   </div>
   <div class="container copy">&copy; <?= date('Y') ?> Gulu University Convocation. All rights reserved.</div>
 </footer>
+<script src="<?= url('assets/js/countdown.js') ?>"></script>
 </body>
 </html>

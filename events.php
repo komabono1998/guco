@@ -1,21 +1,37 @@
 <?php
 $pageTitle = 'Events Calendar';
-$pageDesc = 'Confirmed GUCO events, the Annual General Meeting and registration information.';
+$pageDesc = 'Upcoming GUCO events: the GUCO Dinner, Annual General Meeting, GUCO League and more, with dates, venues and registration.';
 require __DIR__ . '/includes/header.php';
-$upcoming = q('SELECT * FROM events WHERE is_public = 1 AND starts_at >= NOW() ORDER BY starts_at')->fetchAll();
-$past = q('SELECT * FROM events WHERE is_public = 1 AND starts_at < NOW() ORDER BY starts_at DESC LIMIT 10')->fetchAll();
-$badge = fn($s) => $s === 'scheduled' ? '' : '<span class="badge bad">' . e(ucfirst($s)) . '</span>';
+$cat = in_array($_GET['category'] ?? '', EVENT_CATEGORIES, true) ? $_GET['category'] : '';
+$catSql = $cat ? ' AND category = ?' : '';
+$args = $cat ? [$cat] : [];
+// Confirmed dates first (soonest first), then events whose date is still to be announced.
+$upcoming = q("SELECT * FROM events WHERE is_public = 1 AND (starts_at >= NOW() OR starts_at IS NULL)$catSql ORDER BY starts_at IS NULL, starts_at", $args)->fetchAll();
+$past = q("SELECT * FROM events WHERE is_public = 1 AND starts_at < NOW()$catSql ORDER BY starts_at DESC LIMIT 12", $args)->fetchAll();
 ?>
-<div class="page-head"><h1>Events Calendar</h1><p>Only confirmed events are listed</p></div>
+<div class="page-head"><h1>Events Calendar</h1><p>Dates are published once confirmed by the Secretariat</p></div>
+<form method="get" class="filters">
+  <label>Category <select name="category"><option value="">All events</option>
+    <?php foreach (EVENT_CATEGORIES as $c): ?><option<?= $c === $cat ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select></label>
+  <button>Filter</button>
+</form>
+
 <h2>Upcoming events</h2>
-<?php foreach ($upcoming as $ev): ?>
-  <article class="card" style="margin-bottom:16px">
-    <h3><a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><?= e($ev['title']) ?></a> <?= $badge($ev['status']) ?></h3>
-    <p class="meta"><?= e(fmt_date($ev['starts_at'], 'l j M Y, g:ia')) ?><?= $ev['location'] ? ' &middot; ' . e($ev['location']) : '' ?></p>
-    <p><?= e(excerpt((string) $ev['description'], 200)) ?></p>
-    <?php if ($ev['registration_open'] && $ev['status'] === 'scheduled'): ?><a class="btn" href="<?= url('event_view.php?id=' . (int) $ev['id'] . '#register') ?>">Register</a><?php endif; ?>
+<div class="grid">
+<?php foreach ($upcoming as $ev): $fl = event_flyer_url($ev); ?>
+  <article class="card event-card">
+    <?php if ($fl): ?><a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><img class="flyer" src="<?= e($fl) ?>" alt="Flyer for <?= e($ev['title']) ?>" loading="lazy"></a><?php endif; ?>
+    <span class="badge"><?= e($ev['category']) ?></span> <?= event_status_badge($ev) ?>
+    <h3><a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><?= e($ev['title']) ?></a></h3>
+    <p class="meta"><?= e(event_when($ev)) ?><?= event_where($ev) ? ' &middot; ' . e(event_where($ev)) : '' ?></p>
+    <?= event_countdown($ev, 'small') ?>
+    <p><?= e(excerpt((string) $ev['description'], 140)) ?></p>
+    <p><a class="btn secondary" href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>">Details</a>
+      <?php if ($ev['registration_open'] && $ev['status'] === 'scheduled'): ?><a class="btn" href="<?= url('event_view.php?id=' . (int) $ev['id'] . '#register') ?>">Register</a><?php endif; ?></p>
   </article>
-<?php endforeach; if (!$upcoming): ?><p>No confirmed upcoming events at the moment.</p><?php endif; ?>
+<?php endforeach; ?>
+</div>
+<?php if (!$upcoming): ?><p>No confirmed upcoming events at the moment.</p><?php endif; ?>
 
 <section class="section notice">
   <h2 style="margin-top:0">Annual General Meeting</h2>
@@ -31,6 +47,6 @@ $badge = fn($s) => $s === 'scheduled' ? '' : '<span class="badge bad">' . e(ucfi
 
 <h2>Past events</h2>
 <?php foreach ($past as $ev): ?>
-  <p><a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><strong><?= e($ev['title']) ?></strong></a> <span class="meta">&middot; <?= e(fmt_date($ev['starts_at'])) ?></span> <?= $badge($ev['status']) ?></p>
+  <p><span class="badge"><?= e($ev['category']) ?></span> <a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><strong><?= e($ev['title']) ?></strong></a> <span class="meta">&middot; <?= e(fmt_date($ev['starts_at'])) ?></span> <?= event_status_badge($ev) ?></p>
 <?php endforeach; if (!$past): ?><p>None yet.</p><?php endif; ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

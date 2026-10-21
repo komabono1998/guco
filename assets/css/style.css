@@ -158,3 +158,24 @@ th { background: #eef4ee; }
 .album img { aspect-ratio: 4 / 3; height: auto; transition: transform .15s; }
 .album a:hover img { transform: scale(1.02); }
 @media (max-width: 860px) { .split, .split.flip { grid-template-columns: 1fr; } .split.flip > :first-child { order: 0; } }
+
+/* Events and countdown */
+.countdown { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+.countdown span { display: flex; flex-direction: column; align-items: center; min-width: 74px; padding: 8px 10px; background: var(--green); color: #fff; border-radius: 8px; font-size: .75rem; text-transform: uppercase; letter-spacing: .05em; }
+.countdown b { font-size: 1.7rem; line-height: 1.1; color: var(--gold); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.countdown.small span { min-width: 54px; padding: 4px 6px; font-size: .62rem; }
+.countdown.small b { font-size: 1.1rem; }
+.countdown.done { font-weight: 700; color: var(--green); }
+.on-dark .countdown span { background: rgba(255,255,255,.12); }
+.event-card { display: flex; flex-direction: column; gap: 4px; }
+.event-card .flyer { aspect-ratio: 4 / 3; width: 100%; object-fit: cover; border-radius: 8px; margin-bottom: 8px; background: #eef4ee; }
+.event-card h3 { margin: 4px 0; }
+.event-hero { display: grid; grid-template-columns: 260px 1fr; gap: 28px; align-items: center; background: linear-gradient(135deg, #0f3d22, var(--green)); color: #fff; border-radius: 12px; padding: 24px; margin-bottom: 36px; border-bottom: 6px solid var(--gold); }
+.event-hero h2 { color: #fff; margin: 4px 0; font-size: 1.7rem; }
+.event-hero img { width: 100%; border-radius: 8px; display: block; }
+.event-hero .badge { background: var(--gold); color: #1a1a1a; }
+.event-page { display: grid; grid-template-columns: minmax(0, 340px) 1fr; gap: 28px; align-items: start; }
+.event-page .flyer { width: 100%; border-radius: 10px; display: block; }
+.event-facts { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 16px 0; }
+.event-facts p { margin: 6px 0; }
+@media (max-width: 800px) { .event-hero, .event-page { grid-template-columns: 1fr; } }
