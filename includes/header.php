@@ -15,7 +15,8 @@ $nav = [
     ]],
     ['Membership', 'membership.php', [
         ['Membership Categories', 'membership.php#categories'], ['Benefits', 'membership.php#benefits'],
-        ['Join GUCO', 'register.php'], ['Member Portal', 'portal.php'], ['FAQs', 'membership.php#faq'],
+        ['Join GUCO', 'register.php'], ['Member Portal', 'portal.php'], ['Renew Membership', 'portal.php#renew'],
+        ['Verify a Card', 'verify.php'], ['FAQs', 'membership.php#faq'],
     ]],
     ['Leadership', 'leadership.php', [
         ['General Assembly', 'leadership.php#assembly'], ['Board', 'leadership.php#board'],

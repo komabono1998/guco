@@ -13,6 +13,7 @@ $fields = [
     ],
     'Membership' => [
         'applications_open' => ['Accept online membership applications', 'check'],
+        'require_payment_proof' => ['Require proof of payment on the membership application form', 'check'],
         'show_fees' => ['Show membership fees on the Membership page (only after the Secretariat confirms them)', 'check'],
         'fee_founder' => ['Founder Member one-time fee (UGX)', 'text'], 'fee_ordinary' => ['Ordinary Member annual subscription (UGX)', 'text'],
         'fee_honorary' => ['Honorary Member one-time fee (UGX)', 'text'], 'fee_life' => ['Life Member one-time fee (UGX)', 'text'],

@@ -7,7 +7,8 @@ if (!is_staff()) {
 }
 $count = fn($sql) => (int) db()->query($sql)->fetchColumn();
 $cards = [
-    'members' => ['members.php', 'Members', $count("SELECT COUNT(*) FROM users WHERE status='pending'") . ' applications pending'],
+    'members' => ['members.php', 'Members', $count("SELECT COUNT(*) FROM users WHERE status='pending'") . ' applications pending, ' . $count("SELECT COUNT(*) FROM member_profiles WHERE card_status='active'") . ' active cards'],
+    'payments' => ['payments.php', 'Payments', $count("SELECT COUNT(*) FROM member_payments WHERE status='pending'") . ' to verify'],
     'news' => ['news.php', 'News', $count("SELECT COUNT(*) FROM news WHERE status='pending'") . ' awaiting review, ' . $count("SELECT COUNT(*) FROM news WHERE status='published'") . ' published'],
     'events' => ['events.php', 'Events', $count('SELECT COUNT(*) FROM events WHERE starts_at >= NOW() OR starts_at IS NULL') . ' upcoming or to be announced'],
     'chapters' => ['chapters.php', 'Chapters', $count('SELECT COUNT(*) FROM chapters') . ' chapters'],

@@ -25,23 +25,59 @@ CREATE TABLE chapters (
 
 CREATE TABLE member_profiles (
     user_id INT UNSIGNED PRIMARY KEY,
+    member_no INT UNSIGNED NULL UNIQUE,
+    membership_id VARCHAR(40) NULL UNIQUE,
     category ENUM('founder','ordinary','honorary','life') NOT NULL DEFAULT 'ordinary',
     subscription_status ENUM('unpaid','active','arrears') NOT NULL DEFAULT 'unpaid',
     paid_until DATE NULL,
+    approved_at DATETIME NULL,
+    card_status ENUM('none','active','revoked') NOT NULL DEFAULT 'none',
+    card_issued_at DATETIME NULL,
+    card_revoked_at DATETIME NULL,
+    card_revoke_reason VARCHAR(300),
+    gender ENUM('female','male','other','undisclosed') NULL,
+    date_of_birth DATE NULL,
+    nationality VARCHAR(80),
     phone VARCHAR(40),
+    address VARCHAR(200),
+    location VARCHAR(150),
+    country VARCHAR(80),
     college VARCHAR(150),
     programme VARCHAR(150),
+    qualification_level VARCHAR(60),
+    student_reg_no VARCHAR(60),
     graduation_year SMALLINT,
-    profession VARCHAR(150),
-    location VARCHAR(150),
-    bio TEXT,
     eligibility_details TEXT,
+    employment_status ENUM('employed','self_employed','unemployed','student','retired','other') NULL,
+    employer VARCHAR(150),
+    profession VARCHAR(150),
+    interests VARCHAR(300),
+    bio TEXT,
+    photo VARCHAR(200),
     payment_reference VARCHAR(150),
     chapter_id INT UNSIGNED NULL,
     directory_consent TINYINT(1) NOT NULL DEFAULT 0,
     admin_notes TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+);
+
+CREATE TABLE member_payments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    purpose ENUM('registration','renewal','other') NOT NULL DEFAULT 'registration',
+    method VARCHAR(40),
+    amount DECIMAL(12,2) NOT NULL DEFAULT 0,
+    reference VARCHAR(100),
+    paid_on DATE NULL,
+    proof_file VARCHAR(200),
+    proof_original VARCHAR(200),
+    status ENUM('pending','verified','rejected') NOT NULL DEFAULT 'pending',
+    admin_note VARCHAR(300),
+    verified_by INT UNSIGNED NULL,
+    verified_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE password_resets (
@@ -208,7 +244,8 @@ INSERT INTO settings (k, v) VALUES
  ('show_fees', '0'),
  ('fee_founder', '100000'), ('fee_ordinary', '20000'), ('fee_honorary', '200000'), ('fee_life', '400000'),
  ('payment_instructions', ''),
- ('applications_open', '1');
+ ('applications_open', '1'),
+ ('require_payment_proof', '1');
 
 INSERT INTO awards (name, description, eligibility) VALUES
  ('Outstanding Achievement Awards', 'Recognition of outstanding achievements by Gulu University alumni.', 'To be confirmed by the Secretariat.'),

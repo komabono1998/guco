@@ -5,7 +5,7 @@ require_member();
 $q = trim($_GET['q'] ?? '');
 $sql = "SELECT u.full_name, p.college, p.programme, p.graduation_year, p.profession, p.location, c.name AS chapter
         FROM users u JOIN member_profiles p ON p.user_id = u.id LEFT JOIN chapters c ON c.id = p.chapter_id
-        WHERE u.status = 'approved' AND p.directory_consent = 1";
+        WHERE u.status = 'approved' AND p.card_status <> 'revoked' AND p.directory_consent = 1";
 $args = [];
 if ($q !== '') {
     $sql .= ' AND (u.full_name LIKE ? OR p.college LIKE ? OR p.programme LIKE ? OR p.profession LIKE ? OR p.location LIKE ? OR p.graduation_year = ?)';

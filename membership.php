@@ -11,6 +11,21 @@ $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 <?= dinner_figure(9, '', 'Alumni connecting at the ' . DINNER_ALBUM) ?>
 </div>
 
+<section id="how" class="section">
+  <h2>How membership works</h2>
+  <ol class="steps">
+    <li><strong>Apply online</strong> Share your personal, academic and employment details and choose your category.</li>
+    <li><strong>Pay and upload proof</strong> Pay the applicable fee through the approved channel and upload your receipt.</li>
+    <li><strong>Verification</strong> The Secretariat verifies your details and payment.</li>
+    <li><strong>Get your card</strong> On approval you receive a Membership ID and a printable card with a QR code.</li>
+  </ol>
+  <p>Ordinary members renew their annual subscription from the Member Portal by uploading proof of payment. Cards can be checked at any time on the <a href="<?= url('verify.php') ?>">card verification page</a>, and a card may be revoked by the Secretariat under the Constitution.</p>
+  <form method="get" action="<?= url('verify.php') ?>" class="filters">
+    <label>Verify a membership card <input name="id" placeholder="GUCO/ORD/2026/000001" required style="min-width:260px"></label>
+    <button>Verify</button>
+  </form>
+</section>
+
 <section id="categories" class="section">
   <h2>Membership categories</h2>
   <div class="table-wrap"><table>

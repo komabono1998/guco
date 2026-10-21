@@ -4,6 +4,7 @@ require_once __DIR__ . '/bootstrap.php';
 const ADMIN_SECTIONS = [
     ['Dashboard', 'index.php', null],
     ['Members', 'members.php', 'members'],
+    ['Payments', 'payments.php', 'payments'],
     ['News', 'news.php', 'news'],
     ['Events', 'events.php', 'events'],
     ['Chapters', 'chapters.php', 'chapters'],
