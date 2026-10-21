@@ -79,6 +79,14 @@ $awards = q("SELECT name FROM awards WHERE is_public = 1 ORDER BY id LIMIT 4")->
   </div>
 </section>
 
+<section class="section">
+  <h2>Moments from our community</h2>
+  <div class="photo-strip">
+    <?= dinner_figure(3) ?><?= dinner_figure(7) ?><?= dinner_figure(4) ?>
+  </div>
+  <p class="meta"><?= e(DINNER_ALBUM) ?> &middot; <a href="<?= url('gallery.php') ?>">See the full gallery &rarr;</a></p>
+</section>
+
 <section class="cta">
   <h2 style="color:#fff;margin-top:0">Your connection with Gulu University continues after graduation</h2>
   <p>Join the Convocation, reconnect with fellow alumni and contribute to a stronger University and more empowered communities.</p>

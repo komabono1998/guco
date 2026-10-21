@@ -9,6 +9,10 @@ require __DIR__ . '/includes/header.php';
 <div class="page-head"><h1>Partnerships &amp; Support</h1><p>Work with GUCO</p></div>
 <p class="lead">GUCO seeks to strengthen connections among alumni, Gulu University and the wider community. Partnerships can help advance alumni engagement, University development, academic interests and community service in line with the Association's objectives.</p>
 
+<section class="section">
+  <?= dinner_figure(14, '', DINNER_ALBUM . ': celebrating excellence, strengthening partnerships and investing in the future of Gulu University') ?>
+</section>
+
 <section class="section grid two">
   <div class="card"><h2>Ways to collaborate</h2><ul class="checks">
     <li>Institutional and corporate partnerships.</li>

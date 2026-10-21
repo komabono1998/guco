@@ -7,6 +7,10 @@ $status = ['not_open' => ['Nominations not open', 'warn'], 'open' => ['Nominatio
 ?>
 <div class="page-head"><h1>Awards &amp; Recognition</h1><p>Celebrating outstanding alumni</p></div>
 <p class="lead">GUCO's Constitution identifies support for University awards and recognition programmes among its objectives. This page explains each approved award, its purpose, eligibility, nomination process and announcement schedule.</p>
+<div class="split" style="margin:24px 0">
+  <?= dinner_figure(4, '', 'Certificates of Recognition are presented at GUCO events.') ?>
+  <div class="card accent"><h2 style="margin-top:0">Recognising excellence</h2><p>GUCO celebrates alumni whose achievements and service advance Gulu University and the community. Award details, eligibility and nomination status are published below once approved.</p></div>
+</div>
 <div class="grid two">
 <?php foreach ($awards as $a): [$label, $cls] = $status[$a['nomination_status']]; ?>
   <article class="card accent">

@@ -16,7 +16,8 @@ $areas = [
 <div class="page-head"><h1>Programmes &amp; Impact</h1><p>Our constitutional objectives in action</p></div>
 <p class="lead">GUCO's constitutional objectives provide the foundation for its programme areas. Activities listed under impact reports below have been approved and are active.</p>
 <div class="grid">
-  <?php foreach ($areas as $t => $d): ?><div class="card accent"><h3><?= e($t) ?></h3><p><?= e($d) ?></p></div><?php endforeach; ?>
+  <?php $areaPhoto = ['Alumni Networking and Engagement' => 7, 'Awards and Recognition' => 4, 'Partnerships and Fundraising' => 3]; ?>
+  <?php foreach ($areas as $t => $d): ?><div class="card accent"><?= isset($areaPhoto[$t]) ? dinner_figure($areaPhoto[$t]) : '' ?><h3><?= e($t) ?></h3><p><?= e($d) ?></p></div><?php endforeach; ?>
 </div>
 
 <section class="section">

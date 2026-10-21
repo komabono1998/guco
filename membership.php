@@ -6,7 +6,10 @@ $showFees = setting('show_fees') === '1';
 $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 ?>
 <div class="page-head"><h1>Membership</h1><p>Become part of the GUCO alumni network</p></div>
+<div class="split" style="margin-bottom:8px">
 <p class="lead">Membership connects eligible alumni and other qualifying members with a shared platform for networking, participation in Association activities and support for Gulu University. The Constitution provides for Founder, Ordinary, Honorary and Life Membership.</p>
+<?= dinner_figure(9, '', 'Alumni connecting at the ' . DINNER_ALBUM) ?>
+</div>
 
 <section id="categories" class="section">
   <h2>Membership categories</h2>

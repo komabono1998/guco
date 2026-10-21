@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
+require_once __DIR__ . '/photos.php';
 $pageTitle = $pageTitle ?? config('site_name');
 $pageDesc = $pageDesc ?? 'Gulu University Convocation (GUCO) - the alumni association of Gulu University. Community Transformation Actualized.';
 $me = current_user();

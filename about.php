@@ -5,9 +5,12 @@ require __DIR__ . '/includes/header.php';
 ?>
 <div class="page-head"><h1>About GUCO</h1><p>Community Transformation Actualized</p></div>
 
-<section id="overview" class="section">
+<section id="overview" class="section split">
+  <div>
   <h2>Overview</h2>
   <p>Gulu University Convocation (GUCO) is the umbrella association for alumni of Gulu University and other eligible members recognised under its Constitution. The Constitution describes GUCO as a platform for mobilisation, coordination and inspiration, bringing alumni and the University closer together in pursuit of intellectual development, institutional advancement and service to the community.</p>
+  </div>
+  <?= dinner_figure(19, '', DINNER_ALBUM) ?>
 </section>
 
 <section id="vision" class="section grid two">

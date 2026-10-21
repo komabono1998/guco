@@ -129,3 +129,19 @@ th { background: #eef4ee; }
   .sub a { color: #e5e7eb; padding: 4px 12px; }
   .hero img { width: 120px; height: 120px; }
 }
+
+/* Photos */
+.photo { margin: 0; }
+.photo img { width: 100%; height: 100%; object-fit: cover; border-radius: 10px; display: block; }
+.photo figcaption { font-size: .85rem; color: var(--muted); margin-top: 6px; }
+.split { display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px; align-items: center; }
+.split.flip > :first-child { order: 2; }
+.photo-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.photo-strip .photo img { aspect-ratio: 3 / 2; }
+.card .photo { margin-bottom: 12px; }
+.card .photo img { aspect-ratio: 3 / 2; height: auto; }
+.album { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.album a { display: block; }
+.album img { aspect-ratio: 4 / 3; height: auto; transition: transform .15s; }
+.album a:hover img { transform: scale(1.02); }
+@media (max-width: 860px) { .split, .split.flip { grid-template-columns: 1fr; } .split.flip > :first-child { order: 0; } }

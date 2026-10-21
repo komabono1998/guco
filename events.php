@@ -22,6 +22,13 @@ $badge = fn($s) => $s === 'scheduled' ? '' : '<span class="badge bad">' . e(ucfi
   <p>The Constitution states that the AGM should be held not later than November each year. Written notice, accompanied by the annual statement of accounts and agenda, is sent at least 21 days before the meeting. Each AGM notice is published here and under <a href="<?= url('news.php?category=Notices') ?>">Notices</a> only after it has been formally issued by the Association.</p>
 </section>
 
+<h2>Event highlights</h2>
+<p><strong><?= e(DINNER_ALBUM) ?></strong> &mdash; celebrating excellence, strengthening partnerships and investing in the future of Gulu University.</p>
+<div class="photo-strip">
+  <?= dinner_figure(14) ?><?= dinner_figure(4) ?><?= dinner_figure(7) ?><?= dinner_figure(13) ?>
+</div>
+<p><a href="<?= url('gallery.php') ?>">See the full gallery &rarr;</a></p>
+
 <h2>Past events</h2>
 <?php foreach ($past as $ev): ?>
   <p><a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><strong><?= e($ev['title']) ?></strong></a> <span class="meta">&middot; <?= e(fmt_date($ev['starts_at'])) ?></span> <?= $badge($ev['status']) ?></p>
