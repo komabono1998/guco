@@ -25,6 +25,7 @@ require __DIR__ . '/includes/header.php';
   <label>Category <select name="category"><option value="">All</option><?php foreach ($cats as $c): ?><option<?= $c === $cat ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select></label>
   <button>Search</button>
 </form>
+<div class="lead" style="font-size:1rem"><?= cr('resources.intro') ?></div>
 <div class="table-wrap"><table>
   <tr><th>Title</th><th>Category</th><th>Published</th><th>Type / size</th><th></th></tr>
   <?php foreach ($items as $r): ?>

@@ -2,10 +2,10 @@
 <footer class="site-footer">
   <div class="container footgrid">
     <div>
-      <h2>Gulu University Convocation (GUCO)</h2>
-      <p class="tag">Community Transformation Actualized</p>
-      <p>An alumni association committed to mobilising alumni, supporting Gulu University and contributing to community transformation.</p>
-      <p>Gulu University, P.O. Box 166, Laroo Road, Gulu City, Uganda.</p>
+      <h2><?= e(setting('site_name', 'Gulu University Convocation')) ?> (GUCO)</h2>
+      <p class="tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></p>
+      <?= cr('footer.about') ?>
+      <p><?= ct('footer.address') ?></p>
       <?php
       $socials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linkedin' => 'LinkedIn', 'social_youtube' => 'YouTube'];
       foreach ($socials as $k => $label) {
@@ -38,7 +38,7 @@
       </form>
     </div>
   </div>
-  <div class="container copy">&copy; <?= date('Y') ?> Gulu University Convocation. All rights reserved.</div>
+  <div class="container copy">&copy; <?= date('Y') ?> <?= e(setting('site_name', 'Gulu University Convocation')) ?>. All rights reserved.</div>
 </footer>
 <script src="<?= url('assets/js/countdown.js') ?>"></script>
 </body>

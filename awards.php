@@ -6,10 +6,10 @@ $awards = q('SELECT * FROM awards WHERE is_public = 1 ORDER BY id')->fetchAll();
 $status = ['not_open' => ['Nominations not open', 'warn'], 'open' => ['Nominations open', ''], 'closed' => ['Nominations closed', 'bad']];
 ?>
 <div class="page-head"><h1>Awards &amp; Recognition</h1><p>Celebrating outstanding alumni</p></div>
-<p class="lead">GUCO's Constitution identifies support for University awards and recognition programmes among its objectives. This page explains each approved award, its purpose, eligibility, nomination process and announcement schedule.</p>
+<div class="lead"><?= cr('awards.intro') ?></div>
 <div class="split" style="margin:24px 0">
-  <?= dinner_figure(4, '', 'Certificates of Recognition are presented at GUCO events.') ?>
-  <div class="card accent"><h2 style="margin-top:0">Recognising excellence</h2><p>GUCO celebrates alumni whose achievements and service advance Gulu University and the community. Award details, eligibility and nomination status are published below once approved.</p></div>
+  <?php if ($img = c_image('awards.image')): ?><figure class="photo"><img src="<?= e($img) ?>" alt="GUCO awards" loading="lazy"></figure><?php else: ?><?= dinner_figure(4, '', 'Certificates of Recognition are presented at GUCO events.') ?><?php endif; ?>
+  <div class="card accent"><h2 style="margin-top:0">Recognising excellence</h2><?= cr('awards.feature') ?></div>
 </div>
 <div class="grid two">
 <?php foreach ($awards as $a): [$label, $cls] = $status[$a['nomination_status']]; ?>
@@ -28,5 +28,5 @@ $status = ['not_open' => ['Nominations not open', 'warn'], 'open' => ['Nominatio
   </article>
 <?php endforeach; ?>
 </div>
-<p class="notice">Nominations are only open where an award is shown as "Nominations open". No award ceremony is implied until the details have been approved and announced.</p>
+<div class="notice"><?= cr('awards.notice') ?></div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

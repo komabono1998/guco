@@ -44,6 +44,9 @@ require __DIR__ . '/includes/header.php';
 <?php elseif ($renewDue): ?>
   <div class="notice"><strong>Subscription renewal <?= $card['state'] === 'expired' ? 'overdue' : 'due soon' ?>.</strong> Submit your payment below to keep your card valid.</div>
 <?php endif; ?>
+<?php if (is_staff()): ?>
+  <p class="staff-bar"><strong>Staff account.</strong> <a class="btn" href="<?= url('admin/') ?>">Open the admin dashboard</a></p>
+<?php endif; ?>
 
 <ol class="timeline" aria-label="Application progress">
   <?php foreach ($stepDone as $label => $done): ?><li class="<?= $done ? 'done' : '' ?>"><?= e($label) ?></li><?php endforeach; ?>

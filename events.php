@@ -35,7 +35,8 @@ $past = q("SELECT * FROM events WHERE is_public = 1 AND starts_at < NOW()$catSql
 
 <section class="section notice">
   <h2 style="margin-top:0">Annual General Meeting</h2>
-  <p>The Constitution states that the AGM should be held not later than November each year. Written notice, accompanied by the annual statement of accounts and agenda, is sent at least 21 days before the meeting. Each AGM notice is published here and under <a href="<?= url('news.php?category=Notices') ?>">Notices</a> only after it has been formally issued by the Association.</p>
+  <?= cr('events.agm') ?>
+  <p><a href="<?= url('news.php?category=Notices') ?>">View official notices &rarr;</a></p>
 </section>
 
 <h2>Event highlights</h2>

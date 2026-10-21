@@ -10,7 +10,7 @@ $details = [
     'Membership support' => setting('membership_contact'), 'Chapter enquiries' => setting('chapter_contact'),
 ];
 ?>
-<div class="page-head"><h1>Contact GUCO</h1><p>Questions about membership, alumni chapters, events or working with GUCO?</p></div>
+<div class="page-head"><h1>Contact GUCO</h1><?= cr('contact.intro') ?></div>
 <div class="grid two">
   <div>
     <h2>Send us a message</h2>
@@ -18,7 +18,7 @@ $details = [
   </div>
   <div>
     <h2>Official address</h2>
-    <address class="card">Gulu University Convocation (GUCO)<br>Gulu University<br>P.O. Box 166<br>Laroo Road, Gulu City, Uganda</address>
+    <address class="card"><?= implode('<br>', array_map('e', c_lines('contact.address'))) ?></address>
     <?php $any = array_filter($details); if ($any): ?>
       <h2>Contact details</h2>
       <div class="card"><?php foreach ($any as $label => $v): ?><p><strong><?= e($label) ?>:</strong> <?= e($v) ?></p><?php endforeach; ?></div>

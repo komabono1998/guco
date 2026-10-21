@@ -1,42 +1,83 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
-const ADMIN_SECTIONS = [
-    ['Dashboard', 'index.php', null],
-    ['Members', 'members.php', 'members'],
-    ['Payments', 'payments.php', 'payments'],
-    ['News', 'news.php', 'news'],
-    ['Events', 'events.php', 'events'],
-    ['Chapters', 'chapters.php', 'chapters'],
-    ['Leadership', 'leaders.php', 'leaders'],
-    ['Programmes', 'programmes.php', 'programmes'],
-    ['Awards', 'awards.php', 'awards'],
-    ['Resources', 'resources.php', 'resources'],
-    ['Gallery', 'gallery.php', 'gallery'],
-    ['Messages', 'messages.php', 'messages'],
-    ['Subscribers', 'subscribers.php', 'subscribers'],
-    ['Settings', 'settings.php', 'settings'],
-    ['Users & roles', 'users.php', 'users'],
-    ['Audit log', 'audit.php', 'audit'],
+const ADMIN_GROUPS = [
+    'Overview' => [['Dashboard', 'index.php', null]],
+    'Website content' => [
+        ['Site content', 'content.php', 'content'], ['Pages', 'pages.php', 'pages'], ['Menu', 'menu.php', 'menu'],
+        ['News', 'news.php', 'news'], ['Events', 'events.php', 'events'], ['Resources', 'resources.php', 'resources'],
+        ['Gallery', 'gallery.php', 'gallery'],
+    ],
+    'Organisation' => [
+        ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'],
+        ['Programmes', 'programmes.php', 'programmes'], ['Awards', 'awards.php', 'awards'],
+    ],
+    'Membership' => [['Members', 'members.php', 'members'], ['Payments', 'payments.php', 'payments']],
+    'Inbox' => [['Messages', 'messages.php', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers']],
+    'Site' => [['Branding & layout', 'branding.php', 'branding'], ['Settings', 'settings.php', 'settings']],
+    'System' => [['Users & roles', 'users.php', 'users'], ['Audit log', 'audit.php', 'audit']],
 ];
 
+/** Admin chrome: top bar, grouped sidebar and a content area (closed by admin_footer). */
 function admin_header(string $title): void
 {
-    $pageTitle = 'Admin: ' . $title;
+    $me = current_user();
+    $flash = flash();
     $current = basename($_SERVER['SCRIPT_NAME']);
-    require __DIR__ . '/header.php';
-    echo '<nav class="adminnav" aria-label="Admin">';
-    foreach (ADMIN_SECTIONS as [$label, $file, $perm]) {
-        if ($perm === null || can($perm)) {
-            echo '<a href="' . e(url('admin/' . $file)) . '"' . ($current === $file ? ' aria-current="page"' : '') . '>' . e($label) . '</a>';
+    $siteName = setting('site_name', 'Gulu University Convocation');
+    $brandCss = '';
+    foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gold']] as $key => $vars) {
+        if (preg_match('/^#[0-9a-fA-F]{6}$/', setting($key))) {
+            foreach ($vars as $v) {
+                $brandCss .= "$v:" . setting($key) . ';';
+            }
         }
     }
-    echo '</nav><h1>' . e($title) . '</h1>';
+    ?><!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Admin: <?= e($title) ?> | <?= e(config('short_name')) ?></title>
+<link rel="icon" href="<?= e(logo_url()) ?>">
+<link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
+<?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
+</head>
+<body class="admin">
+<a class="skip" href="#main">Skip to main content</a>
+<header class="admin-top">
+  <a class="admin-brand" href="<?= url('admin/') ?>"><img src="<?= e(logo_url()) ?>" alt="" width="34" height="34"><span><?= e(config('short_name')) ?> Admin</span></a>
+  <button class="menu-toggle secondary" type="button" aria-expanded="false" aria-controls="adminside" onclick="var n=document.getElementById('adminside');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
+  <div class="admin-user">
+    <a href="<?= url() ?>" target="_blank" rel="noopener">View website</a>
+    <a href="<?= url('portal.php') ?>">Member Portal</a>
+    <span><?= e($me['full_name'] ?? '') ?> <small>(<?= e(ROLE_LABELS[$me['role'] ?? 'member'] ?? '') ?>)</small></span>
+    <a href="<?= url('logout.php') ?>">Log out</a>
+  </div>
+</header>
+<div class="admin-layout">
+  <aside id="adminside" class="admin-side" aria-label="Admin navigation">
+    <?php foreach (ADMIN_GROUPS as $group => $items):
+        $visible = array_filter($items, fn($i) => $i[2] === null || can($i[2]));
+        if (!$visible) {
+            continue;
+        } ?>
+      <h2><?= e($group) ?></h2>
+      <?php foreach ($visible as [$label, $file]): ?>
+        <a href="<?= e(url('admin/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+      <?php endforeach; ?>
+    <?php endforeach; ?>
+  </aside>
+  <main id="main" class="admin-main">
+    <?php if ($flash): ?><div class="flash <?= e($flash[1]) ?>" role="status"><?= e($flash[0]) ?></div><?php endif; ?>
+    <h1><?= e($title) ?></h1>
+<?php
 }
 
 function admin_footer(): void
 {
-    require __DIR__ . '/footer.php';
+    echo "  </main>\n</div>\n</body>\n</html>\n";
 }
 
 function admin_slug(string $table, string $title): string

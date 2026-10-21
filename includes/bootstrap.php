@@ -30,6 +30,10 @@ const NEWS_CATEGORIES = [
 const PERMS = [
     'members' => ['super_admin', 'secretariat'],
     'payments' => ['super_admin', 'secretariat'],
+    'content' => ['super_admin', 'secretariat', 'communications'],
+    'pages' => ['super_admin', 'secretariat', 'communications'],
+    'menu' => ['super_admin', 'secretariat'],
+    'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
     'events' => ['super_admin', 'secretariat', 'communications'],
@@ -77,6 +81,13 @@ function q(string $sql, array $args = []): PDOStatement
     $s = db()->prepare($sql);
     $s->execute($args);
     return $s;
+}
+
+/** Logo URL: the uploaded logo from Branding settings, or the bundled default. */
+function logo_url(): string
+{
+    $l = setting('logo');
+    return $l !== '' ? url('uploads/' . rawurlencode($l)) : url('assets/img/logo.webp');
 }
 
 function setting(string $key, string $default = ''): string
@@ -316,3 +327,4 @@ function pagination(int $total, int $per, int $page, string $baseQuery = ''): st
 
 require_once __DIR__ . '/events.php';
 require_once __DIR__ . '/membership.php';
+require_once __DIR__ . '/content.php';

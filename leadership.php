@@ -38,38 +38,38 @@ $people = function (string $organ) use ($byOrgan) {
 
 <section class="section">
   <h2>Governance structure</h2>
-  <p>Article 10 identifies four leadership organs: the General Assembly, the Board, the Executive Committee and the Disciplinary Committee. Office bearers are published after formal confirmation by the Secretariat; positions not yet confirmed show as "To be announced".</p>
+  <?= cr('leadership.intro') ?>
 </section>
 
 <section id="assembly" class="section">
   <h2>General Assembly</h2>
-  <p>The General Assembly is the supreme organ of GUCO. Its responsibilities include considering annual and financial reports, approving development plans and budgets, electing Executive Committee members, addressing constitutional matters and carrying out other functions that support the Association's progress. The Constitution identifies the Chancellor of Gulu University as Patron of the Association.</p>
+  <?= cr('leadership.assembly') ?>
   <?php $people('patron'); ?>
 </section>
 
 <section id="board" class="section">
   <h2>The Board</h2>
-  <p>The Board provides advisory services to the Executive Committee. Article 12 describes its composition as an elected prominent Gulu University alumnus as Board Chairperson, the Vice Chancellor and four members nominated by and approved by the General Assembly, two of whom shall be from outside Gulu University.</p>
+  <?= cr('leadership.board') ?>
   <?php $people('board'); ?>
 </section>
 
 <section id="executive" class="section">
   <h2>Executive Committee</h2>
-  <p>Article 14 specifies nine officials. The Constitution states that the Chairperson and Vice Chairperson shall be of opposite gender. The Executive Committee's term is four years, with eligibility for re-election for one further term in the same office.</p>
+  <?= cr('leadership.executive') ?>
   <?php $people('executive'); ?>
 </section>
 
 <section id="disciplinary" class="section">
   <h2>Disciplinary Committee</h2>
-  <p>The Disciplinary Committee is responsible for the general disciplinary conduct of members. The Constitution provides for a five-member committee elected from active members at the AGM, with disciplinary measures subject to the procedures and approvals described in the Constitution.</p>
+  <?= cr('leadership.disciplinary') ?>
   <?php $people('disciplinary'); ?>
 </section>
 
 <section id="elections" class="section">
   <h2>Elections and accountability</h2>
-  <p>The Constitution provides for elections at the General Assembly, secret-ballot voting by eligible fully paid-up members physically present, a four-year term for Executive Committee office bearers and an elections appeals process. The website publishes only officially approved election notices, candidate information, results and appeal guidance.</p>
+  <?= cr('leadership.elections') ?>
   <p><a href="<?= url('news.php?category=Notices') ?>">View official notices &rarr;</a></p>
 </section>
 
-<p class="notice"><strong>Website governance notice:</strong> The website summarises selected provisions for public information. The Constitution remains the authoritative source. Where a summary and the Constitution differ, the Constitution and applicable University rules govern.</p>
+<div class="notice"><strong>Website governance notice:</strong> <?= ct('leadership.notice') ?></div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -7,7 +7,7 @@ $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 ?>
 <div class="page-head"><h1>Membership</h1><p>Become part of the GUCO alumni network</p></div>
 <div class="split" style="margin-bottom:8px">
-<p class="lead">Membership connects eligible alumni and other qualifying members with a shared platform for networking, participation in Association activities and support for Gulu University. The Constitution provides for Founder, Ordinary, Honorary and Life Membership.</p>
+<div class="lead"><?= cr('membership.intro') ?></div>
 <?= dinner_figure(9, '', 'Alumni connecting at the ' . DINNER_ALBUM) ?>
 </div>
 
@@ -40,7 +40,7 @@ $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 
 <section class="section">
   <h2>Eligibility and registration</h2>
-  <p>Article 5 states that membership is open to eligible alumni above 18 years, subject to the Constitution's requirements. A person is deemed a member upon registration and full payment of the applicable membership and subscription fees for the relevant category.</p>
+  <?= cr('membership.eligibility') ?>
   <ol>
     <li>Complete the GUCO membership application form.</li>
     <li>Provide the required identity, graduation or eligibility details.</li>
@@ -53,29 +53,17 @@ $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 </section>
 
 <section class="section grid two">
-  <div class="card"><h2>Rights of members</h2><ul class="checks">
-    <li>Attend Annual General Meetings.</li>
-    <li>Vote in general elections where the member meets the Constitution's active-member requirements.</li>
-    <li>Stand for office and nominate or be nominated where eligible.</li>
-    <li>Participate in Association functions and activities, subject to applicable rules.</li>
-    <li>Appeal and be heard in accordance with the Constitution.</li></ul></div>
-  <div class="card"><h2>Obligations of members</h2><ul class="checks">
-    <li>Pay the applicable membership fees and annual subscriptions.</li>
-    <li>Refrain from using GUCO resources and assets for personal enrichment.</li>
-    <li>Observe the Constitution and applicable Association rules.</li></ul></div>
+  <div class="card"><h2>Rights of members</h2><ul class="checks"><?php foreach (c_lines('membership.rights') as $l): ?><li><?= e($l) ?></li><?php endforeach; ?></ul></div>
+  <div class="card"><h2>Obligations of members</h2><ul class="checks"><?php foreach (c_lines('membership.obligations') as $l): ?><li><?= e($l) ?></li><?php endforeach; ?></ul></div>
 </section>
 
 <section id="benefits" class="section">
   <h2>Membership benefits</h2>
-  <p>The Constitution provides for participation in Association activities and, for fully paid-up members whose dues are not in arrears, access to Association journals, bulletins, printed materials or other membership benefits that may apply. GUCO may publish additional benefits only after they have been approved and are actually available.</p>
+  <?= cr('membership.benefits') ?>
 </section>
 
 <section id="faq" class="section">
   <h2>Membership FAQ</h2>
-  <details><summary>Who can apply?</summary><p>People who meet the eligibility criteria in Article 5 of the GUCO Constitution.</p></details>
-  <details><summary>Does submitting a form make me a member?</summary><p>The Constitution states that registration and full payment of the applicable fees are required. The Secretariat confirms when an application is approved.</p></details>
-  <details><summary>Can members vote?</summary><p>Voting rights depend on the Constitution and active-member requirements.</p></details>
-  <details><summary>How do I confirm the current membership fees?</summary><p>Contact the GUCO Secretariat before making payment. Do not rely on an old website amount without confirmation.</p></details>
-  <details><summary>Can I join a chapter?</summary><p>Members can explore <a href="<?= url('chapters.php') ?>">recognised chapters</a> and contact the Secretariat about existing or proposed chapters.</p></details>
+  <?php foreach (c_pairs('membership.faq') as [$qn, $an]): ?><details><summary><?= e($qn) ?></summary><?= render_text($an) ?></details><?php endforeach; ?>
 </section>
 <?php require __DIR__ . '/includes/footer.php'; ?>
