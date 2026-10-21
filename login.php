@@ -2,7 +2,7 @@
 require_once __DIR__ . '/includes/bootstrap.php';
 $pageTitle = 'Log in';
 if (current_user()) {
-    redirect('portal.php');
+    redirect('member/');
 }
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             session_regenerate_id(true);
             $_SESSION['uid'] = $u['id'];
             unset($_SESSION['login_fails']);
-            redirect(in_array($u['role'], STAFF_ROLES, true) && $u['status'] === 'approved' ? 'admin/' : 'portal.php');
+            redirect(in_array($u['role'], STAFF_ROLES, true) && $u['status'] === 'approved' ? 'admin/' : 'member/');
         }
     }
 }

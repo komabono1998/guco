@@ -92,7 +92,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['uid'] = $uid;
         flash('Application received. The Secretariat will verify your payment and approve your membership; your membership ID is issued on approval.');
-        redirect('portal.php');
+        redirect('member/');
     }
 }
 require __DIR__ . '/includes/header.php';

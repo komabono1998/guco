@@ -39,29 +39,19 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <meta name="description" content="<?= e($pageDesc) ?>">
 <link rel="icon" href="<?= e($logo) ?>">
 <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
+<link rel="stylesheet" href="<?= url('assets/css/theme.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
 </head>
-<body>
+<body class="site">
 <a class="skip" href="#main">Skip to main content</a>
 <header class="site-header">
   <div class="container bar">
-    <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="56" height="56"><span><?= e($siteName) ?></span></a>
-    <div class="account">
-      <?php if ($me): ?>
-        <a href="<?= url('portal.php') ?>">Member Portal</a>
-        <a href="<?= url('logout.php') ?>">Log out</a>
-      <?php else: ?>
-        <a href="<?= url('login.php') ?>">Log in</a>
-        <a class="btn" href="<?= url('register.php') ?>">Join GUCO</a>
-      <?php endif; ?>
-    </div>
-  </div>
-  <div class="container">
-    <button class="menu-toggle secondary" aria-expanded="false" aria-controls="mainnav" onclick="var n=document.getElementById('mainnav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
+    <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="52" height="52"><span><?= e($siteName) ?></span></a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mainnav" onclick="var n=document.getElementById('mainnav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
     <nav id="mainnav" class="mainnav" aria-label="Main">
       <?php foreach ($nav as $n): $item = $n['item']; $kids = $n['children'] ?? []; ?>
         <div class="navitem<?= $kids ? ' has-sub' : '' ?>">
-          <a href="<?= e($menuUrl($item)) ?>"<?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?><?= !$kids && $here === strtok($item['url'], '#?') ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
+          <a href="<?= e($menuUrl($item)) ?>"<?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?><?= $here === strtok($item['url'], '#?') ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
           <?php if ($kids): ?>
             <div class="sub">
               <?php foreach ($kids as $k): ?><a href="<?= e($menuUrl($k)) ?>"<?= $k['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($k['label']) ?></a><?php endforeach; ?>
@@ -69,7 +59,20 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
           <?php endif; ?>
         </div>
       <?php endforeach; ?>
+      <div class="account account-mobile">
+        <?php if ($me): ?><a href="<?= url('member/') ?>">Member Portal</a><a href="<?= url('logout.php') ?>">Log out</a>
+        <?php else: ?><a href="<?= url('login.php') ?>">Log in</a><a class="btn" href="<?= url('register.php') ?>">Join GUCO</a><?php endif; ?>
+      </div>
     </nav>
+    <div class="account">
+      <?php if ($me): ?>
+        <a href="<?= url('member/') ?>" class="btn">Member Portal</a>
+        <a href="<?= url('logout.php') ?>">Log out</a>
+      <?php else: ?>
+        <a href="<?= url('login.php') ?>">Log in</a>
+        <a class="btn" href="<?= url('register.php') ?>">Join GUCO</a>
+      <?php endif; ?>
+    </div>
   </div>
 </header>
 <main id="main" class="container">

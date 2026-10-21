@@ -263,6 +263,15 @@ CREATE TABLE pages (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+CREATE TABLE partners (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    logo VARCHAR(200),
+    url VARCHAR(300),
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
 -- Contact details, fees and payment instructions stay blank/hidden until the
 -- Secretariat confirms them (see the website content document).
 INSERT INTO settings (k, v) VALUES
@@ -339,8 +348,8 @@ INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (111, 'Membership Categories', 'membership.php#categories', 3, 10),
  (112, 'Benefits', 'membership.php#benefits', 3, 20),
  (113, 'Join GUCO', 'register.php', 3, 30),
- (114, 'Member Portal', 'portal.php', 3, 40),
- (115, 'Renew Membership', 'portal.php#renew', 3, 50),
+ (114, 'Member Portal', 'member/', 3, 40),
+ (115, 'Renew Membership', 'member/payments.php#renew', 3, 50),
  (116, 'Verify a Card', 'verify.php', 3, 60),
  (117, 'FAQs', 'membership.php#faq', 3, 70),
  (121, 'General Assembly', 'leadership.php#assembly', 4, 10),

@@ -33,6 +33,7 @@ const PERMS = [
     'content' => ['super_admin', 'secretariat', 'communications'],
     'pages' => ['super_admin', 'secretariat', 'communications'],
     'menu' => ['super_admin', 'secretariat'],
+    'partners' => ['super_admin', 'secretariat', 'communications'],
     'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
@@ -194,7 +195,7 @@ function require_member(): array
     $u = require_login();
     if (!is_member()) {
         flash('This area is open to members with an approved application and a valid membership card.', 'error');
-        redirect('portal.php');
+        redirect('member/');
     }
     return $u;
 }
@@ -328,3 +329,4 @@ function pagination(int $total, int $per, int $page, string $baseQuery = ''): st
 require_once __DIR__ . '/events.php';
 require_once __DIR__ . '/membership.php';
 require_once __DIR__ . '/content.php';
+require_once __DIR__ . '/icons.php';

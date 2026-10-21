@@ -6,7 +6,7 @@ const ADMIN_GROUPS = [
     'Website content' => [
         ['Site content', 'content.php', 'content'], ['Pages', 'pages.php', 'pages'], ['Menu', 'menu.php', 'menu'],
         ['News', 'news.php', 'news'], ['Events', 'events.php', 'events'], ['Resources', 'resources.php', 'resources'],
-        ['Gallery', 'gallery.php', 'gallery'],
+        ['Gallery', 'gallery.php', 'gallery'], ['Partners', 'partners.php', 'partners'],
     ],
     'Organisation' => [
         ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'],
@@ -51,7 +51,7 @@ function admin_header(string $title): void
   <button class="menu-toggle secondary" type="button" aria-expanded="false" aria-controls="adminside" onclick="var n=document.getElementById('adminside');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
   <div class="admin-user">
     <a href="<?= url() ?>" target="_blank" rel="noopener">View website</a>
-    <a href="<?= url('portal.php') ?>">Member Portal</a>
+    <a href="<?= url('member/') ?>">Member Portal</a>
     <span><?= e($me['full_name'] ?? '') ?> <small>(<?= e(ROLE_LABELS[$me['role'] ?? 'member'] ?? '') ?>)</small></span>
     <a href="<?= url('logout.php') ?>">Log out</a>
   </div>
