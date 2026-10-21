@@ -1,4 +1,7 @@
 config.local.php
 uploads/*
 !uploads/.gitkeep
+storage/resources/*
 .claude/
+admin-credentials.local.txt
+!storage/resources/.gitkeep

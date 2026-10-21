@@ -1,37 +1,33 @@
 <?php
-$pageTitle = 'Alumni directory';
 require_once __DIR__ . '/includes/bootstrap.php';
-require_login();
-require __DIR__ . '/includes/header.php';
+$pageTitle = "Members' directory";
+require_member();
 $q = trim($_GET['q'] ?? '');
-$sql = "SELECT u.full_name, p.* FROM users u JOIN member_profiles p ON p.user_id = u.id
-        WHERE u.status = 'approved' AND p.show_in_directory = 1";
+$sql = "SELECT u.full_name, p.college, p.programme, p.graduation_year, p.profession, p.location, c.name AS chapter
+        FROM users u JOIN member_profiles p ON p.user_id = u.id LEFT JOIN chapters c ON c.id = p.chapter_id
+        WHERE u.status = 'approved' AND p.directory_consent = 1";
 $args = [];
 if ($q !== '') {
-    $sql .= ' AND (u.full_name LIKE ? OR p.faculty LIKE ? OR p.course LIKE ? OR p.occupation LIKE ? OR p.location LIKE ? OR p.graduation_year = ?)';
+    $sql .= ' AND (u.full_name LIKE ? OR p.college LIKE ? OR p.programme LIKE ? OR p.profession LIKE ? OR p.location LIKE ? OR p.graduation_year = ?)';
     $like = "%$q%";
     $args = [$like, $like, $like, $like, $like, (int) $q];
 }
-$s = db()->prepare($sql . ' ORDER BY u.full_name');
-$s->execute($args);
-$rows = $s->fetchAll();
+$rows = q($sql . ' ORDER BY u.full_name', $args)->fetchAll();
+require __DIR__ . '/includes/header.php';
 ?>
-<h1>Alumni directory</h1>
-<form method="get" class="stack" style="grid-template-columns:1fr auto;max-width:520px">
-  <input name="q" value="<?= e($q) ?>" placeholder="Search name, faculty, year, location…">
+<div class="page-head"><h1>Members' directory</h1><p>Only members who gave consent are listed. Contact details are not shown.</p></div>
+<form method="get" class="filters">
+  <label>Search <input type="search" name="q" value="<?= e($q) ?>" placeholder="Name, programme, year, location…"></label>
   <button>Search</button>
 </form>
-<br>
-<table>
-  <tr><th>Name</th><th>Faculty / Course</th><th>Year</th><th>Occupation</th><th>Location</th></tr>
+<div class="table-wrap"><table>
+  <tr><th>Name</th><th>Programme</th><th>Year</th><th>Profession</th><th>Location</th><th>Chapter</th></tr>
   <?php foreach ($rows as $r): ?>
     <tr>
       <td><?= e($r['full_name']) ?></td>
-      <td><?= e($r['faculty']) ?><br><span class="meta"><?= e($r['course']) ?></span></td>
-      <td><?= e($r['graduation_year']) ?></td>
-      <td><?= e($r['occupation']) ?></td>
-      <td><?= e($r['location']) ?></td>
+      <td><?= e($r['programme']) ?><br><span class="meta"><?= e($r['college']) ?></span></td>
+      <td><?= e($r['graduation_year']) ?></td><td><?= e($r['profession']) ?></td><td><?= e($r['location']) ?></td><td><?= e($r['chapter']) ?></td>
     </tr>
-  <?php endforeach; if (!$rows): ?><tr><td colspan="5">No members found.</td></tr><?php endif; ?>
-</table>
+  <?php endforeach; if (!$rows): ?><tr><td colspan="6">No members found.</td></tr><?php endif; ?>
+</table></div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

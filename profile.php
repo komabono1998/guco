@@ -4,38 +4,59 @@ $pageTitle = 'My profile';
 $me = require_login();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
+    if (isset($_POST['change_password'])) {
+        if (!password_verify($_POST['current'] ?? '', $me['password_hash'])) {
+            flash('Your current password is incorrect.', 'error');
+        } elseif (strlen($_POST['new'] ?? '') < 8) {
+            flash('New password must be at least 8 characters.', 'error');
+        } else {
+            q('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($_POST['new'], PASSWORD_DEFAULT), $me['id']]);
+            flash('Password changed.');
+        }
+        redirect('profile.php');
+    }
     $year = (int) ($_POST['graduation_year'] ?? 0);
-    db()->prepare('INSERT INTO member_profiles (user_id, phone, faculty, course, graduation_year, occupation, location, bio, show_in_directory)
-        VALUES (?,?,?,?,?,?,?,?,?)
-        ON DUPLICATE KEY UPDATE phone=VALUES(phone), faculty=VALUES(faculty), course=VALUES(course),
-        graduation_year=VALUES(graduation_year), occupation=VALUES(occupation), location=VALUES(location),
-        bio=VALUES(bio), show_in_directory=VALUES(show_in_directory)')
-        ->execute([
-            $me['id'], trim($_POST['phone'] ?? ''), trim($_POST['faculty'] ?? ''), trim($_POST['course'] ?? ''),
-            $year ?: null, trim($_POST['occupation'] ?? ''), trim($_POST['location'] ?? ''),
-            trim($_POST['bio'] ?? ''), isset($_POST['show_in_directory']) ? 1 : 0,
-        ]);
+    q('UPDATE member_profiles SET phone=?, college=?, programme=?, graduation_year=?, profession=?, location=?, bio=?, chapter_id=?, directory_consent=? WHERE user_id=?', [
+        trim($_POST['phone'] ?? ''), trim($_POST['college'] ?? ''), trim($_POST['programme'] ?? ''), $year ?: null,
+        trim($_POST['profession'] ?? ''), trim($_POST['location'] ?? ''), trim($_POST['bio'] ?? ''),
+        (int) ($_POST['chapter_id'] ?? 0) ?: null, empty($_POST['directory_consent']) ? 0 : 1, $me['id'],
+    ]);
     flash('Profile saved.');
     redirect('profile.php');
 }
-$s = db()->prepare('SELECT * FROM member_profiles WHERE user_id = ?');
-$s->execute([$me['id']]);
-$p = $s->fetch() ?: ['show_in_directory' => 1];
+$p = q('SELECT * FROM member_profiles WHERE user_id = ?', [$me['id']])->fetch() ?: [];
+$chapters = q('SELECT id, name FROM chapters WHERE is_public = 1 ORDER BY name')->fetchAll();
 $v = fn($k) => e($p[$k] ?? '');
 require __DIR__ . '/includes/header.php';
 ?>
-<h1>My profile</h1>
-<p><?= e($me['full_name']) ?> &middot; <?= e($me['email']) ?></p>
-<form method="post" class="stack">
+<div class="page-head"><h1>My profile</h1><p><?= e($me['full_name']) ?> &middot; <?= e($me['email']) ?></p></div>
+<p class="meta">To change your name, email or membership category, send a <a href="<?= url('contact.php?category=Profile+correction') ?>">profile-correction request</a>.</p>
+<form method="post" class="stack wide">
   <?= csrf_field() ?>
-  <label>Phone <input name="phone" value="<?= $v('phone') ?>"></label>
-  <label>Faculty <input name="faculty" value="<?= $v('faculty') ?>"></label>
-  <label>Course <input name="course" value="<?= $v('course') ?>"></label>
-  <label>Graduation year <input type="number" name="graduation_year" value="<?= $v('graduation_year') ?>"></label>
-  <label>Occupation <input name="occupation" value="<?= $v('occupation') ?>"></label>
-  <label>Location <input name="location" value="<?= $v('location') ?>"></label>
+  <div class="cols">
+    <label>Phone <input name="phone" value="<?= $v('phone') ?>"></label>
+    <label>College / faculty <input name="college" value="<?= $v('college') ?>"></label>
+    <label>Programme / course <input name="programme" value="<?= $v('programme') ?>"></label>
+    <label>Graduation year <input type="number" name="graduation_year" value="<?= $v('graduation_year') ?>"></label>
+    <label>Profession <input name="profession" value="<?= $v('profession') ?>"></label>
+    <label>Location <input name="location" value="<?= $v('location') ?>"></label>
+  </div>
+  <label>Chapter
+    <select name="chapter_id"><option value="">None</option>
+      <?php foreach ($chapters as $c): ?><option value="<?= (int) $c['id'] ?>"<?= (int) ($p['chapter_id'] ?? 0) === (int) $c['id'] ? ' selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
+    </select></label>
   <label>About me <textarea name="bio" rows="4"><?= $v('bio') ?></textarea></label>
-  <label class="check"><input type="checkbox" name="show_in_directory" <?= !empty($p['show_in_directory']) ? 'checked' : '' ?>> Show me in the alumni directory</label>
-  <button>Save</button>
+  <label class="check"><input type="checkbox" name="directory_consent" <?= !empty($p['directory_consent']) ? 'checked' : '' ?>> Show my name, programme, year, profession and location in the members' directory. Your phone and email are never shown.</label>
+  <button>Save profile</button>
 </form>
+
+<section class="section">
+  <h2>Change password</h2>
+  <form method="post" class="stack">
+    <?= csrf_field() ?><input type="hidden" name="change_password" value="1">
+    <label>Current password <input type="password" name="current" required autocomplete="current-password"></label>
+    <label>New password <input type="password" name="new" required minlength="8" autocomplete="new-password"></label>
+    <button>Change password</button>
+  </form>
+</section>
 <?php require __DIR__ . '/includes/footer.php'; ?>

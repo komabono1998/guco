@@ -1,0 +1,21 @@
+<?php
+require_once __DIR__ . '/../includes/admin.php';
+$cats = ['Constitution', 'Governance', 'Annual Reports', 'Financial Reports', 'Newsletters', 'Notices', 'Policies and Guidance', 'Plans and Impact Reports'];
+crud([
+    'table' => 'resources', 'title' => 'Resources library', 'perm' => 'resources', 'order' => 'published_at DESC, id DESC',
+    'fields' => [
+        'title' => ['label' => 'Title', 'type' => 'text', 'required' => true, 'list' => true],
+        'description' => ['label' => 'Short description', 'type' => 'text'],
+        'category' => ['label' => 'Category', 'type' => 'select', 'options' => array_combine($cats, $cats), 'list' => true],
+        'file' => ['label' => 'Document', 'type' => 'doc', 'required' => true, 'hint' => 'PDF or Office file, up to 20MB.'],
+        'published_at' => ['label' => 'Publication date', 'type' => 'date', 'list' => true],
+        'member_only' => ['label' => 'Members only', 'type' => 'check', 'list' => true],
+        'is_public' => ['label' => 'Publish', 'type' => 'check', 'default' => 1],
+    ],
+    'hook' => function (array &$v, ?array $old) {
+        if (empty($v['published_at'])) {
+            $v['published_at'] = date('Y-m-d');
+        }
+        return null;
+    },
+]);

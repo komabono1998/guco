@@ -6,21 +6,51 @@ CREATE TABLE users (
     full_name VARCHAR(150) NOT NULL,
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role ENUM('member','admin') NOT NULL DEFAULT 'member',
+    role ENUM('member','super_admin','secretariat','communications','newsletter_editor','chapter_coordinator') NOT NULL DEFAULT 'member',
     status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE chapters (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    description TEXT,
+    focus VARCHAR(150),
+    contact_name VARCHAR(150),
+    contact_email VARCHAR(190),
+    coordinator_user_id INT UNSIGNED NULL,
+    is_public TINYINT(1) NOT NULL DEFAULT 1,
+    FOREIGN KEY (coordinator_user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
 CREATE TABLE member_profiles (
     user_id INT UNSIGNED PRIMARY KEY,
+    category ENUM('founder','ordinary','honorary','life') NOT NULL DEFAULT 'ordinary',
+    subscription_status ENUM('unpaid','active','arrears') NOT NULL DEFAULT 'unpaid',
+    paid_until DATE NULL,
     phone VARCHAR(40),
-    faculty VARCHAR(150),
-    course VARCHAR(150),
+    college VARCHAR(150),
+    programme VARCHAR(150),
     graduation_year SMALLINT,
-    occupation VARCHAR(150),
+    profession VARCHAR(150),
     location VARCHAR(150),
     bio TEXT,
-    show_in_directory TINYINT(1) NOT NULL DEFAULT 1,
+    eligibility_details TEXT,
+    payment_reference VARCHAR(150),
+    chapter_id INT UNSIGNED NULL,
+    directory_consent TINYINT(1) NOT NULL DEFAULT 0,
+    admin_notes TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+);
+
+CREATE TABLE password_resets (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    used TINYINT(1) NOT NULL DEFAULT 0,
+    INDEX (token_hash),
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
@@ -28,8 +58,16 @@ CREATE TABLE news (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     slug VARCHAR(220) NOT NULL UNIQUE,
+    category VARCHAR(60) NOT NULL DEFAULT 'GUCO Announcements',
+    summary VARCHAR(300),
     body TEXT NOT NULL,
-    published_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    image VARCHAR(200),
+    status ENUM('draft','pending','published') NOT NULL DEFAULT 'draft',
+    author_id INT UNSIGNED NULL,
+    published_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FULLTEXT KEY ft_news (title, summary, body),
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE TABLE events (
@@ -37,7 +75,82 @@ CREATE TABLE events (
     title VARCHAR(200) NOT NULL,
     description TEXT,
     location VARCHAR(200),
-    starts_at DATETIME NOT NULL
+    online_link VARCHAR(300),
+    audience VARCHAR(200),
+    starts_at DATETIME NOT NULL,
+    ends_at DATETIME NULL,
+    registration_open TINYINT(1) NOT NULL DEFAULT 0,
+    accessibility_info VARCHAR(300),
+    contact VARCHAR(200),
+    status ENUM('scheduled','postponed','cancelled') NOT NULL DEFAULT 'scheduled',
+    is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE event_registrations (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    event_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NULL,
+    name VARCHAR(150) NOT NULL,
+    email VARCHAR(190) NOT NULL,
+    phone VARCHAR(40),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_event_email (event_id, email),
+    FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE leaders (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    title VARCHAR(150) NOT NULL,
+    organ ENUM('patron','board','executive','disciplinary') NOT NULL DEFAULT 'executive',
+    bio TEXT,
+    photo VARCHAR(200),
+    term VARCHAR(100),
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    is_public TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE programmes (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    area VARCHAR(100),
+    objective TEXT,
+    date_location VARCHAR(200),
+    target_group VARCHAR(200),
+    reach VARCHAR(100),
+    partners VARCHAR(300),
+    outcomes TEXT,
+    next_steps TEXT,
+    is_public TINYINT(1) NOT NULL DEFAULT 0
+);
+
+CREATE TABLE awards (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    eligibility TEXT,
+    nomination_status ENUM('not_open','open','closed') NOT NULL DEFAULT 'not_open',
+    deadline DATE NULL,
+    required_documents TEXT,
+    selection_process TEXT,
+    past_recipients TEXT,
+    contact VARCHAR(200),
+    is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE resources (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description VARCHAR(400),
+    category VARCHAR(80) NOT NULL DEFAULT 'Governance',
+    filename VARCHAR(200),
+    original_name VARCHAR(200),
+    file_size INT UNSIGNED,
+    member_only TINYINT(1) NOT NULL DEFAULT 0,
+    is_public TINYINT(1) NOT NULL DEFAULT 1,
+    published_at DATE NOT NULL DEFAULT (CURRENT_DATE),
+    FULLTEXT KEY ft_res (title, description)
 );
 
 CREATE TABLE gallery (
@@ -47,20 +160,52 @@ CREATE TABLE gallery (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE donation_pledges (
+CREATE TABLE messages (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
     name VARCHAR(150) NOT NULL,
     email VARCHAR(190) NOT NULL,
-    amount DECIMAL(12,2) NOT NULL,
-    purpose VARCHAR(200),
+    phone VARCHAR(40),
+    category VARCHAR(60) NOT NULL DEFAULT 'General',
+    subject VARCHAR(200),
+    body TEXT NOT NULL,
+    status ENUM('new','handled') NOT NULL DEFAULT 'new',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE messages (
+CREATE TABLE subscribers (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(150) NOT NULL,
-    email VARCHAR(190) NOT NULL,
-    subject VARCHAR(200),
-    body TEXT NOT NULL,
+    email VARCHAR(190) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE settings (
+    k VARCHAR(60) PRIMARY KEY,
+    v TEXT
+);
+
+CREATE TABLE audit_log (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NULL,
+    action VARCHAR(80) NOT NULL,
+    detail VARCHAR(400),
+    ip VARCHAR(45),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Contact details, fees and payment instructions stay blank/hidden until the
+-- Secretariat confirms them (see the website content document).
+INSERT INTO settings (k, v) VALUES
+ ('contact_email', ''), ('contact_phone', ''), ('office_hours', ''),
+ ('membership_contact', ''), ('chapter_contact', ''),
+ ('social_facebook', ''), ('social_x', ''), ('social_linkedin', ''), ('social_youtube', ''),
+ ('show_fees', '0'),
+ ('fee_founder', '100000'), ('fee_ordinary', '20000'), ('fee_honorary', '200000'), ('fee_life', '400000'),
+ ('payment_instructions', ''),
+ ('applications_open', '1');
+
+INSERT INTO awards (name, description, eligibility) VALUES
+ ('Outstanding Achievement Awards', 'Recognition of outstanding achievements by Gulu University alumni.', 'To be confirmed by the Secretariat.'),
+ ('Distinguished Service Award', 'For an alumnus who has made a significant contribution to the community or country.', 'To be confirmed by the Secretariat.'),
+ ('Distinguished Service Senior Alumnus Award', 'For an alumnus over 40 years of age with remarkable achievements.', 'Alumnus over 40 years of age. Further criteria to be confirmed.'),
+ ('Distinguished Service Youth Alumnus Award', 'For an alumnus under 40 years of age with significant achievements.', 'Alumnus under 40 years of age. Further criteria to be confirmed.');

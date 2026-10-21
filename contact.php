@@ -1,30 +1,28 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
+require_once __DIR__ . '/includes/forms.php';
 $pageTitle = 'Contact';
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    csrf_check();
-    $name = trim($_POST['name'] ?? '');
-    $email = trim($_POST['email'] ?? '');
-    $body = trim($_POST['body'] ?? '');
-    if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || $body === '') {
-        flash('Please fill in your name, a valid email and a message.', 'error');
-    } else {
-        db()->prepare('INSERT INTO messages (name, email, subject, body) VALUES (?,?,?,?)')
-            ->execute([$name, $email, trim($_POST['subject'] ?? ''), $body]);
-        flash('Message sent. We will get back to you soon.');
-        redirect('contact.php');
-    }
-}
+$pageDesc = 'Contact the GUCO Secretariat about membership, alumni chapters, events or partnerships.';
+handle_enquiry_post('contact.php');
 require __DIR__ . '/includes/header.php';
+$details = [
+    'Email' => setting('contact_email'), 'Telephone' => setting('contact_phone'), 'Office hours' => setting('office_hours'),
+    'Membership support' => setting('membership_contact'), 'Chapter enquiries' => setting('chapter_contact'),
+];
 ?>
-<h1>Contact us</h1>
-<p>Email: <a href="mailto:<?= e(config('contact_email')) ?>"><?= e(config('contact_email')) ?></a></p>
-<form method="post" class="stack">
-  <?= csrf_field() ?>
-  <label>Name <input name="name" required></label>
-  <label>Email <input type="email" name="email" required></label>
-  <label>Subject <input name="subject"></label>
-  <label>Message <textarea name="body" rows="5" required></textarea></label>
-  <button>Send</button>
-</form>
+<div class="page-head"><h1>Contact GUCO</h1><p>Questions about membership, alumni chapters, events or working with GUCO?</p></div>
+<div class="grid two">
+  <div>
+    <h2>Send us a message</h2>
+    <?php enquiry_form(in_array($_GET['category'] ?? '', ENQUIRY_CATEGORIES, true) ? $_GET['category'] : 'General'); ?>
+  </div>
+  <div>
+    <h2>Official address</h2>
+    <address class="card">Gulu University Convocation (GUCO)<br>Gulu University<br>P.O. Box 166<br>Laroo Road, Gulu City, Uganda</address>
+    <?php $any = array_filter($details); if ($any): ?>
+      <h2>Contact details</h2>
+      <div class="card"><?php foreach ($any as $label => $v): ?><p><strong><?= e($label) ?>:</strong> <?= e($v) ?></p><?php endforeach; ?></div>
+    <?php endif; ?>
+  </div>
+</div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

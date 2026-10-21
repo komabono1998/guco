@@ -1,5 +1,6 @@
 <?php
 // Site configuration. Override locally in config.local.php (git-ignored).
+// Contact details, fees and payment instructions are managed in Admin > Settings.
 $config = [
     'site_name' => 'Gulu University Convocation',
     'short_name' => 'GUCO',
@@ -10,12 +11,11 @@ $config = [
         'user' => 'root',
         'pass' => '',
     ],
-    'contact_email' => 'info@guco.example',
-    'donation' => [
-        'mobile_money' => 'Add MTN/Airtel number here',
-        'bank' => 'Add bank name, account name and number here',
-    ],
     'upload_dir' => __DIR__ . '/uploads',
+    'storage_dir' => __DIR__ . '/storage/resources',
+    // When true and mail() is unavailable, password-reset links are shown on screen.
+    // Set to false in production.
+    'dev_mode' => true,
 ];
 
 if (file_exists(__DIR__ . '/config.local.php')) {
