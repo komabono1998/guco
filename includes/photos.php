@@ -24,6 +24,24 @@ const DINNER_PHOTOS = [
     22 => 'A speaker addressing the dinner',
 ];
 
+/** Leader photo, or an initials placeholder when none has been uploaded. */
+function leader_photo(array $l, string $size = ''): string
+{
+    $cls = 'avatar' . ($size ? " $size" : '');
+    if (!empty($l['photo'])) {
+        return '<img class="' . $cls . '" src="' . e(url('uploads/' . rawurlencode($l['photo']))) . '" alt="' . e(trim($l['name']) !== '' ? $l['name'] : $l['title']) . '">';
+    }
+    $initials = '';
+    foreach (preg_split('/\s+/', trim($l['name'])) as $w) {
+        $initials .= $w !== '' ? mb_strtoupper(mb_substr($w, 0, 1)) : '';
+    }
+    $initials = mb_substr($initials, 0, 2);
+    if ($initials === '') {
+        return '<span class="' . $cls . ' empty" role="img" aria-label="Photo placeholder"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7z"/></svg></span>';
+    }
+    return '<span class="' . $cls . ' initials" role="img" aria-label="' . e($l['name']) . '">' . e($initials) . '</span>';
+}
+
 function dinner_src(int $n): string
 {
     return url('assets/img/dinner/dinner-' . sprintf('%02d', $n) . '.jpg');

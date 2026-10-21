@@ -105,10 +105,11 @@ CREATE TABLE leaders (
     title VARCHAR(150) NOT NULL,
     organ ENUM('patron','board','executive','disciplinary') NOT NULL DEFAULT 'executive',
     bio TEXT,
+    role_description TEXT,
     photo VARCHAR(200),
     term VARCHAR(100),
     sort_order SMALLINT NOT NULL DEFAULT 100,
-    is_public TINYINT(1) NOT NULL DEFAULT 0
+    is_public TINYINT(1) NOT NULL DEFAULT 1
 );
 
 CREATE TABLE programmes (
@@ -209,3 +210,28 @@ INSERT INTO awards (name, description, eligibility) VALUES
  ('Distinguished Service Award', 'For an alumnus who has made a significant contribution to the community or country.', 'To be confirmed by the Secretariat.'),
  ('Distinguished Service Senior Alumnus Award', 'For an alumnus over 40 years of age with remarkable achievements.', 'Alumnus over 40 years of age. Further criteria to be confirmed.'),
  ('Distinguished Service Youth Alumnus Award', 'For an alumnus under 40 years of age with significant achievements.', 'Alumnus under 40 years of age. Further criteria to be confirmed.');
+
+-- Placeholder positions for the governing organs (Constitution Articles 10-16).
+-- Edit them in Admin > Leadership to add names, photos and profiles.
+INSERT INTO leaders (name, title, organ, role_description, sort_order, is_public) VALUES
+ ('', 'Patron (Chancellor of Gulu University)', 'patron', 'The Constitution identifies the Chancellor of Gulu University as Patron of the Association.', 10, 1),
+ ('', 'Board Chairperson', 'board', 'An elected prominent Gulu University alumnus who chairs the Board. The Board provides advisory services to the Executive Committee.', 10, 1),
+ ('', 'Vice Chancellor, Gulu University', 'board', 'Member of the Board by virtue of office.', 20, 1),
+ ('', 'Board Member', 'board', 'Nominated by and approved by the General Assembly.', 30, 1),
+ ('', 'Board Member', 'board', 'Nominated by and approved by the General Assembly.', 40, 1),
+ ('', 'Board Member (from outside Gulu University)', 'board', 'Nominated by and approved by the General Assembly; one of two members from outside Gulu University.', 50, 1),
+ ('', 'Board Member (from outside Gulu University)', 'board', 'Nominated by and approved by the General Assembly; one of two members from outside Gulu University.', 60, 1),
+ ('', 'Chairperson', 'executive', 'General supervision, representation, committee coordination, policy implementation, strategic planning, fundraising and alumni outreach.', 10, 1),
+ ('', 'Vice Chairperson', 'executive', 'Performs the Chairperson''s duties in their absence and other assigned duties. The Chairperson and Vice Chairperson are of opposite gender.', 20, 1),
+ ('', 'General Secretary (Academic Registrar, Gulu University)', 'executive', 'Meeting notices and agendas, minutes, attendance records, correspondence and Association records. Does not vote or stand for election.', 30, 1),
+ ('', 'Treasurer', 'executive', 'Funds, accounts, membership dues, budgets and quarterly and annual financial reporting.', 40, 1),
+ ('', 'Publicity Secretary', 'executive', 'Member mobilisation, information dissemination, social media and website management, and liaison with other university associations.', 50, 1),
+ ('', 'Female Representative', 'executive', 'Encourages participation by female alumni and staff.', 60, 1),
+ ('', 'Staff Representative', 'executive', 'Represents University staff and supports staff mobilisation.', 70, 1),
+ ('', 'Newsletter Editor', 'executive', 'Provides timely information and publicises Association activities.', 80, 1),
+ ('', 'Executive Member', 'executive', 'One other member elected at the General Assembly.', 90, 1),
+ ('', 'Disciplinary Committee Member', 'disciplinary', 'Elected from active members at the AGM; responsible for the general disciplinary conduct of members.', 10, 1),
+ ('', 'Disciplinary Committee Member', 'disciplinary', 'Elected from active members at the AGM; responsible for the general disciplinary conduct of members.', 20, 1),
+ ('', 'Disciplinary Committee Member', 'disciplinary', 'Elected from active members at the AGM; responsible for the general disciplinary conduct of members.', 30, 1),
+ ('', 'Disciplinary Committee Member', 'disciplinary', 'Elected from active members at the AGM; responsible for the general disciplinary conduct of members.', 40, 1),
+ ('', 'Disciplinary Committee Member', 'disciplinary', 'Elected from active members at the AGM; responsible for the general disciplinary conduct of members.', 50, 1);

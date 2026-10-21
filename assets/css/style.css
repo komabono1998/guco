@@ -76,9 +76,22 @@ ul.checks { list-style: none; padding-left: 0; }
 ul.checks li { padding-left: 26px; position: relative; margin: 6px 0; }
 ul.checks li::before { content: "\2713"; position: absolute; left: 0; color: var(--green-2); font-weight: 700; }
 ul.plain { list-style: none; padding: 0; margin: 0; }
-.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
-.person { text-align: center; }
-.person img { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; margin: 0 auto 8px; display: block; }
+.people { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; margin-top: 16px; }
+.person { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: inherit; }
+a.person:hover { border-color: var(--green-2); box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+.person strong { font-size: 1.05rem; }
+.person .role { color: var(--green); font-weight: 600; font-size: .9rem; }
+.person .duty { color: var(--muted); font-size: .82rem; margin-top: 4px; }
+.person .more { color: var(--green-2); font-size: .85rem; margin-top: auto; padding-top: 6px; }
+.person.vacant { background: #fbfcfb; border-style: dashed; }
+.person.vacant strong { color: var(--muted); font-weight: 600; }
+.avatar { width: 104px; height: 104px; border-radius: 50%; object-fit: cover; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; flex: none; }
+.avatar.large { width: 220px; height: 220px; font-size: 3rem; }
+.avatar.initials { background: var(--green); color: #fff; font-size: 2rem; font-weight: 700; }
+.avatar.empty { background: #e8efe9; color: #a9b8ad; }
+.avatar.empty svg { width: 58%; height: 58%; fill: currentColor; }
+.profile { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: start; }
+@media (max-width: 700px) { .profile { grid-template-columns: 1fr; } }
 details { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 10px 16px; margin: 8px 0; }
 summary { cursor: pointer; font-weight: 600; }
 
