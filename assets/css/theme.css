@@ -35,7 +35,7 @@ body.site .account a:hover { color: var(--green); }
 body.site .account .btn { padding: 9px 18px; }
 body.site .account-mobile { display: none; }
 body.site .menu-toggle { display: none; background: var(--soft); color: var(--ink); margin-left: auto; padding: 8px 14px; }
-@media (max-width: 1240px) {
+@media (max-width: 1380px) {
   body.site .site-header .bar { flex-wrap: wrap; }
   body.site .menu-toggle { display: inline-block; }
   body.site .account { display: none; }
@@ -218,3 +218,9 @@ body.site .hero { display: none; }
 
 body.site .band h2 { color: #fff; }
 body.site .welcome h2, body.site .cta h2 { color: #fff; }
+
+.chapter-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.chapter-card { display: flex; flex-direction: column; gap: 4px; }
+.chapter-card p { margin: .4em 0; }
+.ic-circle { width: 42px; height: 42px; border-radius: 50%; background: #e6f2ea; color: var(--green); display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.project-card { display: flex; flex-direction: column; }

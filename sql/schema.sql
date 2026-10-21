@@ -6,7 +6,7 @@ CREATE TABLE users (
     full_name VARCHAR(150) NOT NULL,
     email VARCHAR(190) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
-    role ENUM('member','super_admin','secretariat','communications','newsletter_editor','chapter_coordinator') NOT NULL DEFAULT 'member',
+    role ENUM('member','super_admin','secretariat','executive','communications','newsletter_editor','chapter_coordinator') NOT NULL DEFAULT 'member',
     status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -16,9 +16,15 @@ CREATE TABLE chapters (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     focus VARCHAR(150),
+    districts TEXT,
+    meeting_info VARCHAR(300),
+    image VARCHAR(200),
     contact_name VARCHAR(150),
     contact_email VARCHAR(190),
     coordinator_user_id INT UNSIGNED NULL,
+    accepting_members TINYINT(1) NOT NULL DEFAULT 1,
+    requires_approval TINYINT(1) NOT NULL DEFAULT 1,
+    sort_order SMALLINT NOT NULL DEFAULT 100,
     is_public TINYINT(1) NOT NULL DEFAULT 1,
     FOREIGN KEY (coordinator_user_id) REFERENCES users(id) ON DELETE SET NULL
 );
@@ -272,6 +278,85 @@ CREATE TABLE partners (
     is_public TINYINT(1) NOT NULL DEFAULT 1
 );
 
+CREATE TABLE chapter_members (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    chapter_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    status ENUM('pending','approved','rejected','left') NOT NULL DEFAULT 'pending',
+    role ENUM('member','chairperson','vice_chairperson','secretary','treasurer','organising_secretary','committee_member') NOT NULL DEFAULT 'member',
+    district VARCHAR(100),
+    country VARCHAR(80),
+    availability VARCHAR(80),
+    interests VARCHAR(300),
+    leadership_interest TINYINT(1) NOT NULL DEFAULT 0,
+    motivation TEXT,
+    share_contact TINYINT(1) NOT NULL DEFAULT 0,
+    decision_note VARCHAR(300),
+    decided_by INT UNSIGNED NULL,
+    decided_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_chapter_user (chapter_id, user_id),
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE projects (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT UNSIGNED NOT NULL,
+    chapter_id INT UNSIGNED NULL,
+    title VARCHAR(200) NOT NULL,
+    theme VARCHAR(80),
+    summary VARCHAR(500),
+    location VARCHAR(200),
+    problem TEXT,
+    objectives TEXT,
+    beneficiaries TEXT,
+    activities TEXT,
+    outcomes TEXT,
+    start_date DATE NULL,
+    end_date DATE NULL,
+    budget DECIMAL(14,2) NOT NULL DEFAULT 0,
+    resource_plan TEXT,
+    team TEXT,
+    risks TEXT,
+    attachment VARCHAR(200),
+    attachment_original VARCHAR(200),
+    status ENUM('draft','submitted','under_review','changes_requested','approved','in_progress','completed','rejected','cancelled') NOT NULL DEFAULT 'draft',
+    review_note TEXT,
+    reviewed_by INT UNSIGNED NULL,
+    reviewed_at DATETIME NULL,
+    submitted_at DATETIME NULL,
+    is_public TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (chapter_id) REFERENCES chapters(id) ON DELETE SET NULL
+);
+
+CREATE TABLE project_updates (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    project_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    kind ENUM('progress','mobilisation') NOT NULL DEFAULT 'progress',
+    body TEXT NOT NULL,
+    amount DECIMAL(14,2) NULL,
+    verified TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE project_comments (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    project_id INT UNSIGNED NOT NULL,
+    user_id INT UNSIGNED NOT NULL,
+    body TEXT NOT NULL,
+    internal TINYINT(1) NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
 -- Contact details, fees and payment instructions stay blank/hidden until the
 -- Secretariat confirms them (see the website content document).
 INSERT INTO settings (k, v) VALUES
@@ -361,3 +446,17 @@ INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (133, 'Notices', 'news.php?category=Notices', 7, 30),
  (134, 'Newsletter', 'news.php?category=Newsletter', 7, 40),
  (135, 'Gallery', 'gallery.php', 7, 50);
+
+-- The six regional chapters and the Programmes drop-down links.
+INSERT INTO chapters (name, focus, description, meeting_info, sort_order, is_public) VALUES
+ ('Northern Uganda Chapter', 'Regional chapter', 'For Gulu University alumni living in or connected to Northern Uganda. Share opportunities, support students and give back to the communities around the University.', 'Meeting dates and venues will be announced by the chapter leadership.', 10, 1),
+ ('West Nile Chapter', 'Regional chapter', 'For alumni living in or connected to the West Nile region.', 'Meeting dates and venues will be announced by the chapter leadership.', 20, 1),
+ ('Eastern Uganda Chapter', 'Regional chapter', 'For alumni living in or connected to Eastern Uganda.', 'Meeting dates and venues will be announced by the chapter leadership.', 30, 1),
+ ('Central Uganda Chapter', 'Regional chapter', 'For alumni living in or connected to Central Uganda, including Kampala and surrounding districts.', 'Meeting dates and venues will be announced by the chapter leadership.', 40, 1),
+ ('Western Uganda Chapter', 'Regional chapter', 'For alumni living in or connected to Western Uganda.', 'Meeting dates and venues will be announced by the chapter leadership.', 50, 1),
+ ('Diaspora Chapter', 'Diaspora chapter', 'For Gulu University alumni living outside Uganda. Stay connected, mentor students and mobilise support from wherever you are.', 'Online and in-country meetings will be announced by the chapter leadership.', 60, 1);
+
+INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
+ (141, 'Programme Areas', 'programmes.php', 5, 10),
+ (142, 'Community Projects', 'projects.php', 5, 20),
+ (143, 'Propose a Project', 'member/projects.php', 5, 30);

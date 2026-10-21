@@ -29,6 +29,8 @@ function portal_header(string $title): void
         ['Membership card', 'card.php', 'id-card', true],
         ['Payments & renewal', 'payments.php', 'wallet', false],
         ['Events', 'events.php', 'calendar', false],
+        ['Chapters', 'chapters.php', 'map-pin', true, ['chapter_join.php']],
+        ['Projects', 'projects.php', 'target', true, ['project.php', 'project_form.php']],
         ['Documents', 'documents.php', 'file', true],
         ["Members' directory", 'directory.php', 'users', true],
         ['Support', 'support.php', 'life-buoy', false],
@@ -65,11 +67,11 @@ function portal_header(string $title): void
       <span class="badge <?= $card['state'] === 'valid' ? '' : ($card['state'] === 'none' ? 'warn' : 'bad') ?>"><?= $card['state'] === 'none' ? ($me['status'] === 'pending' ? 'Application pending' : ucfirst($me['status'])) : e($card['label']) ?></span>
     </div>
     <nav>
-      <?php foreach ($items as [$label, $file, $ic, $locked]): ?>
+      <?php foreach ($items as $it): [$label, $file, $ic, $locked] = $it; $aliases = $it[4] ?? []; ?>
         <?php if ($locked && !$member): ?>
           <span class="locked" title="Available once your membership is approved"><?= icon($ic, 18) ?><?= e($label) ?><?= icon('lock', 14) ?></span>
         <?php else: ?>
-          <a href="<?= e(url('member/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?>><?= icon($ic, 18) ?><?= e($label) ?></a>
+          <a href="<?= e(url('member/' . $file)) ?>"<?= $current === $file || in_array($current, $aliases, true) ? ' aria-current="page"' : '' ?>><?= icon($ic, 18) ?><?= e($label) ?></a>
         <?php endif; ?>
       <?php endforeach; ?>
     </nav>

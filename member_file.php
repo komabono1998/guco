@@ -14,8 +14,12 @@ if ($type === 'photo') {
     $row = q('SELECT user_id, proof_file, proof_original FROM member_payments WHERE id = ?', [$id])->fetch();
     $file = $row['proof_file'] ?? null;
     $owner = $row['user_id'] ?? null;
+} elseif ($type === 'project') {
+    $row = q('SELECT user_id, attachment FROM projects WHERE id = ?', [$id])->fetch();
+    $file = $row['attachment'] ?? null;
+    $owner = $row['user_id'] ?? null;
 }
-if (!$file || !($owner == $me['id'] || can('members') || can('payments'))) {
+if (!$file || !($owner == $me['id'] || can('members') || can('payments') || can('projects'))) {
     http_response_code(404);
     exit('File not found.');
 }

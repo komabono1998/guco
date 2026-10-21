@@ -4,12 +4,13 @@ session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
 session_start();
 date_default_timezone_set('Africa/Kampala');
 
-const STAFF_ROLES = ['super_admin', 'secretariat', 'communications', 'newsletter_editor', 'chapter_coordinator'];
+const STAFF_ROLES = ['super_admin', 'secretariat', 'executive', 'communications', 'newsletter_editor', 'chapter_coordinator'];
 
 const ROLE_LABELS = [
     'member' => 'Member',
     'super_admin' => 'Super Administrator',
     'secretariat' => 'GUCO Secretariat',
+    'executive' => 'Executive Committee member',
     'communications' => 'Publicity Secretary / Communications Editor',
     'newsletter_editor' => 'Newsletter Editor',
     'chapter_coordinator' => 'Chapter Coordinator',
@@ -34,6 +35,7 @@ const PERMS = [
     'pages' => ['super_admin', 'secretariat', 'communications'],
     'menu' => ['super_admin', 'secretariat'],
     'partners' => ['super_admin', 'secretariat', 'communications'],
+    'projects' => ['super_admin', 'secretariat', 'executive'],
     'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
@@ -330,3 +332,4 @@ require_once __DIR__ . '/events.php';
 require_once __DIR__ . '/membership.php';
 require_once __DIR__ . '/content.php';
 require_once __DIR__ . '/icons.php';
+require_once __DIR__ . '/projects.php';

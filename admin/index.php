@@ -11,6 +11,8 @@ $count = fn($sql) => (int) db()->query($sql)->fetchColumn();
 $stats = [
     ['members', 'members.php?status=pending', $count("SELECT COUNT(*) FROM users WHERE status='pending'"), 'Applications to review', true],
     ['payments', 'payments.php', $count("SELECT COUNT(*) FROM member_payments WHERE status='pending'"), 'Payments to verify', true],
+    ['projects', 'projects.php?status=submitted', $count("SELECT COUNT(*) FROM projects WHERE status IN ('submitted','under_review')"), 'Projects to review', true],
+    ['chapters', 'chapter_members.php?status=pending', $count("SELECT COUNT(*) FROM chapter_members WHERE status='pending'"), 'Chapter registrations to approve', true],
     ['messages', 'messages.php', $count("SELECT COUNT(*) FROM messages WHERE status='new'"), 'New messages', true],
     ['news', 'news.php', $count("SELECT COUNT(*) FROM news WHERE status='pending'"), 'News awaiting review', true],
     ['members', 'members.php?card=active', $count("SELECT COUNT(*) FROM member_profiles WHERE card_status='active'"), 'Active membership cards', false],

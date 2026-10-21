@@ -9,7 +9,7 @@ const ADMIN_GROUPS = [
         ['Gallery', 'gallery.php', 'gallery'], ['Partners', 'partners.php', 'partners'],
     ],
     'Organisation' => [
-        ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'],
+        ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'], ['Chapter members', 'chapter_members.php', 'chapters'], ['Projects', 'projects.php', 'projects'],
         ['Programmes', 'programmes.php', 'programmes'], ['Awards', 'awards.php', 'awards'],
     ],
     'Membership' => [['Members', 'members.php', 'members'], ['Payments', 'payments.php', 'payments']],

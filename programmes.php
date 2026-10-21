@@ -13,6 +13,15 @@ $areaPhoto = ['Alumni Networking and Engagement' => 7, 'Awards and Recognition' 
   <?php endforeach; ?>
 </div>
 
+<section class="section split">
+  <div>
+    <h2 style="margin-top:0">Member-led community projects</h2>
+    <p>Members can propose projects. The Executive Committee reviews each proposal and, once it is approved, the member who proposed it leads implementation and mobilises resources with GUCO's support.</p>
+    <p><a class="btn" href="<?= url('projects.php') ?>">See community projects</a> <a class="btn secondary" href="<?= url('member/project_form.php') ?>">Propose a project</a></p>
+  </div>
+  <div class="card accent"><strong>How it works</strong><ol style="margin:.5em 0 0;padding-left:1.2em"><li>Propose with a workplan and budget</li><li>Executive review</li><li>Approval and publication</li><li>Proposer leads and mobilises resources</li></ol></div>
+</section>
+
 <section class="section">
   <h2>Impact reports</h2>
   <?php foreach ($reports as $p): ?>
