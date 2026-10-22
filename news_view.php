@@ -10,10 +10,8 @@ require __DIR__ . '/includes/header.php';
 if (!$n): ?>
   <h1>Article not found</h1><p><a href="<?= url('news.php') ?>">Back to news</a></p>
 <?php else: ?>
+  <div class="page-head"><span class="badge"><?= e($n['category']) ?></span><h1><?= e($n['title']) ?></h1><p><?= e(fmt_date($n['published_at'])) ?><?= $n['source_name'] ? ' &middot; ' . e($n['source_name']) : '' ?></p></div>
   <article style="max-width:780px">
-    <span class="badge"><?= e($n['category']) ?></span>
-    <h1 style="margin-top:6px"><?= e($n['title']) ?></h1>
-    <p class="meta"><?= e(fmt_date($n['published_at'])) ?><?= $n['source_name'] ? ' &middot; ' . e($n['source_name']) : '' ?></p>
     <?php if ($n['image']): ?><img src="<?= url('uploads/' . rawurlencode($n['image'])) ?>" alt="" style="width:100%;border-radius:12px;margin-bottom:12px"><?php endif; ?>
     <?php if ($n['summary']): ?><p class="lead"><?= e($n['summary']) ?></p><?php endif; ?>
     <?php if ($n['body']): ?><?= render_text((string) $n['body']) ?><?php endif; ?>

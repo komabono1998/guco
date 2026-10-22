@@ -68,6 +68,15 @@
     <span><a href="<?= url('privacy.php') ?>">Privacy Notice</a> &middot; <a href="<?= url('accessibility.php') ?>">Accessibility</a></span>
   </div>
 </footer>
+<button type="button" class="to-top" id="toTop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><?= icon('arrow-right', 20) ?></button>
 <script src="<?= url('assets/js/countdown.js') ?>"></script>
+<script>
+(function () {
+  var b = document.getElementById('toTop');
+  if (!b) return;
+  b.firstElementChild.style.transform = 'rotate(-90deg)';
+  window.addEventListener('scroll', function () { b.classList.toggle('show', window.scrollY > 600); }, { passive: true });
+})();
+</script>
 </body>
 </html>

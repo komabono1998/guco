@@ -21,8 +21,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/auth_ui.php';
+auth_open('Reset your password', 'Enter your email and we will send you a link to choose a new password.');
 ?>
-<div class="page-head"><h1>Reset your password</h1></div>
 <?php if ($devLink): ?>
   <p class="notice"><strong>Development mode:</strong> email is not configured, so here is your reset link: <a href="<?= e($devLink) ?>"><?= e($devLink) ?></a></p>
 <?php endif; ?>
@@ -31,4 +32,6 @@ require __DIR__ . '/includes/header.php';
   <label>Email <input type="email" name="email" required autocomplete="email"></label>
   <button>Send reset link</button>
 </form>
+<p class="alt"><a href="<?= url('login.php') ?>">Back to log in</a></p>
+<?php auth_close(); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

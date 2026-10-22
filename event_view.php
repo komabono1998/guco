@@ -25,12 +25,11 @@ require __DIR__ . '/includes/header.php';
 if (!$ev): ?>
   <h1>Event not found</h1>
 <?php else: $me = current_user(); $fl = event_flyer_url($ev); ?>
+  <div class="page-head"><span class="badge"><?= e($ev['category']) ?></span> <?= event_status_badge($ev) ?><h1><?= e($ev['title']) ?></h1><p><?= e(event_when($ev, 'l j F Y, g:ia')) ?><?= $ev['location'] ? ' &middot; ' . e($ev['location']) : '' ?></p></div>
   <p><a href="<?= url('events.php') ?>">&larr; Events calendar</a></p>
   <div class="event-page" style="<?= $fl ? '' : 'grid-template-columns:1fr' ?>">
     <?php if ($fl): ?><div><a href="<?= e($fl) ?>" target="_blank" rel="noopener"><img class="flyer" src="<?= e($fl) ?>" alt="Flyer for <?= e($ev['title']) ?>"></a></div><?php endif; ?>
     <div>
-      <span class="badge"><?= e($ev['category']) ?></span> <?= event_status_badge($ev) ?>
-      <h1 style="margin:6px 0"><?= e($ev['title']) ?></h1>
       <?php if ($ev['status'] !== 'scheduled'): ?><p class="notice"><strong>This event has been <?= e($ev['status']) ?>.</strong> Please check <a href="<?= url('news.php?category=Notices') ?>">Notices</a> for updates.</p><?php endif; ?>
       <?= event_countdown($ev) ?>
       <div class="event-facts">

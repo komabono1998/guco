@@ -25,13 +25,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/auth_ui.php';
+auth_open('Welcome back', 'Log in to your Member Portal. Staff are taken to the admin console.');
 ?>
-<div class="page-head"><h1>Log in</h1></div>
 <form method="post" class="stack">
   <?= csrf_field() ?>
   <label>Email <input type="email" name="email" required autocomplete="username"></label>
   <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
   <button>Log in</button>
 </form>
-<p><a href="<?= url('forgot.php') ?>">Forgot your password?</a> &middot; Not a member yet? <a href="<?= url('register.php') ?>">Join GUCO</a>.</p>
+<p class="alt"><a href="<?= url('forgot.php') ?>">Forgot your password?</a> &middot; Not a member yet? <a href="<?= url('register.php') ?>">Join GUCO</a>.</p>
+<?php auth_close(); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

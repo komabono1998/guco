@@ -40,10 +40,26 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <link rel="icon" href="<?= e($logo) ?>">
 <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
 <link rel="stylesheet" href="<?= url('assets/css/theme.css') ?>">
+<link rel="stylesheet" href="<?= url('assets/css/ui.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
 </head>
 <body class="site">
 <a class="skip" href="#main">Skip to main content</a>
+<div class="topbar">
+  <div class="container tb">
+    <div class="tb-l">
+      <?php if (setting('contact_email')): ?><a href="mailto:<?= e(setting('contact_email')) ?>"><?= icon('mail', 14) ?><?= e(setting('contact_email')) ?></a><?php endif; ?>
+      <?php if (setting('contact_phone')): ?><span><?= e(setting('contact_phone')) ?></span><?php endif; ?>
+      <?php if (!setting('contact_email') && !setting('contact_phone')): ?><span class="tb-tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></span><?php endif; ?>
+    </div>
+    <div class="tb-r">
+      <a href="<?= url('verify.php') ?>"><?= icon('shield', 14) ?>Verify a card</a>
+      <a href="<?= url('resources.php') ?>">Reports &amp; documents</a>
+      <a href="<?= url('contact.php') ?>">Contact</a>
+      <?php foreach (['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linkedin' => 'LinkedIn', 'social_youtube' => 'YouTube'] as $sk => $sl): if (setting($sk)): ?><a href="<?= e(setting($sk)) ?>" target="_blank" rel="noopener"><?= $sl ?></a><?php endif; endforeach; ?>
+    </div>
+  </div>
+</div>
 <header class="site-header">
   <div class="container bar">
     <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="52" height="52"><span><?= e($siteName) ?></span></a>

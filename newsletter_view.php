@@ -11,10 +11,8 @@ require __DIR__ . '/includes/header.php';
 if (!$n): ?>
   <h1>Newsletter not found</h1><p><a href="<?= url('newsletters.php') ?>">Back to newsletters</a></p>
 <?php else: ?>
+  <div class="page-head"><?php if ($n['issue_label']): ?><span class="badge"><?= e($n['issue_label']) ?></span><?php endif; ?><h1><?= e($n['title']) ?></h1><p><?= e(fmt_date($n['published_at'])) ?></p></div>
   <article style="max-width:820px">
-    <?php if ($n['issue_label']): ?><span class="badge"><?= e($n['issue_label']) ?></span><?php endif; ?>
-    <h1 style="margin-top:6px"><?= e($n['title']) ?></h1>
-    <p class="meta"><?= e(fmt_date($n['published_at'])) ?></p>
     <?php if ($n['cover']): ?><img src="<?= e(url('uploads/' . rawurlencode($n['cover']))) ?>" alt="" style="width:100%;border-radius:12px;margin-bottom:12px"><?php endif; ?>
     <?php if ($n['summary']): ?><p class="lead"><?= e($n['summary']) ?></p><?php endif; ?>
     <?php if ($n['pdf']): ?><p><a class="btn" href="<?= url('file.php?type=newsletter&id=' . (int) $n['id']) ?>"><?= icon('file', 18) ?> Open the PDF edition<?= $n['pdf_size'] ? ' (' . e(fmt_size((int) $n['pdf_size'])) . ')' : '' ?></a></p><?php endif; ?>

@@ -16,8 +16,9 @@ if ($row && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 require __DIR__ . '/includes/header.php';
+require_once __DIR__ . '/includes/auth_ui.php';
+auth_open('Choose a new password', 'Pick a strong password of at least 8 characters.');
 ?>
-<div class="page-head"><h1>Choose a new password</h1></div>
 <?php if (!$row): ?>
   <p>This reset link is invalid or has expired. <a href="<?= url('forgot.php') ?>">Request a new one</a>.</p>
 <?php else: ?>
@@ -27,4 +28,5 @@ require __DIR__ . '/includes/header.php';
   <button>Update password</button>
 </form>
 <?php endif; ?>
+<?php auth_close(); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>
