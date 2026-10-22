@@ -290,14 +290,33 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
       <span class="anthem-ic"><?= icon('music', 30) ?></span>
       <h2><?= ct('home.anthem_title') ?></h2>
       <?= cr('home.anthem_text') ?>
-      <?php if ($anthemAudio): ?><audio controls preload="none" src="<?= e($anthemAudio) ?>" class="anthem-audio">Your browser does not support audio playback.</audio>
+      <?php if ($anthemAudio): ?>
+        <div class="anthem-player">
+          <button type="button" class="play" aria-label="Play the anthem"><?= icon('play', 30) ?></button>
+          <div><b>Play the anthem</b><small>Press play and sing along with the lyrics.</small></div>
+          <audio preload="none" src="<?= e($anthemAudio) ?>" controls class="anthem-audio">Your browser does not support audio playback.</audio>
+        </div>
       <?php elseif (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
-      <?php if ($anthemLyrics): ?><details class="anthem-lyrics"><summary>Read the lyrics</summary><div><?= cr('home.anthem_lyrics') ?></div></details><?php endif; ?>
+      <?php if ($anthemLyrics && $anthemVideo): ?><details class="anthem-lyrics" open><summary>Lyrics</summary><div><?= cr('home.anthem_lyrics') ?></div></details><?php endif; ?>
     </div>
     <?php if ($anthemVideo): ?><div class="anthem-video"><?= video_embed($anthemVideo, 'Watch the anthem video') ?></div>
+    <?php elseif ($anthemLyrics): ?><div class="anthem-video anthem-sheet"><h3><?= icon('music', 18) ?> Lyrics</h3><div class="lyr"><?= cr('home.anthem_lyrics') ?></div></div>
     <?php else: ?><div class="anthem-video anthem-art" aria-hidden="true"><div class="eq"><?php for ($i = 0; $i < 18; $i++): ?><i style="animation-delay:<?= $i * 0.09 ?>s"></i><?php endfor; ?></div><span><?= icon('music', 44) ?></span></div><?php endif; ?>
   </div>
 </section>
+<?php if ($anthemAudio): ?>
+<script>
+(function () {
+  var box = document.querySelector('.anthem-player'); if (!box) return;
+  var a = box.querySelector('audio'), b = box.querySelector('.play'), t = box.querySelector('b');
+  var play = '<?= str_replace(["\r", "\n", "'"], ['', '', "\\'"], icon('play', 30)) ?>', pause = '<svg class="icon" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+  b.addEventListener('click', function () { a.paused ? a.play() : a.pause(); });
+  a.addEventListener('play', function () { b.innerHTML = pause; t.textContent = 'Now playing'; });
+  a.addEventListener('pause', function () { b.innerHTML = play; t.textContent = 'Play the anthem'; });
+  a.addEventListener('ended', function () { b.innerHTML = play; t.textContent = 'Play the anthem'; });
+})();
+</script>
+<?php endif; ?>
 <?php endif; ?>
 
 <?php if ($on('gallery')): $keys = array_slice(array_keys(DINNER_PHOTOS), 0, 6); ?>
