@@ -48,9 +48,9 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <div class="topbar">
   <div class="container tb">
     <div class="tb-l">
+      <span class="tb-clock" aria-label="Current date and time in Uganda"><?= icon('calendar', 14) ?><span id="tb-date"><?= e(date('l, j F Y')) ?></span><i class="sep"></i><?= icon('clock', 14) ?><span id="tb-time"><?= e(date('H:i:s')) ?></span> <small>EAT</small></span>
       <?php if (setting('contact_email')): ?><a href="mailto:<?= e(setting('contact_email')) ?>"><?= icon('mail', 14) ?><?= e(setting('contact_email')) ?></a><?php endif; ?>
       <?php if (setting('contact_phone')): ?><span><?= e(setting('contact_phone')) ?></span><?php endif; ?>
-      <?php if (!setting('contact_email') && !setting('contact_phone')): ?><span class="tb-tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></span><?php endif; ?>
     </div>
     <div class="tb-r">
       <a href="<?= url('verify.php') ?>"><?= icon('shield', 14) ?>Verify a card</a>
@@ -60,6 +60,22 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
     </div>
   </div>
 </div>
+<?php $slogan = setting('site_tagline', 'Community Transformation Actualized'); ?>
+<div class="slogan-strip" role="marquee" aria-label="<?= e($slogan) ?>">
+  <div class="slogan-track" aria-hidden="true">
+    <?php for ($i = 0; $i < 12; $i++): ?><span><?= e($slogan) ?></span><b><?= icon('star', 18) ?></b><?php endfor; ?>
+  </div>
+</div>
+<script>
+(function () {
+  var d = document.getElementById('tb-date'), t = document.getElementById('tb-time');
+  if (!d || !t || !window.Intl) return;
+  var df = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Kampala', weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  var tf = new Intl.DateTimeFormat('en-GB', { timeZone: 'Africa/Kampala', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  function tick() { var n = new Date(); d.textContent = df.format(n); t.textContent = tf.format(n); }
+  tick(); setInterval(tick, 1000);
+})();
+</script>
 <header class="site-header">
   <div class="container bar">
     <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="52" height="52"><span><?= e($siteName) ?></span></a>

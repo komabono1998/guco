@@ -40,7 +40,19 @@ body.site .sec-head h2::before, body.site .gs-head h2::before, body.site .cta h2
 .topbar .tb-l, .topbar .tb-r { display: flex; gap: 20px; align-items: center; flex-wrap: wrap; }
 .topbar .icon { vertical-align: -3px; margin-right: 5px; color: var(--gold); }
 .topbar .tb-tag { color: var(--gold); font-weight: 600; letter-spacing: .04em; }
-@media (max-width: 760px) { .topbar { display: none; } }
+.topbar .tb-clock { display: inline-flex; align-items: center; gap: 4px; color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+.topbar .tb-clock .sep { width: 1px; height: 14px; background: rgba(255, 255, 255, .3); margin: 0 10px; }
+.topbar .tb-clock #tb-time { color: var(--gold); min-width: 4.6em; }
+.topbar .tb-clock small { opacity: .7; margin-left: 2px; }
+@media (max-width: 760px) { .topbar .tb-r, .topbar .tb-l > a, .topbar .tb-l > span:not(.tb-clock) { display: none; } .topbar .tb { justify-content: center; } }
+.slogan-strip { background: linear-gradient(90deg, #0b2f1b, var(--green) 50%, #0b2f1b); border-bottom: 3px solid var(--gold); overflow: hidden; white-space: nowrap; padding: 10px 0; }
+.slogan-track { display: inline-flex; align-items: center; gap: 32px; animation: slogan-run 38s linear infinite; will-change: transform; }
+.slogan-strip:hover .slogan-track { animation-play-state: paused; }
+.slogan-track span { font-size: 1.6rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #fff; text-shadow: 0 2px 8px rgba(0, 0, 0, .35); }
+.slogan-track b { color: var(--gold); display: inline-flex; }
+@keyframes slogan-run { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (max-width: 760px) { .slogan-track span { font-size: 1.15rem; } .slogan-strip { padding: 7px 0; } }
+@media (prefers-reduced-motion: reduce) { .slogan-track { animation: none; } }
 
 /* Header polish */
 body.site .site-header { box-shadow: 0 4px 22px rgba(15, 40, 28, .07); }
