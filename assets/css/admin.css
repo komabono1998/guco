@@ -212,3 +212,19 @@ body.admin .adm-burger:hover { background: var(--adm-bg); }
 body.admin .adm-new > summary { background: var(--green); color: #fff; }
 body.admin .wid > h3 { color: var(--adm-ink); }
 body.admin .wid > h3 a { color: var(--green); }
+
+/* Dashboard countdowns */
+.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.cd-card { background: linear-gradient(135deg, #0f1b2d, #17406a); color: #fff; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
+.cd-card .cd-top { display: flex; flex-direction: column; gap: 3px; }
+.cd-card strong, .cd-card strong a { color: #fff; text-decoration: none; font-size: 1rem; }
+.cd-card small { color: #b8c7dc; }
+.cd-card .badge { align-self: flex-start; }
+.cd-card .countdown { margin: 2px 0; }
+.cd-card .countdown span { background: rgba(255, 255, 255, .12); }
+.cd-card .countdown b { color: var(--gold); }
+.cd-card .countdown.done { color: var(--gold); }
+body.admin .link-btn { background: transparent; color: #b8c7dc; padding: 0; font-weight: 500; font-size: .78rem; text-decoration: underline; border-radius: 0; }
+body.admin .link-btn:hover { color: #fff; }
+.cd-add { margin-top: 14px; border: 1px dashed var(--adm-line); border-radius: 10px; padding: 10px 14px; background: #fafcff; }
+.cd-add summary { cursor: pointer; font-weight: 600; color: var(--green); }

@@ -132,6 +132,7 @@ CREATE TABLE events (
     ends_at DATETIME NULL,
     show_countdown TINYINT(1) NOT NULL DEFAULT 1,
     featured TINYINT(1) NOT NULL DEFAULT 0,
+    pin_dashboard TINYINT(1) NOT NULL DEFAULT 0,
     registration_open TINYINT(1) NOT NULL DEFAULT 0,
     accessibility_info VARCHAR(300),
     contact VARCHAR(200),
@@ -422,6 +423,16 @@ CREATE TABLE campus_spots (
     link VARCHAR(300),
     sort_order SMALLINT NOT NULL DEFAULT 100,
     is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
+CREATE TABLE admin_countdowns (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(160) NOT NULL,
+    target_at DATETIME NOT NULL,
+    note VARCHAR(250),
+    created_by INT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 -- Contact details, fees and payment instructions stay blank/hidden until the

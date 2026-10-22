@@ -55,3 +55,14 @@ function event_ics_text(array $ev, string $method = 'PUBLISH'): string
     ];
     return implode("\r\n", $lines) . "\r\n";
 }
+
+/** Live countdown box for any future timestamp (used on the admin dashboard). */
+function countdown_box(int $ts, string $label, string $class = ''): string
+{
+    if ($ts <= time()) {
+        return '';
+    }
+    return '<div class="countdown ' . e($class) . '" data-start="' . e(date('c', $ts)) . '" role="timer" aria-label="Time until ' . e($label) . '">'
+        . '<span><b data-u="d">--</b>days</span><span><b data-u="h">--</b>hours</span>'
+        . '<span><b data-u="m">--</b>minutes</span><span><b data-u="s">--</b>seconds</span></div>';
+}

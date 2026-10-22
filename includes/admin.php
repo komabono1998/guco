@@ -178,6 +178,7 @@ function admin_footer(): void
     ?>
   </main>
 </div>
+<script src="<?= url('assets/js/countdown.js') ?>"></script>
 <script>
 function admToggleSide() {
   var small = window.matchMedia('(max-width: 960px)').matches;

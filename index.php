@@ -30,6 +30,10 @@ $live = [
 ];
 $live = array_values(array_filter($live, fn($l) => $l[1] > 0));
 
+$chaptersHome = q("SELECT c.id, c.name, c.focus, (SELECT COUNT(*) FROM chapter_members m WHERE m.chapter_id = c.id AND m.status = 'approved') AS n FROM chapters c WHERE c.is_public = 1 ORDER BY c.sort_order, c.name")->fetchAll();
+$projectsHome = q("SELECT p.id, p.title, p.theme, p.location, p.summary, p.budget, u.full_name,
+    (SELECT COALESCE(SUM(x.amount), 0) FROM project_updates x WHERE x.project_id = p.id AND x.kind = 'mobilisation' AND x.verified = 1) AS raised
+    FROM projects p JOIN users u ON u.id = p.user_id WHERE p.is_public = 1 AND p.status IN ('approved','in_progress','completed') ORDER BY p.updated_at DESC LIMIT 3")->fetchAll();
 $heroImg = c_image('home.hero_image') ?: dinner_src(3);
 $progPhotos = [7, 11, 3, 4];
 $progIcons = ['users', 'graduation', 'heart', 'award'];
@@ -114,6 +118,22 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
+<?php if ($on('highlights')): $hl = c_pairs('home.highlights', 3); $tones = ['g', 'r', 'b', 'a', 'p', 't']; ?>
+<section class="home-section sec-center highlights">
+  <div class="sec-head"><div><span class="eyebrow">Everything in one place</span><h2><?= ct('home.highlights_title') ?></h2></div></div>
+  <div class="hl-grid">
+    <?php foreach ($hl as $i => [$t, $d, $ic]): ?>
+      <article class="hl hl-<?= $tones[$i % 6] ?>">
+        <span class="hl-ic"><?= icon($ic ?: 'star', 28) ?></span>
+        <h3><?= e($t) ?></h3>
+        <p><?= e($d) ?></p>
+      </article>
+    <?php endforeach; ?>
+  </div>
+  <p style="margin-top:22px"><a class="btn" href="<?= url('register.php') ?>">Join GUCO today</a> <a class="btn outline" href="<?= url('membership.php') ?>">See membership benefits</a></p>
+</section>
+<?php endif; ?>
+
 <?php if ($on('welcome')): $areas = array_slice(c_pairs('programmes.areas'), 0, 4); ?>
 <section class="home-section sec-center">
   <div class="sec-head"><div><span class="eyebrow">What we do</span><h2><?= ct('home.programmes_title') ?></h2></div></div>
@@ -124,6 +144,26 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
         <div class="prog-body"><span class="ic"><?= icon($progIcons[$i % 4], 20) ?></span><h3><?= e($t) ?></h3><p><?= e(excerpt($d, 90)) ?></p><span class="more">Read more &rarr;</span></div>
       </a>
     <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($on('card')): ?>
+<section class="home-section cardshow">
+  <div class="cs-text">
+    <span class="eyebrow">Membership</span>
+    <h2><?= ct('home.card_title') ?></h2>
+    <?= cr('home.card_text') ?>
+    <p><a class="btn" href="<?= url('register.php') ?>">Apply for your card</a> <a class="btn outline" href="<?= url('verify.php') ?>">Verify a card</a></p>
+  </div>
+  <div class="cs-card" aria-hidden="true">
+    <div class="mc">
+      <div class="mc-h"><img src="<?= e(logo_url()) ?>" alt="" width="40" height="40"><div><b><?= e(setting('site_name', 'Gulu University Convocation')) ?></b><small><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></small></div></div>
+      <div class="mc-b"><span class="mc-photo"><?= icon('user', 40) ?></span>
+        <div class="mc-i"><div class="mc-n">Your Name Here</div><div>Ordinary / Full Member</div><small>MEMBERSHIP ID</small><b>GUCO/ORD/<?= date('Y') ?>/000123</b><small>VALID UNTIL</small><b>Lifetime or subscription date</b></div>
+        <span class="mc-qr"><?= icon('grid', 56) ?></span></div>
+    </div>
+    <div class="mc-badge"><?= icon('shield', 18) ?> Verified online</div>
   </div>
 </section>
 <?php endif; ?>
@@ -171,6 +211,41 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
+<?php if ($on('chapters') && $chaptersHome): ?>
+<section class="home-section chapter-strip">
+  <div class="sec-head"><div><span class="eyebrow">Across Uganda and beyond</span><h2><?= ct('home.chapters_title') ?></h2></div><a href="<?= url('chapters.php') ?>">All chapters &rarr;</a></div>
+  <div class="chip-grid">
+    <?php foreach ($chaptersHome as $c): ?>
+      <a class="chap" href="<?= url('chapters.php') ?>"><span class="chap-ic"><?= icon($c['focus'] === 'Diaspora chapter' ? 'globe' : 'map-pin', 22) ?></span><span><b><?= e(str_replace(' Chapter', '', $c['name'])) ?></b><small><?= (int) $c['n'] ?> member<?= (int) $c['n'] === 1 ? '' : 's' ?></small></span></a>
+    <?php endforeach; ?>
+  </div>
+</section>
+<?php endif; ?>
+
+<?php if ($on('projects')): ?>
+<section class="home-section">
+  <div class="sec-head"><div><span class="eyebrow">Ideas that become action</span><h2><?= ct('home.projects_title') ?></h2></div><a href="<?= url('projects.php') ?>">All projects &rarr;</a></div>
+  <div class="prog-grid">
+    <?php foreach ($projectsHome as $p): $pct = $p['budget'] > 0 ? min(100, round($p['raised'] / $p['budget'] * 100)) : 0; ?>
+      <a class="card project-card" href="<?= url('project_view.php?id=' . (int) $p['id']) ?>">
+        <span class="badge"><?= e($p['theme']) ?></span>
+        <h3 style="margin:.4em 0"><?= e($p['title']) ?></h3>
+        <p class="meta" style="margin:0"><?= e($p['location']) ?> &middot; led by <?= e(short_name($p['full_name'])) ?></p>
+        <p><?= e(excerpt((string) $p['summary'], 110)) ?></p>
+        <div class="meter" style="height:8px;background:#e3eae5;border-radius:99px;overflow:hidden"><i style="display:block;height:100%;width:<?= $pct ?>%;background:var(--green)"></i></div>
+        <p class="meta" style="margin:.4em 0 0">UGX <?= e(number_format((float) $p['raised'])) ?> of UGX <?= e(number_format((float) $p['budget'])) ?></p>
+      </a>
+    <?php endforeach; ?>
+    <div class="card propose-card">
+      <span class="hl-ic" style="background:#fff3cd;color:#8a6700"><?= icon('target', 28) ?></span>
+      <h3>Have an idea for your community?</h3>
+      <p>Approved members can propose a project. If the Executive Committee approves it, you lead it and mobilise the resources.</p>
+      <a class="btn" href="<?= url('member/project_form.php') ?>">Propose a project</a>
+    </div>
+  </div>
+</section>
+<?php endif; ?>
+
 <?php if ($on('cards')): ?>
 <section class="home-section sec-center">
   <div class="sec-head"><div><span class="eyebrow">Be part of it</span><h2><?= ct('home.help_title') ?></h2></div></div>
@@ -207,17 +282,19 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
-<?php if ($on('anthem') && ($anthemAudio || $anthemVideo || $anthemLyrics)): ?>
+<?php if ($on('anthem')): $hasAnthem = $anthemAudio || $anthemVideo || $anthemLyrics; ?>
 <section class="home-section anthem">
   <div class="anthem-card">
     <div class="anthem-text">
       <span class="anthem-ic"><?= icon('music', 30) ?></span>
       <h2><?= ct('home.anthem_title') ?></h2>
       <?= cr('home.anthem_text') ?>
-      <?php if ($anthemAudio): ?><audio controls preload="none" src="<?= e($anthemAudio) ?>" class="anthem-audio">Your browser does not support audio playback.</audio><?php endif; ?>
+      <?php if ($anthemAudio): ?><audio controls preload="none" src="<?= e($anthemAudio) ?>" class="anthem-audio">Your browser does not support audio playback.</audio>
+      <?php elseif (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
       <?php if ($anthemLyrics): ?><details class="anthem-lyrics"><summary>Read the lyrics</summary><div><?= cr('home.anthem_lyrics') ?></div></details><?php endif; ?>
     </div>
-    <?php if ($anthemVideo): ?><div class="anthem-video"><?= video_embed($anthemVideo, 'Watch the anthem video') ?></div><?php endif; ?>
+    <?php if ($anthemVideo): ?><div class="anthem-video"><?= video_embed($anthemVideo, 'Watch the anthem video') ?></div>
+    <?php else: ?><div class="anthem-video anthem-art" aria-hidden="true"><div class="eq"><?php for ($i = 0; $i < 18; $i++): ?><i style="animation-delay:<?= $i * 0.09 ?>s"></i><?php endfor; ?></div><span><?= icon('music', 44) ?></span></div><?php endif; ?>
   </div>
 </section>
 <?php endif; ?>

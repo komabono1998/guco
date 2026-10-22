@@ -4,7 +4,8 @@ require_perm('branding');
 $toggles = [
     'home_show_welcome' => 'Welcome message', 'home_show_cards' => 'Highlight cards (About, Membership, Chapters, Partnerships)',
     'home_show_news' => 'News and newsletter', 'home_show_events' => 'Upcoming events list',
-    'home_show_awards' => 'Awards summary', 'home_show_gallery' => 'Photo strip', 'home_show_campus' => 'Explore your campus',
+    'home_show_awards' => 'Awards summary', 'home_show_gallery' => 'Photo strip', 'home_show_campus' => 'Explore your campus', 'home_show_highlights' => 'Why join (highlights)', 'home_show_card' => 'Membership card showcase',
+    'home_show_chapters' => 'Chapters strip', 'home_show_projects' => 'Community projects',
     'home_show_anthem' => 'University anthem', 'home_show_cta' => 'Closing call to action',
 ];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {

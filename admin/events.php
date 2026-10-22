@@ -18,6 +18,7 @@ crud([
         'contact' => ['label' => 'Official contact', 'type' => 'text'],
         'show_countdown' => ['label' => 'Show a live countdown to the start time', 'type' => 'check', 'default' => 1, 'list' => true],
         'featured' => ['label' => 'Feature on the home page (spotlight banner with flyer and countdown)', 'type' => 'check', 'list' => true],
+        'pin_dashboard' => ['label' => 'Show a live countdown for this event on the admin dashboard', 'type' => 'check', 'list' => true],
         'registration_open' => ['label' => 'Registration open', 'type' => 'check', 'list' => true],
         'status' => ['label' => 'Status', 'type' => 'select', 'list' => true,
             'options' => ['scheduled' => 'Scheduled', 'postponed' => 'Postponed', 'cancelled' => 'Cancelled']],

@@ -112,6 +112,26 @@ $chMax = max(array_column($byChapter, 'n') ?: [1]) ?: 1;
 $pipeline = can('projects') ? q('SELECT status, COUNT(*) FROM projects GROUP BY status')->fetchAll(PDO::FETCH_KEY_PAIR) : [];
 
 // ---- Lists ----
+// ---- Countdowns: pinned events and custom timers ----
+$cd = [];
+foreach (q("SELECT id, title, starts_at, location FROM events WHERE pin_dashboard = 1 AND starts_at >= NOW() ORDER BY starts_at")->fetchAll() as $e) {
+    $cd[] = ['event', (int) $e['id'], $e['title'], strtotime($e['starts_at']), (string) $e['location'], 'events.php?id=' . (int) $e['id']];
+}
+foreach (q('SELECT id, title, target_at, note FROM admin_countdowns WHERE target_at >= NOW() ORDER BY target_at')->fetchAll() as $c) {
+    $cd[] = ['custom', (int) $c['id'], $c['title'], strtotime($c['target_at']), (string) $c['note'], null];
+}
+usort($cd, fn($a, $b) => $a[3] <=> $b[3]);
+$deadlines = [];
+foreach (q("SELECT name, deadline FROM awards WHERE nomination_status = 'open' AND deadline >= CURDATE() ORDER BY deadline")->fetchAll() as $a) {
+    $deadlines[] = ['Award nominations close: ' . $a['name'], strtotime($a['deadline']), 'awards.php'];
+}
+if (can('projects')) {
+    foreach (q("SELECT id, title, end_date FROM projects WHERE status IN ('approved','in_progress') AND end_date >= CURDATE() ORDER BY end_date LIMIT 5")->fetchAll() as $p) {
+        $deadlines[] = ['Project ends: ' . $p['title'], strtotime($p['end_date']), 'projects.php?id=' . $p['id']];
+    }
+}
+usort($deadlines, fn($a, $b) => $a[1] <=> $b[1]);
+$canCount = can('events');
 $events = can('events') ? q("SELECT e.*, (SELECT COUNT(*) FROM event_registrations r WHERE r.event_id = e.id) AS regs FROM events e WHERE e.starts_at >= NOW() OR e.starts_at IS NULL ORDER BY e.starts_at IS NULL, e.starts_at LIMIT 5")->fetchAll() : [];
 $recentApps = can('members') ? q("SELECT u.id, u.full_name, u.status, u.created_at, p.category, p.member_no FROM users u LEFT JOIN member_profiles p ON p.user_id = u.id WHERE u.role = 'member' ORDER BY u.created_at DESC LIMIT 6")->fetchAll() : [];
 $messages = can('messages') ? q('SELECT * FROM messages ORDER BY created_at DESC LIMIT 5')->fetchAll() : [];
@@ -182,6 +202,45 @@ admin_header('Dashboard');
 </div>
 <?php endif; ?>
 
+<section class="wid" id="countdowns" style="margin-bottom:18px">
+  <h3><span><?= icon('clock', 18) ?> Countdowns</span><small><?= count($cd) ? count($cd) . ' running' : 'none running' ?></small></h3>
+  <?php if ($cd): ?>
+    <div class="cd-grid">
+      <?php foreach ($cd as [$kind, $cid, $ctitle, $cts, $csub, $chref]): ?>
+        <div class="cd-card">
+          <div class="cd-top"><span class="badge <?= $kind === 'event' ? '' : 'warn' ?>"><?= $kind === 'event' ? 'Event' : 'Timer' ?></span>
+            <strong><?= $chref ? '<a href="' . e($chref) . '">' . e($ctitle) . '</a>' : e($ctitle) ?></strong>
+            <small><?= e(fmt_date(date('Y-m-d H:i:s', $cts), 'D j M Y, g:ia')) ?><?= $csub !== '' ? ' &middot; ' . e($csub) : '' ?></small></div>
+          <?= countdown_box($cts, $ctitle, 'small') ?>
+          <?php if ($canCount): ?>
+            <form method="post" action="countdowns.php"><?= csrf_field() ?>
+              <?php if ($kind === 'event'): ?><input type="hidden" name="event_id" value="<?= $cid ?>"><button class="link-btn" name="action" value="unpin">Remove from dashboard</button>
+              <?php else: ?><input type="hidden" name="id" value="<?= $cid ?>"><button class="link-btn" name="action" value="delete" onclick="return confirm('Remove this countdown?')">Remove</button><?php endif; ?>
+            </form>
+          <?php endif; ?>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  <?php else: ?>
+    <p class="meta" style="margin:0 0 10px">No countdowns are running. Pin an event below, or add your own timer for a meeting, deadline or launch.</p>
+  <?php endif; ?>
+  <?php if ($deadlines): ?>
+    <ul class="mini" style="margin-top:12px"><?php foreach (array_slice($deadlines, 0, 4) as [$dl, $dts, $dhref]): $days = (int) ceil(($dts - strtotime('today')) / 86400); ?>
+      <li><span class="avs"><?= icon('alert', 16) ?></span><div class="t"><a href="<?= e($dhref) ?>"><?= e($dl) ?></a><small><?= e(fmt_date(date('Y-m-d', $dts), 'D j M Y')) ?></small></div><span class="badge <?= $days <= 7 ? 'bad' : 'warn' ?>"><?= $days === 0 ? 'today' : 'in ' . $days . ' day' . ($days === 1 ? '' : 's') ?></span></li>
+    <?php endforeach; ?></ul>
+  <?php endif; ?>
+  <?php if ($canCount): ?>
+    <details class="cd-add"><summary><?= icon('plus', 14) ?> Add a custom countdown</summary>
+      <form method="post" action="countdowns.php" class="cols" style="margin-top:12px;align-items:end"><?= csrf_field() ?><input type="hidden" name="action" value="add">
+        <label>Name <input name="title" required placeholder="e.g. Executive meeting, AGM notice deadline"></label>
+        <label>Date and time <input type="datetime-local" name="target_at" required></label>
+        <label>Note <span class="hint">(optional)</span><input name="note"></label>
+        <button>Start countdown</button>
+      </form>
+    </details>
+  <?php endif; ?>
+</section>
+
 <div class="dgrid">
   <section class="wid w5" id="attention">
     <h3>Needs your attention <small><?= array_sum(array_column($attention, 0)) ?> open</small></h3>
@@ -233,6 +292,7 @@ admin_header('Dashboard');
           <div class="d"><b><?= $ev['starts_at'] ? e(fmt_date($ev['starts_at'], 'j')) : 'TBA' ?></b><span><?= $ev['starts_at'] ? e(fmt_date($ev['starts_at'], 'M')) : 'date' ?></span></div>
           <div class="t"><a href="events.php?id=<?= (int) $ev['id'] ?>"><?= e($ev['title']) ?></a><small><?= e(event_when($ev, 'D g:ia')) ?><?= $ev['location'] ? ' &middot; ' . e($ev['location']) : '' ?> &middot; <?= (int) $ev['regs'] ?> registered</small></div>
           <a class="btn secondary" style="padding:6px 12px;font-size:.78rem" href="event_invite.php?event=<?= (int) $ev['id'] ?>">Invite</a>
+          <?php if ($canCount && $ev['starts_at']): ?><form method="post" action="countdowns.php" style="margin:0"><?= csrf_field() ?><input type="hidden" name="event_id" value="<?= (int) $ev['id'] ?>"><button class="btn secondary" style="padding:6px 12px;font-size:.78rem" name="action" value="<?= $ev['pin_dashboard'] ? 'unpin' : 'pin' ?>" title="Show a live countdown for this event on the dashboard"><?= $ev['pin_dashboard'] ? 'Unpin timer' : 'Pin timer' ?></button></form><?php endif; ?>
         </li>
       <?php endforeach; if (!$events): ?><li class="meta">No events yet. <a href="events.php?new=1">Add the first event</a>.</li><?php endif; ?>
     </ul>
