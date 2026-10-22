@@ -32,6 +32,6 @@ auth_open('Reset your password', 'Enter your email and we will send you a link t
   <label>Email <input type="email" name="email" required autocomplete="email"></label>
   <button>Send reset link</button>
 </form>
-<p class="alt"><a href="<?= url('login.php') ?>">Back to log in</a></p>
+<p class="alt"><a href="<?= url('member/login.php') ?>">Member login</a> &middot; <a href="<?= url('admin/login.php') ?>">Admin login</a></p>
 <?php auth_close(); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -18,6 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (in_array($action, ['pay_verified', 'pay_rejected'], true)) {
             decide_payment((int) $_POST['payment_id'], substr($action, 4), ($_POST['paid_until'] ?? '') ?: null, trim($_POST['note'] ?? ''));
             flash($action === 'pay_verified' ? 'Payment verified.' : 'Payment rejected.');
+        } elseif ($action === 'reset_password') {
+            $new = temp_password();
+            q('UPDATE users SET password_hash = ? WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $id]);
+            audit('reset_member_password', $user['email']);
+            flash('New temporary password for ' . $user['full_name'] . ': ' . $new . '  (shown once; ask the member to change it after logging in).');
         } elseif ($action === 'revoke') {
             $reason = trim($_POST['reason'] ?? '');
             if ($reason === '') {
@@ -129,6 +134,7 @@ if (isset($_GET['id'])) {
       <?php endif; ?>
       <div class="row-actions">
         <button class="secondary" name="action" value="save">Save</button>
+        <button class="secondary" name="action" value="reset_password" onclick="return confirm('Generate a new temporary password for this member?')">Reset password</button>
         <?php if (!$m['membership_id']): ?><button name="action" value="approve">Approve &amp; issue ID</button><?php endif; ?>
         <?php if ($m['status'] !== 'rejected'): ?><button class="danger" name="action" value="reject" onclick="return confirm('Reject this application?')">Reject</button><?php endif; ?>
         <?php if ((int) $m['id'] !== (int) $admin['id']): ?><button class="danger" name="action" value="delete" onclick="return confirm('Permanently delete this member and their data?')">Delete</button><?php endif; ?>
@@ -189,6 +195,7 @@ admin_header('Members & applications');
   <label>Card <select name="card"><option value="">All</option><?php foreach (['none' => 'Not issued', 'active' => 'Active', 'revoked' => 'Revoked'] as $k => $l): ?><option value="<?= $k ?>"<?= $k === $cardF ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
   <button>Filter</button>
   <a class="btn secondary" href="?<?= e(http_build_query(array_filter(['q' => $search, 'status' => $statusF, 'card' => $cardF]) + ['export' => 1])) ?>">Export CSV</a>
+  <a class="btn" href="member_add.php">+ Add member</a>
 </form>
 <div class="table-wrap"><table>
   <tr><th>No.</th><th>Name</th><th>Membership ID</th><th>Category</th><th>Application</th><th>Card</th><th>Subscription</th><th></th></tr>

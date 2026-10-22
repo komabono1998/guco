@@ -105,4 +105,31 @@ portal_header('Dashboard');
     </section>
   </div>
 </div>
+
+<section class="panel" style="margin-top:6px">
+  <h2>Everything you can do in your portal</h2>
+  <div class="explore">
+    <?php
+    // [label, link, icon, description, needs approved membership]
+    $tools = [
+        ['My profile', 'profile.php', 'user', 'Update your details, photo and directory visibility.', false],
+        ['Membership card', 'card.php', 'id-card', 'View, print and share your card and QR code.', true],
+        ['Payments and renewal', 'payments.php', 'wallet', 'Upload proof of payment and renew your subscription.', false],
+        ['Events', 'events.php', 'calendar', 'See upcoming events and register in one click.', false],
+        ['Chapters', 'chapters.php', 'map-pin', 'Register in your regional chapter.', true],
+        ['Community projects', 'projects.php', 'target', 'Propose a project, then lead it once approved.', true],
+        ['Documents', 'documents.php', 'file', 'Open reports and member-only documents.', true],
+        ["Members' directory", 'directory.php', 'users', 'Find fellow alumni who chose to be listed.', true],
+        ['Support', 'support.php', 'life-buoy', 'Ask for help or a correction to your details.', false],
+    ];
+    foreach ($tools as [$tl, $th, $ti, $td, $tn]):
+        $locked = $tn && !$member; ?>
+      <?php if ($locked): ?>
+        <div class="ex locked" title="Available once your membership is approved"><span class="ex-ic"><?= icon($ti, 22) ?></span><div><b><?= e($tl) ?> <?= icon('lock', 13) ?></b><small>Opens when your membership is approved.</small></div></div>
+      <?php else: ?>
+        <a class="ex" href="<?= e($th) ?>"><span class="ex-ic"><?= icon($ti, 22) ?></span><div><b><?= e($tl) ?></b><small><?= e($td) ?></small></div></a>
+      <?php endif; ?>
+    <?php endforeach; ?>
+  </div>
+</section>
 <?php portal_footer(); ?>

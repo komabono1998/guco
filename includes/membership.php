@@ -157,3 +157,14 @@ function decide_payment(int $paymentId, string $decision, ?string $paidUntil, st
     }
     audit($decision === 'verified' ? 'verify_payment' : 'reject_payment', "payment $paymentId, user {$pay['user_id']}, UGX " . number_format((float) $pay['amount']));
 }
+
+/** A readable temporary password (no look-alike characters). */
+function temp_password(): string
+{
+    $chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    $p = '';
+    for ($i = 0; $i < 10; $i++) {
+        $p .= $chars[random_int(0, strlen($chars) - 1)];
+    }
+    return $p;
+}

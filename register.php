@@ -101,6 +101,7 @@ require __DIR__ . '/includes/header.php';
 <?php if (!$open): ?>
   <p class="notice">Online applications are not open at the moment. Please <a href="<?= url('contact.php?category=Membership') ?>">contact the Secretariat</a>.</p>
 <?php else: ?>
+<p class="meta" style="margin-bottom:16px">Already registered? <a href="<?= url('member/login.php') ?>">Log in to your portal</a>.</p>
 <ol class="steps">
   <li><strong>Apply</strong> Fill in this form and upload your proof of payment.</li>
   <li><strong>Verification</strong> The Secretariat checks your details and payment.</li>

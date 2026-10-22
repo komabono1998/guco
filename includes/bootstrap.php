@@ -179,8 +179,9 @@ function require_login(): array
 {
     $u = current_user();
     if (!$u) {
-        flash('Please log in first.', 'error');
-        redirect('login.php');
+        $area = $_SERVER['SCRIPT_NAME'] ?? '';
+        flash('Please log in to continue.', 'error');
+        redirect(str_contains($area, '/admin/') ? 'admin/login.php' : 'member/login.php');
     }
     return $u;
 }

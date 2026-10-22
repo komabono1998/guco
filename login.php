@@ -1,39 +1,4 @@
 <?php
+// Sign-in lives in two places: /admin/login.php for staff and /member/login.php for members.
 require_once __DIR__ . '/includes/bootstrap.php';
-$pageTitle = 'Log in';
-if (current_user()) {
-    redirect('member/');
-}
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    csrf_check();
-    $fails = $_SESSION['login_fails'] ?? [0, 0];
-    if ($fails[0] >= 5 && time() - $fails[1] < 300) {
-        flash('Too many failed attempts. Please wait a few minutes and try again.', 'error');
-    } else {
-        $u = q('SELECT * FROM users WHERE email = ?', [strtolower(trim($_POST['email'] ?? ''))])->fetch();
-        if (!$u || !password_verify($_POST['password'] ?? '', $u['password_hash'])) {
-            $_SESSION['login_fails'] = [$fails[0] + 1, time()];
-            flash('Wrong email or password.', 'error');
-        } elseif ($u['status'] === 'rejected') {
-            flash('Your application was not approved. Please contact the Secretariat.', 'error');
-        } else {
-            session_regenerate_id(true);
-            $_SESSION['uid'] = $u['id'];
-            unset($_SESSION['login_fails']);
-            redirect(in_array($u['role'], STAFF_ROLES, true) && $u['status'] === 'approved' ? 'admin/' : 'member/');
-        }
-    }
-}
-require __DIR__ . '/includes/header.php';
-require_once __DIR__ . '/includes/auth_ui.php';
-auth_open('Welcome back', 'Log in to your Member Portal. Staff are taken to the admin console.');
-?>
-<form method="post" class="stack">
-  <?= csrf_field() ?>
-  <label>Email <input type="email" name="email" required autocomplete="username"></label>
-  <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
-  <button>Log in</button>
-</form>
-<p class="alt"><a href="<?= url('forgot.php') ?>">Forgot your password?</a> &middot; Not a member yet? <a href="<?= url('register.php') ?>">Join GUCO</a>.</p>
-<?php auth_close(); ?>
-<?php require __DIR__ . '/includes/footer.php'; ?>
+redirect(isset($_GET['staff']) ? 'admin/login.php' : 'member/login.php');
