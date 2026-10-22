@@ -1,31 +1,94 @@
 <?php
 require_once __DIR__ . '/bootstrap.php';
 
+/** Sidebar structure: group => [label, file, permission (null = everyone), icon, badge key]. */
 const ADMIN_GROUPS = [
-    'Overview' => [['Dashboard', 'index.php', null]],
+    'Overview' => [
+        ['Dashboard', 'index.php', null, 'grid', null],
+        ['Reports & analytics', 'reports.php', 'reports', 'bar-chart', null],
+    ],
     'Website content' => [
-        ['Site content', 'content.php', 'content'], ['Pages', 'pages.php', 'pages'], ['Menu', 'menu.php', 'menu'],
-        ['News', 'news.php', 'news'], ['Newsletters', 'newsletters.php', 'newsletters'], ['Events & calendar', 'events.php', 'events'],
-        ['Reports & documents', 'resources.php', 'resources'], ['Gallery', 'gallery.php', 'gallery'],
-        ['Campus', 'campus.php', 'campus'], ['Partners', 'partners.php', 'partners'],
+        ['Site content', 'content.php', 'content', 'edit', null], ['Pages', 'pages.php', 'pages', 'file', null], ['Menu', 'menu.php', 'menu', 'menu', null],
+        ['News', 'news.php', 'news', 'newspaper', 'news'], ['Newsletters', 'newsletters.php', 'newsletters', 'mail', null], ['Events & calendar', 'events.php', 'events', 'calendar', null],
+        ['Reports & documents', 'resources.php', 'resources', 'folder', null], ['Gallery', 'gallery.php', 'gallery', 'image', null],
+        ['Campus', 'campus.php', 'campus', 'map', null], ['Partners', 'partners.php', 'partners', 'link', null],
     ],
     'Organisation' => [
-        ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'], ['Chapter members', 'chapter_members.php', 'chapters'], ['Projects', 'projects.php', 'projects'],
-        ['Programmes', 'programmes.php', 'programmes'], ['Awards', 'awards.php', 'awards'],
+        ['Leadership', 'leaders.php', 'leaders', 'users', null], ['Chapters', 'chapters.php', 'chapters', 'map-pin', null],
+        ['Chapter members', 'chapter_members.php', 'chapters', 'user-plus', 'chapters'], ['Projects', 'projects.php', 'projects', 'target', 'projects'],
+        ['Programmes', 'programmes.php', 'programmes', 'briefcase', null], ['Awards', 'awards.php', 'awards', 'award', null],
     ],
-    'Membership' => [['Members', 'members.php', 'members'], ['Payments', 'payments.php', 'payments']],
-    'Inbox' => [['Messages', 'messages.php', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers']],
-    'Site' => [['Branding & layout', 'branding.php', 'branding'], ['Settings', 'settings.php', 'settings']],
-    'System' => [['Users & roles', 'users.php', 'users'], ['Mail log', 'mail_log.php', 'mail'], ['Audit log', 'audit.php', 'audit']],
+    'Membership' => [
+        ['Members', 'members.php', 'members', 'id-card', 'members'], ['Payments', 'payments.php', 'payments', 'credit-card', 'payments'],
+    ],
+    'Inbox' => [
+        ['Messages', 'messages.php', 'messages', 'inbox', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers', 'mail', null],
+    ],
+    'Site' => [
+        ['Branding & layout', 'branding.php', 'branding', 'layout', null], ['Settings', 'settings.php', 'settings', 'sliders', null],
+    ],
+    'System' => [
+        ['Users & roles', 'users.php', 'users', 'shield', null], ['Mail log', 'mail_log.php', 'mail', 'activity', null],
+        ['Audit log', 'audit.php', 'audit', 'clock', null], ['Help & guide', 'help.php', null, 'help', null],
+    ],
 ];
 
-/** Admin chrome: top bar, grouped sidebar and a content area (closed by admin_footer). */
-function admin_header(string $title): void
+/** Counts of items waiting for action, keyed for the sidebar badges (only what the user may see). */
+function admin_badges(): array
+{
+    static $b = null;
+    if ($b !== null) {
+        return $b;
+    }
+    $n = fn($sql) => (int) db()->query($sql)->fetchColumn();
+    $b = [];
+    if (can('members')) {
+        $b['members'] = $n("SELECT COUNT(*) FROM users WHERE status = 'pending'");
+    }
+    if (can('payments')) {
+        $b['payments'] = $n("SELECT COUNT(*) FROM member_payments WHERE status = 'pending'");
+    }
+    if (can('projects')) {
+        $b['projects'] = $n("SELECT COUNT(*) FROM projects WHERE status IN ('submitted','under_review')")
+            + $n("SELECT COUNT(*) FROM project_updates WHERE kind = 'mobilisation' AND verified = 0");
+    }
+    if (can('chapters')) {
+        $b['chapters'] = $n("SELECT COUNT(*) FROM chapter_members WHERE status = 'pending'");
+    }
+    if (can('messages')) {
+        $b['messages'] = $n("SELECT COUNT(*) FROM messages WHERE status = 'new'");
+    }
+    if (can('news')) {
+        $b['news'] = $n("SELECT COUNT(*) FROM news WHERE status = 'pending'");
+    }
+    return $b;
+}
+
+/** Locates the sidebar group and label for a page file (for the breadcrumb). */
+function admin_crumb(string $file): array
+{
+    foreach (ADMIN_GROUPS as $group => $items) {
+        foreach ($items as $i) {
+            if ($i[1] === $file) {
+                return [$group, $i[0]];
+            }
+        }
+    }
+    return ['', ''];
+}
+
+/**
+ * Admin chrome: top bar with search and quick-create, dark grouped sidebar with badges,
+ * page title with breadcrumb. Closed by admin_footer().
+ */
+function admin_header(string $title, string $subtitle = ''): void
 {
     $me = current_user();
     $flash = flash();
     $current = basename($_SERVER['SCRIPT_NAME']);
-    $siteName = setting('site_name', 'Gulu University Convocation');
+    $badges = admin_badges();
+    $totalBadge = array_sum($badges);
+    [$crumbGroup, $crumbLabel] = admin_crumb($current);
     $brandCss = '';
     foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gold']] as $key => $vars) {
         if (preg_match('/^#[0-9a-fA-F]{6}$/', setting($key))) {
@@ -34,51 +97,113 @@ function admin_header(string $title): void
             }
         }
     }
+    $initials = '';
+    foreach (preg_split('/\s+/', trim($me['full_name'] ?? '')) as $w) {
+        $initials .= $w !== '' ? mb_strtoupper(mb_substr($w, 0, 1)) : '';
+    }
+    // [label, link, permission, icon]
+    $create = [
+        ['Write news', 'news.php?new=1', 'news', 'newspaper'], ['Add event', 'events.php?new=1', 'events', 'calendar'],
+        ['New newsletter', 'newsletters.php?new=1', 'newsletters', 'mail'], ['Upload report or document', 'resources.php?new=1', 'resources', 'folder'],
+        ['New photo album', 'gallery.php?new=1', 'gallery', 'image'], ['New page', 'pages.php?new=1', 'pages', 'file'],
+        ['Add campus place', 'campus.php?new=1', 'campus', 'map'], ['Add staff account', 'users.php', 'users', 'user-plus'],
+    ];
     ?><!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Admin: <?= e($title) ?> | <?= e(config('short_name')) ?></title>
+<title><?= e($title) ?> | Admin | <?= e(config('short_name')) ?></title>
 <link rel="icon" href="<?= e(logo_url()) ?>">
 <link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
+<link rel="stylesheet" href="<?= url('assets/css/admin.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
+<script>try{if(localStorage.getItem('adm-collapsed')==='1')document.documentElement.classList.add('side-collapsed');}catch(e){}</script>
 </head>
 <body class="admin">
 <a class="skip" href="#main">Skip to main content</a>
-<header class="admin-top">
-  <a class="admin-brand" href="<?= url('admin/') ?>"><img src="<?= e(logo_url()) ?>" alt="" width="34" height="34"><span><?= e(config('short_name')) ?> Admin</span></a>
-  <button class="menu-toggle secondary" type="button" aria-expanded="false" aria-controls="adminside" onclick="var n=document.getElementById('adminside');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
-  <div class="admin-user">
-    <a href="<?= url() ?>" target="_blank" rel="noopener">View website</a>
-    <a href="<?= url('member/') ?>">Member Portal</a>
-    <span><?= e($me['full_name'] ?? '') ?> <small>(<?= e(ROLE_LABELS[$me['role'] ?? 'member'] ?? '') ?>)</small></span>
-    <a href="<?= url('logout.php') ?>">Log out</a>
+<header class="adm-top">
+  <button class="adm-burger" type="button" aria-label="Toggle navigation" aria-controls="adminside" onclick="admToggleSide()"><?= icon('menu', 22) ?></button>
+  <a class="adm-brand" href="<?= url('admin/') ?>"><img src="<?= e(logo_url()) ?>" alt="" width="34" height="34"><span><strong><?= e(config('short_name')) ?></strong> Admin</span></a>
+  <?php if (can('members') || can('news') || can('events') || can('messages')): ?>
+  <form class="adm-search" role="search" method="get" action="<?= url('admin/search.php') ?>">
+    <?= icon('search', 18) ?><input type="search" name="q" placeholder="Search members, news, events, documents..." aria-label="Search the admin" value="<?= e($_GET['q'] ?? '') ?>" <?= $current === 'search.php' ? '' : '' ?>>
+  </form>
+  <?php else: ?><span class="adm-spacer"></span><?php endif; ?>
+  <div class="adm-actions">
+    <?php $allowedCreate = array_filter($create, fn($c) => can($c[2])); if ($allowedCreate): ?>
+    <details class="adm-menu adm-new"><summary><?= icon('plus', 16) ?> New</summary>
+      <div class="adm-drop"><?php foreach ($allowedCreate as [$l, $href, $p, $ic]): ?><a href="<?= e(url('admin/' . $href)) ?>"><?= icon($ic, 16) ?><?= e($l) ?></a><?php endforeach; ?></div>
+    </details>
+    <?php endif; ?>
+    <a class="adm-icon-btn" href="<?= url('admin/') ?>#attention" title="Items waiting for action" aria-label="<?= (int) $totalBadge ?> items waiting for action"><?= icon('bell', 20) ?><?= $totalBadge ? '<span class="dot">' . ($totalBadge > 99 ? '99+' : (int) $totalBadge) . '</span>' : '' ?></a>
+    <a class="adm-icon-btn" href="<?= url() ?>" target="_blank" rel="noopener" title="View the website" aria-label="View the website"><?= icon('external', 20) ?></a>
+    <details class="adm-menu adm-user"><summary><span class="av"><?= e(mb_substr($initials, 0, 2)) ?></span><span class="who"><strong><?= e($me['full_name'] ?? '') ?></strong><small><?= e(ROLE_LABELS[$me['role'] ?? 'member'] ?? '') ?></small></span><?= icon('chevron-down', 16) ?></summary>
+      <div class="adm-drop right">
+        <a href="<?= url('admin/account.php') ?>"><?= icon('user', 16) ?>My account</a>
+        <a href="<?= url('member/') ?>"><?= icon('id-card', 16) ?>Member Portal</a>
+        <a href="<?= url('admin/help.php') ?>"><?= icon('help', 16) ?>Help &amp; guide</a>
+        <a href="<?= url('logout.php') ?>"><?= icon('log-out', 16) ?>Log out</a>
+      </div>
+    </details>
   </div>
 </header>
-<div class="admin-layout">
-  <aside id="adminside" class="admin-side" aria-label="Admin navigation">
+<div class="adm-layout">
+  <aside id="adminside" class="adm-side" aria-label="Admin navigation">
     <?php foreach (ADMIN_GROUPS as $group => $items):
         $visible = array_filter($items, fn($i) => $i[2] === null || can($i[2]));
         if (!$visible) {
             continue;
         } ?>
       <h2><?= e($group) ?></h2>
-      <?php foreach ($visible as [$label, $file]): ?>
-        <a href="<?= e(url('admin/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+      <?php foreach ($visible as [$label, $file, $perm, $ic, $bk]): $count = $bk ? ($badges[$bk] ?? 0) : 0; ?>
+        <a href="<?= e(url('admin/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?> title="<?= e($label) ?>"><?= icon($ic, 18) ?><span class="lbl"><?= e($label) ?></span><?= $count ? '<span class="cnt">' . (int) $count . '</span>' : '' ?></a>
       <?php endforeach; ?>
     <?php endforeach; ?>
+    <div class="adm-side-foot"><a href="<?= url() ?>" target="_blank" rel="noopener"><?= icon('globe', 18) ?><span class="lbl">View website</span></a></div>
   </aside>
-  <main id="main" class="admin-main">
+  <main id="main" class="adm-main">
     <?php if ($flash): ?><div class="flash <?= e($flash[1]) ?>" role="status"><?= e($flash[0]) ?></div><?php endif; ?>
-    <h1><?= e($title) ?></h1>
+    <div class="adm-title">
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="<?= url('admin/') ?>">Admin</a><?php if ($crumbGroup && $crumbGroup !== 'Overview'): ?> <span>/</span> <?= e($crumbGroup) ?><?php endif; ?><?php if ($current !== 'index.php'): ?> <span>/</span> <?= e($crumbLabel ?: $title) ?><?php endif; ?></nav>
+      <h1><?= e($title) ?></h1>
+      <?php if ($subtitle): ?><p class="sub"><?= e($subtitle) ?></p><?php endif; ?>
+    </div>
 <?php
 }
 
 function admin_footer(): void
 {
-    echo "  </main>\n</div>\n</body>\n</html>\n";
+    ?>
+  </main>
+</div>
+<script>
+function admToggleSide() {
+  var small = window.matchMedia('(max-width: 960px)').matches;
+  if (small) { document.getElementById('adminside').classList.toggle('open'); return; }
+  var c = document.documentElement.classList.toggle('side-collapsed');
+  try { localStorage.setItem('adm-collapsed', c ? '1' : '0'); } catch (e) {}
+}
+document.querySelectorAll('.adm-menu').forEach(function (d) {
+  document.addEventListener('click', function (ev) { if (!d.contains(ev.target)) d.removeAttribute('open'); });
+});
+document.querySelectorAll('input.tbl-filter').forEach(function (inp) {
+  inp.addEventListener('input', function () {
+    var q = inp.value.toLowerCase(), shown = 0, rows = document.querySelectorAll('table.filterable tbody tr, table.filterable tr');
+    rows.forEach(function (r) {
+      if (r.querySelector('th')) return;
+      var hit = r.textContent.toLowerCase().indexOf(q) !== -1;
+      r.style.display = hit ? '' : 'none';
+      if (hit) shown++;
+    });
+    var c = document.querySelector('.tbl-count'); if (c) c.textContent = shown + ' shown';
+  });
+});
+</script>
+</body>
+</html>
+<?php
 }
 
 function admin_slug(string $table, string $title): string
@@ -267,10 +392,12 @@ function crud(array $c): void
         $order = $c['order'] ?? 'id DESC';
         $rows = q("SELECT * FROM `$t` WHERE 1=1$scopeSql ORDER BY $order", $scopeArgs)->fetchAll();
         $cols = array_filter($fields, fn($f) => !empty($f['list']));
+        echo '<div class="toolbar"><input class="tbl-filter" type="search" placeholder="Filter this list..." aria-label="Filter this list"><span class="tbl-count">' . count($rows) . ' item' . (count($rows) === 1 ? '' : 's') . '</span><span class="spacer"></span>';
         if (!$limited) {
-            echo '<p><a class="btn" href="' . e(url($self . '?new=1')) . '">Add new</a></p>';
+            echo '<a class="btn" href="' . e(url($self . '?new=1')) . '">+ Add new</a>';
         }
-        echo '<div class="table-wrap"><table><tr>';
+        echo '</div>';
+        echo '<div class="table-wrap"><table class="filterable"><tr>';
         foreach ($cols as $f) {
             echo '<th>' . e($f['label']) . '</th>';
         }

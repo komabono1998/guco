@@ -39,6 +39,7 @@ const PERMS = [
     'newsletters' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'campus' => ['super_admin', 'secretariat', 'communications'],
     'mail' => ['super_admin', 'secretariat'],
+    'reports' => ['super_admin', 'secretariat', 'executive'],
     'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
