@@ -92,18 +92,19 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 <?php if ($on('welcome')): ?>
 <section class="home-section who">
   <div class="collage">
-    <img class="big" src="<?= e(dinner_src(19)) ?>" alt="Guests on stage at a GUCO event" loading="lazy">
-    <img class="sm" src="<?= e(dinner_src(9)) ?>" alt="Alumni at a GUCO event" loading="lazy">
-    <img class="sm" src="<?= e(dinner_src(7)) ?>" alt="Guests at the GUCO dinner" loading="lazy">
-    <div class="badge-round"><b>2023</b>Constitution<br>in force</div>
+    <figure class="big"><img src="<?= e(dinner_src(19)) ?>" alt="Guests on stage at a GUCO event" loading="lazy"></figure>
+    <figure class="sm"><img src="<?= e(dinner_src(9)) ?>" alt="Alumni at a GUCO event" loading="lazy"></figure>
+    <figure class="sm"><img src="<?= e(dinner_src(7)) ?>" alt="Guests at the GUCO dinner" loading="lazy"></figure>
+    <div class="badge-round"><b>2023</b><span>Constitution in force</span></div>
   </div>
   <div>
     <span class="eyebrow" style="color:var(--green);text-transform:uppercase;letter-spacing:.12em;font-size:.74rem;font-weight:700">About us</span>
     <h2 style="margin:4px 0 10px"><?= ct('home.who_title') ?></h2>
     <div class="lead" style="font-size:1rem;color:var(--muted)"><?= cr('home.who_text') ?></div>
-    <div class="feat-row"><span class="ic"><?= icon('target') ?></span><div><h3>Our Mission</h3><p><?= e(excerpt(c('about.mission'), 150)) ?></p></div></div>
-    <div class="feat-row"><span class="ic"><?= icon('eye') ?></span><div><h3>Our Vision</h3><p><?= e(excerpt(c('about.vision'), 150)) ?></p></div></div>
-    <div class="feat-row"><span class="ic"><?= icon('gem') ?></span><div><h3>Our Values</h3><p><?= e(implode(', ', c_lines('about.values'))) ?>.</p></div></div>
+    <div class="feat-row"><span class="ic"><?= icon('target') ?></span><div><h3>Our Mission</h3><p><?= e(excerpt(c('about.mission'), 130)) ?></p></div></div>
+    <div class="feat-row"><span class="ic"><?= icon('eye') ?></span><div><h3>Our Vision</h3><p><?= e(excerpt(c('about.vision'), 130)) ?></p></div></div>
+    <div class="feat-row"><span class="ic"><?= icon('gem') ?></span><div><h3>Our Values</h3>
+      <div class="chips"><?php foreach (c_lines('about.values') as $val): $vt = trim(explode('|', $val)[0]); if ($vt !== ''): ?><span><?= e($vt) ?></span><?php endif; endforeach; ?></div></div></div>
     <a class="btn" href="<?= url('about.php') ?>">Learn more about us</a>
   </div>
 </section>
