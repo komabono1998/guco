@@ -101,9 +101,15 @@ CREATE TABLE news (
     title VARCHAR(200) NOT NULL,
     slug VARCHAR(220) NOT NULL UNIQUE,
     category VARCHAR(60) NOT NULL DEFAULT 'GUCO Announcements',
+    source_type ENUM('article','link','document') NOT NULL DEFAULT 'article',
+    external_url VARCHAR(500),
+    source_name VARCHAR(120),
     summary VARCHAR(300),
-    body TEXT NOT NULL,
+    body MEDIUMTEXT,
     image VARCHAR(200),
+    document VARCHAR(200),
+    document_original VARCHAR(200),
+    document_size INT UNSIGNED,
     status ENUM('draft','pending','published') NOT NULL DEFAULT 'draft',
     author_id INT UNSIGNED NULL,
     published_at DATETIME NULL,
@@ -193,6 +199,7 @@ CREATE TABLE resources (
     description VARCHAR(400),
     category VARCHAR(80) NOT NULL DEFAULT 'Governance',
     filename VARCHAR(200),
+    external_url VARCHAR(500),
     original_name VARCHAR(200),
     file_size INT UNSIGNED,
     member_only TINYINT(1) NOT NULL DEFAULT 0,
@@ -201,11 +208,24 @@ CREATE TABLE resources (
     FULLTEXT KEY ft_res (title, description)
 );
 
+CREATE TABLE gallery_albums (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    description VARCHAR(500),
+    event_date DATE NULL,
+    cover VARCHAR(200),
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
 CREATE TABLE gallery (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    album_id INT UNSIGNED NULL,
     caption VARCHAR(200),
     filename VARCHAR(200) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (album_id) REFERENCES gallery_albums(id) ON DELETE SET NULL
 );
 
 CREATE TABLE messages (
@@ -357,6 +377,53 @@ CREATE TABLE project_comments (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE newsletters (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(200) NOT NULL,
+    slug VARCHAR(220) NOT NULL UNIQUE,
+    issue_label VARCHAR(100),
+    summary VARCHAR(400),
+    body MEDIUMTEXT,
+    cover VARCHAR(200),
+    pdf VARCHAR(200),
+    pdf_original VARCHAR(200),
+    pdf_size INT UNSIGNED,
+    status ENUM('draft','published') NOT NULL DEFAULT 'draft',
+    published_at DATETIME NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    emailed_at DATETIME NULL
+);
+
+CREATE TABLE newsletter_images (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    newsletter_id INT UNSIGNED NOT NULL,
+    filename VARCHAR(200) NOT NULL,
+    caption VARCHAR(200),
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    FOREIGN KEY (newsletter_id) REFERENCES newsletters(id) ON DELETE CASCADE
+);
+
+CREATE TABLE mail_log (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    to_email VARCHAR(190) NOT NULL,
+    subject VARCHAR(250) NOT NULL,
+    context VARCHAR(60),
+    status ENUM('sent','failed') NOT NULL,
+    error VARCHAR(250),
+    sent_by INT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE campus_spots (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(150) NOT NULL,
+    description VARCHAR(400),
+    image VARCHAR(200),
+    link VARCHAR(300),
+    sort_order SMALLINT NOT NULL DEFAULT 100,
+    is_public TINYINT(1) NOT NULL DEFAULT 1
+);
+
 -- Contact details, fees and payment instructions stay blank/hidden until the
 -- Secretariat confirms them (see the website content document).
 INSERT INTO settings (k, v) VALUES
@@ -412,7 +479,7 @@ INSERT IGNORE INTO settings (k, v) VALUES
  ('site_name', 'Gulu University Convocation'), ('site_tagline', 'Community Transformation Actualized'),
  ('color_primary', '#14532d'), ('color_accent', '#f2b807'), ('logo', ''),
  ('home_show_welcome', '1'), ('home_show_cards', '1'), ('home_show_news', '1'), ('home_show_events', '1'),
- ('home_show_gallery', '1'), ('home_show_awards', '1'), ('home_show_cta', '1');
+ ('home_show_gallery', '1'), ('home_show_anthem', '1'), ('home_show_campus', '1'), ('home_show_awards', '1'), ('home_show_cta', '1');
 
 INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (1, 'Home', 'index.php', NULL, 10),
@@ -424,7 +491,7 @@ INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (7, 'Events & News', 'news.php', NULL, 70),
  (8, 'Awards', 'awards.php', NULL, 80),
  (9, 'Partnerships', 'partnerships.php', NULL, 90),
- (10, 'Resources', 'resources.php', NULL, 100),
+ (10, 'Reports & Documents', 'resources.php', NULL, 100),
  (11, 'Contact', 'contact.php', NULL, 110),
  (101, 'Overview', 'about.php#overview', 2, 10),
  (102, 'Vision and Mission', 'about.php#vision', 2, 20),
@@ -444,8 +511,9 @@ INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (131, 'News', 'news.php', 7, 10),
  (132, 'Events Calendar', 'events.php', 7, 20),
  (133, 'Notices', 'news.php?category=Notices', 7, 30),
- (134, 'Newsletter', 'news.php?category=Newsletter', 7, 40),
- (135, 'Gallery', 'gallery.php', 7, 50);
+ (134, 'Newsletter', 'newsletters.php', 7, 40),
+ (135, 'Gallery', 'gallery.php', 7, 50),
+ (136, 'Reports & Documents', 'resources.php', 7, 60);
 
 -- The six regional chapters and the Programmes drop-down links.
 INSERT INTO chapters (name, focus, description, meeting_info, sort_order, is_public) VALUES
@@ -460,3 +528,27 @@ INSERT INTO menu_items (id, label, url, parent_id, sort_order) VALUES
  (141, 'Programme Areas', 'programmes.php', 5, 10),
  (142, 'Community Projects', 'projects.php', 5, 20),
  (143, 'Propose a Project', 'member/projects.php', 5, 30);
+
+-- The Alumni & Stakeholders Dinner 2026 photo album.
+INSERT INTO gallery_albums (id, title, description, event_date, cover, sort_order) VALUES
+ (1, 'Alumni & Stakeholders Dinner 2026', 'Celebrating excellence, strengthening partnerships and investing in the future of Gulu University.', '2026-06-01', 'assets/img/dinner/dinner-03.jpg', 10);
+INSERT INTO gallery (album_id, caption, filename, sort_order) VALUES
+(1, 'Presenters on stage holding programme folders at the Alumni and Stakeholders Dinner', 'assets/img/dinner/dinner-03.jpg', 3),
+(1, 'A Certificate of Recognition being presented on stage', 'assets/img/dinner/dinner-04.jpg', 4),
+(1, 'A guest at the dinner table', 'assets/img/dinner/dinner-05.jpg', 5),
+(1, 'Guests sharing a meal at the dinner', 'assets/img/dinner/dinner-06.jpg', 6),
+(1, 'Guests serving themselves at the dinner buffet', 'assets/img/dinner/dinner-07.jpg', 7),
+(1, 'Portrait of a guest at the dinner', 'assets/img/dinner/dinner-08.jpg', 8),
+(1, 'Two alumni posing together at the dinner', 'assets/img/dinner/dinner-09.jpg', 9),
+(1, 'A guest seated near the stage', 'assets/img/dinner/dinner-10.jpg', 10),
+(1, 'A speaker addressing the dinner', 'assets/img/dinner/dinner-11.jpg', 11),
+(1, 'A speaker addressing the dinner', 'assets/img/dinner/dinner-12.jpg', 12),
+(1, 'A speaker addressing the dinner with other guests standing behind', 'assets/img/dinner/dinner-13.jpg', 13),
+(1, 'Three guests on stage in front of the dinner screen', 'assets/img/dinner/dinner-14.jpg', 14),
+(1, 'A speaker addressing guests at the dinner', 'assets/img/dinner/dinner-15.jpg', 15),
+(1, 'Three guests on stage, one speaking', 'assets/img/dinner/dinner-16.jpg', 16),
+(1, 'Portrait of a guest at the dinner', 'assets/img/dinner/dinner-17.jpg', 17),
+(1, 'A guest in profile in front of the dinner screen', 'assets/img/dinner/dinner-18.jpg', 18),
+(1, 'Four guests standing on stage', 'assets/img/dinner/dinner-19.jpg', 19),
+(1, 'Three guests standing on stage', 'assets/img/dinner/dinner-21.jpg', 21),
+(1, 'A speaker addressing the dinner', 'assets/img/dinner/dinner-22.jpg', 22);

@@ -36,6 +36,9 @@ const PERMS = [
     'menu' => ['super_admin', 'secretariat'],
     'partners' => ['super_admin', 'secretariat', 'communications'],
     'projects' => ['super_admin', 'secretariat', 'executive'],
+    'newsletters' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
+    'campus' => ['super_admin', 'secretariat', 'communications'],
+    'mail' => ['super_admin', 'secretariat'],
     'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
@@ -296,8 +299,7 @@ function save_document(array $file): ?array
 
 function send_mail(string $to, string $subject, string $body): bool
 {
-    $from = setting('contact_email', 'no-reply@localhost');
-    return @mail($to, $subject, $body, "From: GUCO <$from>\r\nContent-Type: text/plain; charset=utf-8");
+    return deliver_mail($to, $subject, $body, ['context' => 'system']);
 }
 
 function csv_download(string $filename, array $header, array $rows): void
@@ -333,3 +335,5 @@ require_once __DIR__ . '/membership.php';
 require_once __DIR__ . '/content.php';
 require_once __DIR__ . '/icons.php';
 require_once __DIR__ . '/projects.php';
+require_once __DIR__ . '/mailer.php';
+require_once __DIR__ . '/photos.php';

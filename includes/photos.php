@@ -53,3 +53,9 @@ function dinner_figure(int $n, string $class = '', ?string $caption = null): str
     $img = '<img src="' . e(dinner_src($n)) . '" alt="' . e(DINNER_PHOTOS[$n]) . '" loading="lazy">';
     return '<figure class="photo ' . e($class) . '">' . $img . ($caption ? '<figcaption>' . e($caption) . '</figcaption>' : '') . '</figure>';
 }
+
+/** URL of a gallery photo: bundled images are stored as assets/..., uploads as plain file names. */
+function gallery_src(string $filename): string
+{
+    return str_starts_with($filename, 'assets/') ? url($filename) : url('uploads/' . rawurlencode($filename));
+}

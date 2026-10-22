@@ -4,14 +4,20 @@ require __DIR__ . '/includes/header.php';
 $on = fn($k) => setting('home_show_' . $k, '1') === '1';
 $count = fn($sql) => (int) db()->query($sql)->fetchColumn();
 
-$news = $on('news') ? q("SELECT title, slug, category, summary, body, published_at FROM news WHERE status='published' AND published_at <= NOW() ORDER BY published_at DESC LIMIT 3")->fetchAll() : [];
+$news = $on('news') ? q("SELECT title, slug, category, source_type, external_url, source_name, summary, body, published_at FROM news WHERE status='published' AND published_at <= NOW() ORDER BY published_at DESC LIMIT 3")->fetchAll() : [];
 $events = $on('events') ? q("SELECT * FROM events WHERE is_public = 1 AND status <> 'cancelled' AND (starts_at >= NOW() OR starts_at IS NULL) ORDER BY starts_at IS NULL, starts_at LIMIT 4")->fetchAll() : [];
 // Spotlight: the soonest confirmed event flagged as featured, else the soonest with a countdown.
 $spot = q("SELECT * FROM events WHERE is_public = 1 AND status = 'scheduled' AND starts_at >= NOW() AND (featured = 1 OR show_countdown = 1) ORDER BY featured DESC, starts_at LIMIT 1")->fetch();
-$newsletter = $on('news') ? q("SELECT title, slug, summary, body, published_at FROM news WHERE status='published' AND category='Newsletter' AND published_at <= NOW() ORDER BY published_at DESC LIMIT 1")->fetch() : null;
+$newsletter = $on('news') ? q("SELECT title, slug, summary, published_at FROM newsletters WHERE status='published' AND published_at <= NOW() ORDER BY published_at DESC LIMIT 1")->fetch() : null;
+$spots = $on('campus') ? q('SELECT * FROM campus_spots WHERE is_public = 1 ORDER BY sort_order, id')->fetchAll() : [];
+$anthemAudio = c_image('home.anthem_audio');
+$anthemVideo = trim(c('home.anthem_video'));
+$anthemLyrics = trim(c('home.anthem_lyrics'));
+$campusLink = trim(c('home.campus_link'));
+$campusVideo = trim(c('home.campus_video'));
 $awards = $on('awards') ? q("SELECT name FROM awards WHERE is_public = 1 ORDER BY id LIMIT 4")->fetchAll(PDO::FETCH_COLUMN) : [];
 $partners = q('SELECT * FROM partners WHERE is_public = 1 ORDER BY sort_order, id')->fetchAll();
-$photoCount = count(DINNER_PHOTOS) + $count('SELECT COUNT(*) FROM gallery');
+$photoCount = $count('SELECT COUNT(*) FROM gallery');
 
 // Live figures: shown only when there is something real to show.
 $live = [
@@ -122,6 +128,25 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
+<?php if ($on('campus') && ($spots || $campusVideo || $campusLink)): ?>
+<section class="home-section campus">
+  <div class="sec-head"><div><span class="eyebrow">Where it all began</span><h2><?= ct('home.campus_title') ?></h2></div>
+    <?php if ($campusLink): ?><a href="<?= e($campusLink) ?>" target="_blank" rel="noopener"><?= ct('home.campus_link_label') ?> &#8599;</a><?php endif; ?></div>
+  <div class="campus-intro"><?= cr('home.campus_text') ?></div>
+  <?php if ($campusVideo): ?><div style="max-width:860px;margin:0 auto 22px"><?= video_embed($campusVideo, 'Watch the campus tour') ?></div><?php endif; ?>
+  <?php if ($spots): ?>
+  <div class="spot-grid">
+    <?php foreach ($spots as $sp): $tag = $sp['link'] ? 'a' : 'div'; ?>
+      <<?= $tag ?> class="spot"<?= $sp['link'] ? ' href="' . e($sp['link']) . '" target="_blank" rel="noopener"' : '' ?>>
+        <?= $sp['image'] ? '<img src="' . e(url('uploads/' . rawurlencode($sp['image']))) . '" alt="" loading="lazy">' : '<div class="ph">' . icon('camera', 36) . '</div>' ?>
+        <div class="spot-body"><h3><?= e($sp['title']) ?></h3><?= $sp['description'] ? '<p>' . e($sp['description']) . '</p>' : '' ?></div>
+      </<?= $tag ?>>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+</section>
+<?php endif; ?>
+
 <?php if ($on('events') && $events): ?>
 <section class="home-section">
   <div class="sec-head"><div><span class="eyebrow">Mark your calendar</span><h2><?= ct('home.events_heading') ?></h2></div><a href="<?= url('events.php') ?>">View all events &rarr;</a></div>
@@ -162,13 +187,13 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
   <?php if ($on('news')): ?>
   <div>
     <div class="sec-head"><div><span class="eyebrow">Stay informed</span><h2><?= ct('home.news_heading') ?></h2></div><a href="<?= url('news.php') ?>">All news &rarr;</a></div>
-    <?php foreach ($news as $n): ?>
-      <a class="news-item" href="<?= url('news_view.php?slug=' . urlencode($n['slug'])) ?>">
+    <?php foreach ($news as $n): $ext = $n['source_type'] === 'link'; ?>
+      <a class="news-item" href="<?= e($ext ? $n['external_url'] : url('news_view.php?slug=' . urlencode($n['slug']))) ?>"<?= $ext ? ' target="_blank" rel="noopener"' : '' ?>>
         <div class="ph"><?= icon('file', 26) ?></div>
-        <div><span class="badge"><?= e($n['category']) ?></span><h3><?= e($n['title']) ?></h3><p class="meta" style="margin:0"><?= e(fmt_date($n['published_at'])) ?> &middot; <?= e($n['summary'] ?: excerpt($n['body'], 80)) ?></p></div>
+        <div><span class="badge"><?= e($n['category']) ?></span><?= $ext ? ' <span class="badge warn">From ' . e($n['source_name'] ?: parse_url($n['external_url'], PHP_URL_HOST)) . '</span>' : '' ?><h3><?= e($n['title']) ?></h3><p class="meta" style="margin:0"><?= e(fmt_date($n['published_at'])) ?> &middot; <?= e($n['summary'] ?: excerpt($n['body'], 80)) ?></p></div>
       </a>
     <?php endforeach; if (!$news): ?><p>Verified news and stories will be published here soon.</p><?php endif; ?>
-    <?php if ($newsletter): ?><p class="meta">Latest newsletter: <a href="<?= url('news_view.php?slug=' . urlencode($newsletter['slug'])) ?>"><?= e($newsletter['title']) ?></a></p><?php endif; ?>
+    <?php if ($newsletter): ?><p class="meta">Latest newsletter: <a href="<?= url('newsletter_view.php?slug=' . urlencode($newsletter['slug'])) ?>"><?= e($newsletter['title']) ?></a></p><?php endif; ?>
   </div>
   <?php endif; ?>
   <?php if ($on('awards')): ?>
@@ -179,6 +204,21 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
+</section>
+<?php endif; ?>
+
+<?php if ($on('anthem') && ($anthemAudio || $anthemVideo || $anthemLyrics)): ?>
+<section class="home-section anthem">
+  <div class="anthem-card">
+    <div class="anthem-text">
+      <span class="anthem-ic"><?= icon('music', 30) ?></span>
+      <h2><?= ct('home.anthem_title') ?></h2>
+      <?= cr('home.anthem_text') ?>
+      <?php if ($anthemAudio): ?><audio controls preload="none" src="<?= e($anthemAudio) ?>" class="anthem-audio">Your browser does not support audio playback.</audio><?php endif; ?>
+      <?php if ($anthemLyrics): ?><details class="anthem-lyrics"><summary>Read the lyrics</summary><div><?= cr('home.anthem_lyrics') ?></div></details><?php endif; ?>
+    </div>
+    <?php if ($anthemVideo): ?><div class="anthem-video"><?= video_embed($anthemVideo, 'Watch the anthem video') ?></div><?php endif; ?>
+  </div>
 </section>
 <?php endif; ?>
 

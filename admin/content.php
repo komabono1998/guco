@@ -15,12 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         [$label, $type, $default] = $b;
         $field = str_replace('.', '__', $key);
         $reset = !empty($_POST['reset'][$field]);
-        if ($type === 'image') {
+        if ($type === 'image' || $type === 'audio') {
             $has = ($_FILES[$field]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
             if ($has) {
-                $name = save_upload($_FILES[$field]);
+                $name = $type === 'audio' ? save_media($_FILES[$field], 'audio') : save_upload($_FILES[$field]);
                 if (!$name) {
-                    flash("$label: use a JPG, PNG or WebP image under 5MB.", 'error');
+                    flash($type === 'audio' ? "$label: use an MP3, M4A, OGG or WAV file under 25MB." : "$label: use a JPG, PNG or WebP image under 5MB.", 'error');
                     redirect('admin/content.php?page=' . $pageKey);
                 }
                 q('INSERT INTO site_content (k, v) VALUES (?, ?) ON DUPLICATE KEY UPDATE v = VALUES(v)', [$key, $name]);
@@ -69,15 +69,16 @@ admin_header('Site content');
       <label for="f-<?= e($field) ?>"><span><?= e($label) ?> <span class="badge <?= $custom ? '' : 'warn' ?>"><?= $custom ? 'customised' : 'default' ?></span> <span class="key"><?= e($key) ?></span></span>
       <?php if ($type === 'text'): ?>
         <input id="f-<?= e($field) ?>" name="<?= e($field) ?>" value="<?= e(c($key)) ?>">
-      <?php elseif ($type === 'image'): ?>
-        <?php if (c($key) !== ''): ?><img class="thumb" src="<?= e(c_image($key)) ?>" alt=""><?php endif; ?>
-        <input id="f-<?= e($field) ?>" type="file" name="<?= e($field) ?>" accept="image/jpeg,image/png,image/webp">
+      <?php elseif ($type === 'image' || $type === 'audio'): ?>
+        <?php if (c($key) !== '' && $type === 'image'): ?><img class="thumb" src="<?= e(c_image($key)) ?>" alt=""><?php endif; ?>
+        <?php if (c($key) !== '' && $type === 'audio'): ?><audio controls src="<?= e(c_image($key)) ?>" style="max-width:100%"></audio><?php endif; ?>
+        <input id="f-<?= e($field) ?>" type="file" name="<?= e($field) ?>" accept="<?= $type === 'audio' ? 'audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav' : 'image/jpeg,image/png,image/webp' ?>">
       <?php else: ?>
         <textarea id="f-<?= e($field) ?>" name="<?= e($field) ?>" rows="<?= $type === 'list' ? 8 : (strlen($default) > 600 ? 12 : 4) ?>"><?= e(c($key)) ?></textarea>
       <?php endif; ?>
       </label>
       <?php if ($hint): ?><span class="hint"><?= e($hint) ?></span><?php endif; ?>
-      <?php if ($custom): ?><label class="check"><input type="checkbox" name="reset[<?= e($field) ?>]" value="1"> Reset to default<?= $type === 'image' ? ' (remove image)' : '' ?></label><?php endif; ?>
+      <?php if ($custom): ?><label class="check"><input type="checkbox" name="reset[<?= e($field) ?>]" value="1"> Reset to default<?= $type === 'image' ? ' (remove image)' : ($type === 'audio' ? ' (remove audio)' : '') ?></label><?php endif; ?>
     </div>
   <?php endforeach; ?>
   <div class="savebar"><button>Save changes</button><span class="meta">Changes go live immediately.</span></div>

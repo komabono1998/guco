@@ -30,6 +30,9 @@ function icon(string $name, int $size = 22): string
         'arrow-right' => '<path d="M5 12h14M12 5l7 7-7 7"/>',
         'map' => '<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16M16 6v16"/>',
         'check' => '<path d="M20 6 9 17l-5-5"/>',
+        'music' => '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+        'play' => '<circle cx="12" cy="12" r="10"/><path d="m10 8 6 4-6 4z"/>',
+        'camera' => '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
     ];
     $p = $paths[$name] ?? '';
     return '<svg class="icon" viewBox="0 0 24 24" width="' . $size . '" height="' . $size . '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' . $p . '</svg>';

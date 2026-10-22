@@ -5,8 +5,9 @@ const ADMIN_GROUPS = [
     'Overview' => [['Dashboard', 'index.php', null]],
     'Website content' => [
         ['Site content', 'content.php', 'content'], ['Pages', 'pages.php', 'pages'], ['Menu', 'menu.php', 'menu'],
-        ['News', 'news.php', 'news'], ['Events', 'events.php', 'events'], ['Resources', 'resources.php', 'resources'],
-        ['Gallery', 'gallery.php', 'gallery'], ['Partners', 'partners.php', 'partners'],
+        ['News', 'news.php', 'news'], ['Newsletters', 'newsletters.php', 'newsletters'], ['Events & calendar', 'events.php', 'events'],
+        ['Reports & documents', 'resources.php', 'resources'], ['Gallery', 'gallery.php', 'gallery'],
+        ['Campus', 'campus.php', 'campus'], ['Partners', 'partners.php', 'partners'],
     ],
     'Organisation' => [
         ['Leadership', 'leaders.php', 'leaders'], ['Chapters', 'chapters.php', 'chapters'], ['Chapter members', 'chapter_members.php', 'chapters'], ['Projects', 'projects.php', 'projects'],
@@ -15,7 +16,7 @@ const ADMIN_GROUPS = [
     'Membership' => [['Members', 'members.php', 'members'], ['Payments', 'payments.php', 'payments']],
     'Inbox' => [['Messages', 'messages.php', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers']],
     'Site' => [['Branding & layout', 'branding.php', 'branding'], ['Settings', 'settings.php', 'settings']],
-    'System' => [['Users & roles', 'users.php', 'users'], ['Audit log', 'audit.php', 'audit']],
+    'System' => [['Users & roles', 'users.php', 'users'], ['Mail log', 'mail_log.php', 'mail'], ['Audit log', 'audit.php', 'audit']],
 ];
 
 /** Admin chrome: top bar, grouped sidebar and a content area (closed by admin_footer). */
@@ -133,8 +134,11 @@ function crud(array $c): void
                         @unlink(config('upload_dir') . '/' . basename($row[$n]));
                     }
                 }
-                if (!empty($row['filename']) && $t === 'resources') {
-                    @unlink(config('storage_dir') . '/' . basename($row['filename']));
+                foreach ($fields as $n => $f) {
+                    $col = $f['map']['filename'] ?? 'filename';
+                    if ($f['type'] === 'doc' && !empty($row[$col])) {
+                        @unlink(config('storage_dir') . '/' . basename($row[$col]));
+                    }
                 }
                 q("DELETE FROM `$t` WHERE id = ?", [$row['id']]);
                 audit("delete_$t", "id {$row['id']}");
@@ -170,7 +174,13 @@ function crud(array $c): void
                     $has = ($_FILES[$n]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
                     if ($has) {
                         $doc = save_document($_FILES[$n]);
-                        $doc ? $vals += $doc : $err = "$label: use a PDF or Office file under 20MB.";
+                        if ($doc) {
+                            foreach ($doc as $dk => $dv) {
+                                $vals[$f['map'][$dk] ?? $dk] = $dv;
+                            }
+                        } else {
+                            $err = "$label: use a PDF or Office file under 20MB.";
+                        }
                     } elseif (!$old && !empty($f['required'])) {
                         $err = "$label is required.";
                     }
@@ -242,7 +252,7 @@ function crud(array $c): void
       </select></label>
     <?php elseif ($f['type'] === 'image' || $f['type'] === 'doc'): ?>
       <label><?= $label . $hint ?>
-        <?php if (!empty($edit[$f['type'] === 'image' ? $n : 'filename'])): ?><span class="hint">Current: <?= e($f['type'] === 'image' ? $edit[$n] : ($edit['original_name'] ?? $edit['filename'])) ?> (upload to replace)</span><?php endif; ?>
+        <?php $mf = $f['map']['filename'] ?? 'filename'; $mo = $f['map']['original_name'] ?? 'original_name'; if (!empty($edit[$f['type'] === 'image' ? $n : $mf])): ?><span class="hint">Current: <?= e($f['type'] === 'image' ? $edit[$n] : ($edit[$mo] ?? $edit[$mf])) ?> (upload to replace)</span><?php endif; ?>
         <input type="file" name="<?= $n ?>" accept="<?= $f['type'] === 'image' ? 'image/jpeg,image/png,image/webp' : '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx' ?>"></label>
     <?php elseif ($f['type'] === 'datetime'): ?>
       <label><?= $label . $hint ?><input type="datetime-local" name="<?= $n ?>" value="<?= e($val($n) ? str_replace(' ', 'T', substr((string) $val($n), 0, 16)) : '') ?>"></label>

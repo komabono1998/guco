@@ -1,18 +1,26 @@
 <?php
 require_once __DIR__ . '/../includes/admin.php';
-$cats = ['Constitution', 'Governance', 'Annual Reports', 'Financial Reports', 'Newsletters', 'Notices', 'Policies and Guidance', 'Plans and Impact Reports'];
+$cats = ['Constitution', 'Governance', 'Annual Reports', 'Financial Reports', 'Audit Reports', 'Programme and Impact Reports', 'Newsletters', 'Notices', 'Policies and Guidance', 'Forms and Templates', 'Other'];
 crud([
-    'table' => 'resources', 'title' => 'Resources library', 'perm' => 'resources', 'order' => 'published_at DESC, id DESC',
+    'table' => 'resources', 'title' => 'Reports & documents', 'perm' => 'resources', 'order' => 'published_at DESC, id DESC',
     'fields' => [
         'title' => ['label' => 'Title', 'type' => 'text', 'required' => true, 'list' => true],
         'description' => ['label' => 'Short description', 'type' => 'text'],
         'category' => ['label' => 'Category', 'type' => 'select', 'options' => array_combine($cats, $cats), 'list' => true],
-        'file' => ['label' => 'Document', 'type' => 'doc', 'required' => true, 'hint' => 'PDF or Office file, up to 20MB.'],
+        'file' => ['label' => 'Document', 'type' => 'doc', 'hint' => 'PDF or Office file up to 20MB. Upload a file, or give a link below.'],
+        'external_url' => ['label' => 'Or link to the document online', 'type' => 'text', 'hint' => 'Optional full address (https://...) if the report is hosted elsewhere.'],
         'published_at' => ['label' => 'Publication date', 'type' => 'date', 'list' => true],
         'member_only' => ['label' => 'Members only', 'type' => 'check', 'list' => true],
-        'is_public' => ['label' => 'Publish', 'type' => 'check', 'default' => 1],
+        'is_public' => ['label' => 'Publish for public viewing', 'type' => 'check', 'default' => 1, 'list' => true],
     ],
     'hook' => function (array &$v, ?array $old) {
+        if ($v['external_url'] !== '' && !preg_match('#^https?://[^\s]+$#i', $v['external_url'])) {
+            return 'The link must start with http:// or https://';
+        }
+        $hasFile = !empty($v['filename']) || ($old && !empty($old['filename']));
+        if (!$hasFile && $v['external_url'] === '') {
+            return 'Upload the document or give a link to it.';
+        }
         if (empty($v['published_at'])) {
             $v['published_at'] = date('Y-m-d');
         }

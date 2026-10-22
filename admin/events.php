@@ -29,5 +29,6 @@ crud([
         }
         return null;
     },
-    'extra_actions' => fn($r) => '<a class="btn secondary" href="' . e(url('admin/registrations.php?event=' . (int) $r['id'])) . '">Registrations</a>',
+    'extra_actions' => fn($r) => '<a class="btn secondary" href="' . e(url('admin/registrations.php?event=' . (int) $r['id'])) . '">Registrations</a>'
+        . '<a class="btn secondary" href="' . e(url('admin/event_invite.php?event=' . (int) $r['id'])) . '">Invite</a>',
 ]);

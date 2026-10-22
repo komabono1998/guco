@@ -31,6 +31,16 @@ function content_registry(): array
             'home.cards' => ['"How you can help" cards', 'list', "Join GUCO | Apply for Founder, Ordinary, Honorary or Life membership and get your membership card. | register.php\nRenew membership | Keep your card valid by submitting your annual subscription. | member/payments.php#renew\nJoin a chapter | Connect with alumni by region, college or profession. | chapters.php\nPartner or support | Collaborate with GUCO on approved initiatives and events. | partnerships.php", 'One card per line: Title | Description | page link (e.g. about.php).'],
             'home.news_heading' => ['News section heading', 'text', 'News and stories'],
             'home.events_heading' => ['Events section heading', 'text', 'Upcoming events'],
+            'home.anthem_title' => ['Anthem section: heading', 'text', 'The Gulu University Anthem'],
+            'home.anthem_text' => ['Anthem section: introduction', 'rich', "Listen to the anthem that unites every Gulu University student, graduate and friend."],
+            'home.anthem_audio' => ['Anthem audio file (MP3, M4A, OGG or WAV, up to 25MB)', 'audio', ''],
+            'home.anthem_video' => ['Anthem video link (YouTube or other video page)', 'text', '', 'Optional. A YouTube link plays on the page; any other link opens in a new tab.'],
+            'home.anthem_lyrics' => ['Anthem lyrics', 'rich', '', 'Optional. Shown under the player. One line per line; a blank line starts a new verse.'],
+            'home.campus_title' => ['Campus section: heading', 'text', 'Explore Your Campus'],
+            'home.campus_text' => ['Campus section: introduction', 'rich', "Take a look around Gulu University: the places, people and spaces where the GUCO story began."],
+            'home.campus_link' => ['Campus section: button link', 'text', 'https://gu.ac.ug', 'Leave blank to hide the button.'],
+            'home.campus_link_label' => ['Campus section: button text', 'text', 'Visit the University website'],
+            'home.campus_video' => ['Campus tour video (YouTube link)', 'text', '', 'Optional virtual tour or promotional video.'],
             'home.cta_title' => ['Closing call to action: heading', 'text', 'Your connection with Gulu University continues after graduation'],
             'home.cta_text' => ['Closing call to action: text', 'rich', 'Join the Convocation, reconnect with fellow alumni and contribute to a stronger University and more empowered communities.'],
         ]],
@@ -234,4 +244,26 @@ function render_text(string $s): string
         }
     }
     return $out;
+}
+
+/** YouTube video id from a watch, short or embed link; null for anything else. */
+function youtube_id(string $url): ?string
+{
+    if (preg_match('~(?:youtube\.com/(?:watch\?(?:.*&)?v=|embed/|shorts/)|youtu\.be/)([A-Za-z0-9_-]{11})~', $url, $m)) {
+        return $m[1];
+    }
+    return null;
+}
+
+/** Responsive video player for a YouTube link, or a plain link for other URLs. */
+function video_embed(string $url, string $title): string
+{
+    $url = trim($url);
+    if ($url === '' || !preg_match('#^https?://#i', $url)) {
+        return '';
+    }
+    if ($id = youtube_id($url)) {
+        return '<div class="video-wrap"><iframe src="https://www.youtube-nocookie.com/embed/' . e($id) . '" title="' . e($title) . '" loading="lazy" allowfullscreen allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe></div>';
+    }
+    return '<p><a class="btn" href="' . e($url) . '" target="_blank" rel="noopener">' . e($title) . ' &#8599;</a></p>';
 }

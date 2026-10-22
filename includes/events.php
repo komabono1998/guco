@@ -37,3 +37,21 @@ function event_status_badge(array $ev): string
 {
     return $ev['status'] === 'scheduled' ? '' : '<span class="badge bad">' . e(ucfirst($ev['status'])) . '</span>';
 }
+
+/** iCalendar text for an event (used for downloads and email invitations). */
+function event_ics_text(array $ev, string $method = 'PUBLISH'): string
+{
+    $fmt = fn($t) => gmdate('Ymd\THis\Z', strtotime($t));
+    $esc = fn($s) => str_replace(["\\", ';', ',', "\r\n", "\n"], ["\\\\", '\;', '\,', '\n', '\n'], (string) $s);
+    $end = $ev['ends_at'] ?: date('Y-m-d H:i:s', strtotime($ev['starts_at']) + 7200);
+    $from = setting('contact_email', 'no-reply@localhost');
+    $lines = [
+        'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//GUCO//Events//EN', "METHOD:$method", 'BEGIN:VEVENT',
+        'UID:guco-event-' . (int) $ev['id'] . '@guco', 'DTSTAMP:' . gmdate('Ymd\THis\Z'),
+        'DTSTART:' . $fmt($ev['starts_at']), 'DTEND:' . $fmt($end),
+        'SUMMARY:' . $esc($ev['title']), 'LOCATION:' . $esc($ev['location']), 'DESCRIPTION:' . $esc($ev['description']),
+        "ORGANIZER:mailto:$from", 'STATUS:' . ($ev['status'] === 'cancelled' ? 'CANCELLED' : 'CONFIRMED'),
+        'END:VEVENT', 'END:VCALENDAR',
+    ];
+    return implode("\r\n", $lines) . "\r\n";
+}

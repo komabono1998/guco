@@ -18,7 +18,7 @@ foreach (q('SELECT * FROM menu_items WHERE is_visible = 1 ORDER BY sort_order, i
         $nav[$mi['id']]['item'] = $mi;
     }
 }
-$nav = array_filter($nav, fn($n) => isset($n['item']));
+$nav = array_filter($nav, fn($entry) => isset($entry['item']));
 $menuUrl = fn(array $i) => preg_match('#^(https?:)?//#i', $i['url']) ? $i['url'] : url($i['url']);
 
 $brandCss = '';
@@ -49,7 +49,7 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
     <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="52" height="52"><span><?= e($siteName) ?></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mainnav" onclick="var n=document.getElementById('mainnav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
     <nav id="mainnav" class="mainnav" aria-label="Main">
-      <?php foreach ($nav as $n): $item = $n['item']; $kids = $n['children'] ?? []; ?>
+      <?php foreach ($nav as $navEntry): $item = $navEntry['item']; $kids = $navEntry['children'] ?? []; ?>
         <div class="navitem<?= $kids ? ' has-sub' : '' ?>">
           <a href="<?= e($menuUrl($item)) ?>"<?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?><?= $here === strtok($item['url'], '#?') ? ' aria-current="page"' : '' ?>><?= e($item['label']) ?></a>
           <?php if ($kids): ?>
@@ -59,20 +59,17 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
           <?php endif; ?>
         </div>
       <?php endforeach; ?>
-      <div class="account account-mobile">
+      <?php if ($me): ?><div class="account account-mobile">
         <?php if ($me): ?><a href="<?= url('member/') ?>">Member Portal</a><a href="<?= url('logout.php') ?>">Log out</a>
-        <?php else: ?><a href="<?= url('login.php') ?>">Log in</a><a class="btn" href="<?= url('register.php') ?>">Join GUCO</a><?php endif; ?>
-      </div>
+        <?php endif; ?>
+      </div><?php endif; ?>
     </nav>
-    <div class="account">
+    <?php if ($me): ?><div class="account">
       <?php if ($me): ?>
         <a href="<?= url('member/') ?>" class="btn">Member Portal</a>
         <a href="<?= url('logout.php') ?>">Log out</a>
-      <?php else: ?>
-        <a href="<?= url('login.php') ?>">Log in</a>
-        <a class="btn" href="<?= url('register.php') ?>">Join GUCO</a>
       <?php endif; ?>
-    </div>
+    </div><?php endif; ?>
   </div>
 </header>
 <main id="main" class="container">

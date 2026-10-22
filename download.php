@@ -1,12 +1,16 @@
 <?php
 require_once __DIR__ . '/includes/bootstrap.php';
 $r = q('SELECT * FROM resources WHERE id = ? AND is_public = 1', [(int) ($_GET['id'] ?? 0)])->fetch();
-if (!$r || !$r['filename']) {
+if (!$r || (!$r['filename'] && !$r['external_url'])) {
     http_response_code(404);
     exit('Document not found.');
 }
 if ($r['member_only']) {
     require_member();
+}
+if (!$r['filename']) {
+    header('Location: ' . $r['external_url']);
+    exit;
 }
 $path = config('storage_dir') . '/' . basename($r['filename']);
 if (!is_file($path)) {

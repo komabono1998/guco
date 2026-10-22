@@ -46,6 +46,18 @@ if (can('news')) {
 if (can('events')) {
     $check[] = [$count('SELECT COUNT(*) FROM events WHERE starts_at IS NOT NULL AND is_public = 1') > 0, 'At least one event has a confirmed date', 'events.php'];
 }
+if (can('content')) {
+    $check[] = [c('home.anthem_audio') !== '' || trim(c('home.anthem_video')) !== '', 'Gulu University anthem added to the home page', 'content.php?page=home'];
+}
+if (can('campus')) {
+    $check[] = [$count('SELECT COUNT(*) FROM campus_spots WHERE is_public = 1') > 0, 'Campus places added to "Explore your campus"', 'campus.php'];
+}
+if (can('newsletters')) {
+    $check[] = [$count("SELECT COUNT(*) FROM newsletters WHERE status = 'published'") > 0, 'First newsletter published', 'newsletters.php?new=1'];
+}
+if (can('mail')) {
+    $check[] = [$count("SELECT COUNT(*) FROM mail_log WHERE status = 'failed'") === 0, 'Email delivery working (no failed emails in the Mail log)', 'mail_log.php'];
+}
 if (can('users')) {
     $check[] = [!config('dev_mode'), 'Development mode switched off (config.php)', 'users.php'];
 }

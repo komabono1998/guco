@@ -8,6 +8,20 @@ $args = $cat ? [$cat] : [];
 // Confirmed dates first (soonest first), then events whose date is still to be announced.
 $upcoming = q("SELECT * FROM events WHERE is_public = 1 AND (starts_at >= NOW() OR starts_at IS NULL)$catSql ORDER BY starts_at IS NULL, starts_at", $args)->fetchAll();
 $past = q("SELECT * FROM events WHERE is_public = 1 AND starts_at < NOW()$catSql ORDER BY starts_at DESC LIMIT 12", $args)->fetchAll();
+
+// Month grid
+$month = preg_match('/^\d{4}-\d{2}$/', $_GET['month'] ?? '') ? $_GET['month'] : date('Y-m');
+$first = strtotime($month . '-01');
+$daysIn = (int) date('t', $first);
+$offset = (int) date('w', $first); // 0 = Sunday
+$byDay = [];
+foreach (q("SELECT id, title, starts_at, status FROM events WHERE is_public = 1 AND starts_at >= ? AND starts_at < ?$catSql ORDER BY starts_at",
+    array_merge([date('Y-m-d', $first), date('Y-m-d', strtotime('+1 month', $first))], $args))->fetchAll() as $ev) {
+    $byDay[(int) date('j', strtotime($ev['starts_at']))][] = $ev;
+}
+$prev = date('Y-m', strtotime('-1 month', $first));
+$next = date('Y-m', strtotime('+1 month', $first));
+$qs = fn($m) => '?' . http_build_query(array_filter(['month' => $m, 'category' => $cat]));
 ?>
 <div class="page-head"><h1>Events Calendar</h1><p>Dates are published once confirmed by the Secretariat</p></div>
 <form method="get" class="filters">
@@ -15,6 +29,22 @@ $past = q("SELECT * FROM events WHERE is_public = 1 AND starts_at < NOW()$catSql
     <?php foreach (EVENT_CATEGORIES as $c): ?><option<?= $c === $cat ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select></label>
   <button>Filter</button>
 </form>
+
+<section class="calendar" aria-label="Month calendar">
+  <div class="cal-head">
+    <a class="btn secondary" href="<?= e($qs($prev)) ?>">&larr; <?= e(date('M', strtotime($prev . '-01'))) ?></a>
+    <strong><?= e(date('F Y', $first)) ?></strong>
+    <a class="btn secondary" href="<?= e($qs($next)) ?>"><?= e(date('M', strtotime($next . '-01'))) ?> &rarr;</a>
+  </div>
+  <div class="cal-grid">
+    <?php foreach (['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] as $d): ?><div class="cal-dow"><?= $d ?></div><?php endforeach; ?>
+    <?php for ($i = 0; $i < $offset; $i++): ?><div class="cal-day empty"></div><?php endfor; ?>
+    <?php for ($d = 1; $d <= $daysIn; $d++): $isToday = date('Y-m-d') === date('Y-m-d', strtotime("$month-" . sprintf('%02d', $d))); ?>
+      <div class="cal-day<?= $isToday ? ' today' : '' ?>"><span class="n"><?= $d ?></span>
+        <?php foreach ($byDay[$d] ?? [] as $ev): ?><a class="chip<?= $ev['status'] !== 'scheduled' ? ' off' : '' ?>" href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>" title="<?= e($ev['title']) ?>"><?= e(fmt_date($ev['starts_at'], 'g:ia')) ?> <?= e($ev['title']) ?></a><?php endforeach; ?></div>
+    <?php endfor; ?>
+  </div>
+</section>
 
 <h2>Upcoming events</h2>
 <div class="grid">
