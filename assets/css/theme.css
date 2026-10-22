@@ -354,3 +354,76 @@ body.site .spot-body h3 { color: #fff; }
 @keyframes eq { 0% { height: 18%; } 100% { height: 92%; } }
 @media (prefers-reduced-motion: reduce) { .eq i { animation: none; height: 55%; } }
 .anthem-card:has(.anthem-art) { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+
+/* Leadership and governance */
+.gov-hero { display: flex; gap: 28px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: linear-gradient(120deg, #0f3d22, var(--green) 65%, #2457a6); color: #fff; border-radius: 24px; padding: 36px 40px; margin-bottom: 22px; border-bottom: 6px solid var(--gold); }
+.gov-hero h1, body.site .gov-hero h1 { color: #fff; margin: 4px 0 10px; font-size: clamp(1.8rem, 3.6vw, 2.6rem); }
+.gov-intro { max-width: 640px; opacity: .92; }
+.gov-intro p { margin: 0; }
+.gov-count { background: rgba(255, 255, 255, .12); border-radius: 18px; padding: 18px 24px; min-width: 220px; text-align: center; }
+.gov-count b { display: block; font-size: 2.6rem; line-height: 1; color: var(--gold); }
+.gov-count span { font-size: .85rem; opacity: .9; }
+.gc-bar { height: 8px; background: rgba(255, 255, 255, .22); border-radius: 99px; overflow: hidden; margin-top: 10px; }
+.gc-bar i { display: block; height: 100%; background: var(--gold); }
+.gov-diagram { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; gap: 10px; align-items: stretch; margin: 6px 0 22px; }
+.gd { display: flex; flex-direction: column; gap: 4px; align-items: center; text-align: center; background: #fff; border: 1px solid var(--line); border-top: 5px solid var(--gc); border-radius: 18px; padding: 20px 14px; text-decoration: none; color: var(--ink); box-shadow: 0 2px 10px rgba(15, 40, 28, .05); transition: .2s; }
+.gd:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+.gd-ic { width: 56px; height: 56px; border-radius: 16px; background: color-mix(in srgb, var(--gc) 14%, #fff); color: var(--gc); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 4px; }
+.gd b { font-size: 1.02rem; }
+.gd-role { font-size: .8rem; color: var(--muted); }
+.gd-count { margin-top: 6px; font-size: .74rem; font-weight: 700; color: var(--gc); background: color-mix(in srgb, var(--gc) 10%, #fff); border-radius: 99px; padding: 3px 10px; }
+.gd-arrow { display: flex; align-items: center; color: #b6c2ba; }
+.gd-gold, .gs-gold, .t-gold { --gc: #b7791f; }
+.gd-blue, .gs-blue, .t-blue { --gc: #2457a6; }
+.gd-green, .gs-green, .t-green { --gc: #14532d; }
+.gd-red, .gs-red, .t-red { --gc: #b42323; }
+.gs-purple { --gc: #6d3aa8; }
+@media (max-width: 960px) { .gov-diagram { grid-template-columns: 1fr 1fr; } .gd-arrow { display: none; } }
+.gov-nav { position: sticky; top: 70px; z-index: 30; display: flex; gap: 8px; flex-wrap: wrap; background: rgba(255, 255, 255, .94); backdrop-filter: blur(6px); padding: 10px 0; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+.gov-nav a { padding: 7px 16px; border-radius: 99px; background: var(--soft); color: var(--ink); text-decoration: none; font-size: .88rem; font-weight: 600; }
+.gov-nav a:hover { background: var(--green); color: #fff; }
+.gov-section { scroll-margin-top: 130px; margin: 38px 0; padding: 30px; background: #fff; border: 1px solid var(--line); border-left: 6px solid var(--gc, var(--green)); border-radius: 22px; box-shadow: 0 2px 12px rgba(15, 40, 28, .05); }
+.gs-head { display: flex; gap: 16px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+.gs-head h2 { margin: 2px 0 0; font-size: 1.6rem; }
+.gs-ic { width: 60px; height: 60px; border-radius: 18px; background: var(--gc); color: #fff; display: inline-flex; align-items: center; justify-content: center; flex: none; box-shadow: 0 8px 18px color-mix(in srgb, var(--gc) 35%, transparent); }
+.gs-tag { text-transform: uppercase; letter-spacing: .1em; font-size: .72rem; font-weight: 700; color: var(--gc); }
+.gs-count { margin-left: auto; text-align: center; background: color-mix(in srgb, var(--gc) 10%, #fff); color: var(--gc); border-radius: 14px; padding: 8px 16px; font-weight: 800; font-size: 1.3rem; line-height: 1; }
+.gs-count small { display: block; font-size: .65rem; font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+.gs-text { max-width: 880px; color: #2c3b33; }
+.gs-sub { margin: 26px 0 12px; font-size: 1rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.lgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 16px; margin-top: 18px; }
+.lgrid.heads { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.lcard { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 26px 18px 20px; background: linear-gradient(180deg, color-mix(in srgb, var(--gc) 7%, #fff), #fff 55%); border: 1px solid color-mix(in srgb, var(--gc) 22%, var(--line)); border-radius: 20px; text-decoration: none; color: var(--ink); transition: .2s; overflow: hidden; }
+a.lcard:hover { transform: translateY(-5px); box-shadow: var(--shadow); border-color: var(--gc); }
+.lcard.featured { flex-direction: row; text-align: left; padding: 26px; gap: 22px; align-items: center; }
+.lcard .l-photo .avatar { width: 112px; height: 112px; box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--gc); margin-bottom: 0; }
+.lcard.featured .l-photo .avatar, .lcard .l-photo .avatar.large { width: 132px; height: 132px; font-size: 2.2rem; }
+.lcard .avatar.initials { background: var(--gc); color: #fff; }
+.lcard .avatar.empty { background: color-mix(in srgb, var(--gc) 8%, #fff); color: color-mix(in srgb, var(--gc) 45%, #fff); }
+.lcard.vacant { border-style: dashed; background: repeating-linear-gradient(135deg, #fff, #fff 12px, #fafcfb 12px, #fafcfb 24px); }
+.lcard.vacant .avatar { box-shadow: none; outline: 3px dashed color-mix(in srgb, var(--gc) 35%, #fff); outline-offset: 4px; }
+.l-body { display: flex; flex-direction: column; gap: 4px; align-items: inherit; min-width: 0; flex: 1; }
+.l-role { display: inline-block; align-self: center; background: color-mix(in srgb, var(--gc) 12%, #fff); color: var(--gc); font-size: .74rem; font-weight: 700; border-radius: 99px; padding: 3px 12px; text-transform: uppercase; letter-spacing: .04em; }
+.lcard.featured .l-role { align-self: flex-start; }
+.l-name { font-size: 1.12rem; line-height: 1.2; }
+.lcard.vacant .l-name { color: #8b9a91; font-weight: 600; }
+.lcard.featured .l-name { font-size: 1.4rem; }
+.l-term { font-size: .8rem; color: var(--muted); display: inline-flex; gap: 5px; align-items: center; }
+.l-duty { font-size: .82rem; color: var(--muted); }
+.l-more { margin-top: 6px; color: var(--gc); font-weight: 700; font-size: .85rem; display: inline-flex; gap: 4px; align-items: center; }
+.l-open { margin-top: 6px; font-size: .74rem; color: #98a69d; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+@media (max-width: 560px) { .lcard.featured { flex-direction: column; text-align: center; } .lcard.featured .l-role { align-self: center; } .gov-section { padding: 20px; } }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin: 20px 0; }
+.fact { background: color-mix(in srgb, var(--gc) 6%, #fff); border: 1px solid color-mix(in srgb, var(--gc) 18%, var(--line)); border-radius: 16px; padding: 18px; }
+.fact span { width: 46px; height: 46px; border-radius: 14px; background: var(--gc); color: #fff; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+.fact b { display: block; font-size: 1.05rem; }
+.fact p { margin: 4px 0 0; color: var(--muted); font-size: .88rem; }
+.gov-notice { margin-top: 30px; }
+
+/* Leader profile page */
+body.site .profile { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 34px; box-shadow: var(--shadow); }
+body.site .profile .avatar.large { width: 220px; height: 220px; box-shadow: 0 0 0 5px #fff, 0 0 0 9px var(--green); }
+body.site .profile h2 { font-size: 1.1rem; margin: 22px 0 6px; color: var(--green); text-transform: uppercase; letter-spacing: .06em; }
+
+.lcard.featured .l-body { align-items: flex-start; }
+@media (max-width: 560px) { .lcard.featured .l-body { align-items: center; } }
