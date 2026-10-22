@@ -281,7 +281,7 @@ function save_upload(array $file): ?string
 /** Documents are stored outside direct web access and served through download.php. */
 function save_document(array $file): ?array
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || $file['size'] > 20 * 1024 * 1024) {
+    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || $file["size"] > 40 * 1024 * 1024) {
         return null;
     }
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));

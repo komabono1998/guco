@@ -206,6 +206,9 @@ CREATE TABLE resources (
     member_only TINYINT(1) NOT NULL DEFAULT 0,
     is_public TINYINT(1) NOT NULL DEFAULT 1,
     published_at DATE NOT NULL DEFAULT (CURRENT_DATE),
+    uploaded_by INT UNSIGNED NULL,
+    uploaded_by_name VARCHAR(120) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FULLTEXT KEY ft_res (title, description)
 );
 

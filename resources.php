@@ -27,17 +27,18 @@ require __DIR__ . '/includes/header.php';
 </form>
 <div class="lead" style="font-size:1rem"><?= cr('resources.intro') ?></div>
 <div class="table-wrap"><table>
-  <tr><th>Title</th><th>Category</th><th>Published</th><th>Type / size</th><th></th></tr>
+  <tr><th>Title</th><th>Category</th><th>Date</th><th>Uploaded by</th><th>Type / size</th><th></th></tr>
   <?php foreach ($items as $r): ?>
   <tr>
     <td><strong><?= e($r['title']) ?></strong><?= $r['member_only'] ? ' <span class="badge warn">Members only</span>' : '' ?><br><span class="meta"><?= e($r['description']) ?></span></td>
     <td><?= e($r['category']) ?></td>
-    <td><?= e(fmt_date($r['published_at'])) ?></td>
+    <td><?= e(fmt_date($r['published_at'])) ?><br><span class="meta">Added <?= e(fmt_date($r['created_at'])) ?></span></td>
+    <td><?= e($r['uploaded_by_name'] ?: 'GUCO Secretariat') ?></td>
     <td><?= $r['filename'] ? e(strtoupper(pathinfo((string) $r['original_name'], PATHINFO_EXTENSION))) . ' ' . e(fmt_size($r['file_size'])) : 'Link' ?></td>
     <td><?php if ($r['filename']): ?><a class="btn" href="<?= url('download.php?id=' . (int) $r['id']) ?>">Download</a>
       <?php elseif ($r['external_url']): ?><a class="btn" href="<?= url('download.php?id=' . (int) $r['id']) ?>" target="_blank" rel="noopener">Open &#8599;</a><?php endif; ?></td>
   </tr>
-  <?php endforeach; if (!$items): ?><tr><td colspan="5">No documents found. The Constitution and approved reports will be added here.</td></tr><?php endif; ?>
+  <?php endforeach; if (!$items): ?><tr><td colspan="6">No documents found. The Constitution and approved reports will be added here.</td></tr><?php endif; ?>
 </table></div>
 <?php if (!$me): ?><p class="meta">Some documents are available to logged-in members only. <a href="<?= url('login.php') ?>">Log in</a>.</p><?php endif; ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -305,7 +305,7 @@ function crud(array $c): void
                                 $vals[$f['map'][$dk] ?? $dk] = $dv;
                             }
                         } else {
-                            $err = "$label: use a PDF or Office file under 20MB.";
+                            $err = "$label: use a PDF or Office file under 40MB.";
                         }
                     } elseif (!$old && !empty($f['required'])) {
                         $err = "$label is required.";
@@ -402,6 +402,9 @@ function crud(array $c): void
         foreach ($cols as $f) {
             echo '<th>' . e($f['label']) . '</th>';
         }
+        foreach ($c['list_extra'] ?? [] as $xl => $xf) {
+            echo '<th>' . e($xl) . '</th>';
+        }
         echo '<th></th></tr>';
         foreach ($rows as $r) {
             echo '<tr>';
@@ -422,6 +425,9 @@ function crud(array $c): void
                     echo e(excerpt((string) $v, 80));
                 }
                 echo '</td>';
+            }
+            foreach ($c['list_extra'] ?? [] as $xf) {
+                echo '<td>' . e((string) $xf($r)) . '</td>';
             }
             echo '<td class="row-actions"><a class="btn secondary" href="' . e(url($self . '?id=' . $r['id'])) . '">Edit</a>';
             if (!empty($c['extra_actions'])) {
