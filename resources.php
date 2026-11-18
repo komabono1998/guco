@@ -26,6 +26,11 @@ require __DIR__ . '/includes/header.php';
   <button>Search</button>
 </form>
 <div class="lead" style="font-size:1rem"><?= cr('resources.intro') ?></div>
+<ul class="stat-tiles">
+  <li><?= icon('file', 24) ?><b><?= count($items) ?></b><span>documents<?= $search !== '' || $cat !== '' ? ' match your filters' : ' available' ?></span></li>
+  <li><?= icon('folder', 24) ?><b><?= count($cats) ?></b><span>categories</span></li>
+  <li><?= icon('lock', 24) ?><b><?= $me ? 'Unlocked' : 'Public' ?></b><span><?= $me ? 'member documents included' : 'log in for member documents' ?></span></li>
+</ul>
 <div class="table-wrap"><table>
   <tr><th>Title</th><th>Category</th><th>Date</th><th>Uploaded by</th><th>Type / size</th><th></th></tr>
   <?php foreach ($items as $r): ?>

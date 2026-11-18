@@ -57,6 +57,6 @@ require __DIR__ . '/includes/header.php';
       <p class="meta" style="margin:0">UGX <?= e(number_format((float) $p['raised'])) ?> of UGX <?= e(number_format((float) $p['budget'])) ?> (<?= $pct ?>%)</p>
       <p class="meta" style="margin:.4em 0 0">Led by <?= e(short_name($p['full_name'])) ?></p>
     </a>
-  <?php endforeach; if (!$projects): ?><p>No approved projects to show yet. Approved member-led projects will appear here.</p><?php endif; ?>
+  <?php endforeach; if (!$projects): ?><div class="empty-state"><?= icon('target', 36) ?><strong>No approved projects yet</strong><span>Approved member-led projects will appear here.</span></div><?php endif; ?>
 </div>
 <?php require __DIR__ . '/includes/footer.php'; ?>

@@ -14,7 +14,7 @@ require __DIR__ . '/includes/header.php';
 </section>
 
 <section class="section grid two">
-  <div class="card"><h2>Ways to collaborate</h2><ul class="checks"><?php foreach (c_lines('partnerships.ways') as $l): ?><li><?= e($l) ?></li><?php endforeach; ?></ul></div>
+  <div class="card"><h2>Ways to collaborate</h2><ul class="way-tiles"><?php foreach (c_lines('partnerships.ways') as $l): ?><li><span class="ic-circle"><?= icon('link', 20) ?></span><span><?= e($l) ?></span></li><?php endforeach; ?></ul></div>
   <div class="card"><h2>Support GUCO</h2><?= cr('partnerships.support') ?></div>
 </section>
 

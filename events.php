@@ -61,7 +61,7 @@ $qs = fn($m) => '?' . http_build_query(array_filter(['month' => $m, 'category' =
   </article>
 <?php endforeach; ?>
 </div>
-<?php if (!$upcoming): ?><p>No confirmed upcoming events at the moment.</p><?php endif; ?>
+<?php if (!$upcoming): ?><div class="empty-state"><?= icon('calendar', 36) ?><strong>No confirmed upcoming events</strong><span>Dates are published once confirmed by the Secretariat. Check back soon.</span></div><?php endif; ?>
 
 <section class="section notice">
   <h2 style="margin-top:0">Annual General Meeting</h2>

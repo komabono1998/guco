@@ -41,3 +41,9 @@ Before going live: set `dev_mode` to `false`, configure mail so password-reset e
 - `docs/ROLES.md`: roles and permissions
 - `docs/PAYMENTS.md`: how giving works and how to add live Mobile Money
 - Database migrations: `php tools/migrate.php` (see `sql/migrations/`)
+
+## Front-end design layer
+
+- `assets/css/corporate.css` upgrades the shared classes (page hero, cards, tables, forms, FAQ, calendar, gallery, footer) for every public page.
+- `assets/js/site.js` adds the scroll progress bar, reveal-on-scroll, number count-up and the photo lightbox. Pages work without it, and motion is off for visitors who ask for reduced motion.
+- CSS and JS links carry a file-modified version (`asset()` in `includes/bootstrap.php`), so updates reach visitors immediately.

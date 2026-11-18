@@ -24,6 +24,6 @@ require __DIR__ . '/includes/header.php';
     </article>
   <?php endforeach; ?>
 </div>
-<?php if (!$items): ?><p>The first newsletter will appear here once published. Subscribe using the form at the bottom of the page.</p><?php endif; ?>
+<?php if (!$items): ?><div class="empty-state"><?= icon('mail', 36) ?><strong>The first newsletter is on its way</strong><span>Subscribe using the form at the bottom of the page and we will send it to you.</span></div><?php endif; ?>
 <?= pagination($total, $per, $page) ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

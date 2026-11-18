@@ -13,6 +13,18 @@ $me = current_user();
 <div class="page-head"><h1>Alumni Chapters</h1><p>Stay connected through shared disciplines, regions and interests</p></div>
 <div class="lead"><?= cr('chapters.intro') ?></div>
 
+<?php
+$chTotal = count($chapters);
+$chMembers = array_sum(array_map(fn($c) => (int) $c['members'], $chapters));
+$chOpen = count(array_filter($chapters, fn($c) => $c['accepting_members']));
+?>
+<?php if ($chTotal): ?>
+<ul class="stat-tiles">
+  <li><?= icon('map-pin', 24) ?><b><?= $chTotal ?></b><span>regional chapters</span></li>
+  <li><?= icon('users', 24) ?><b><?= $chMembers ?></b><span>registered chapter members</span></li>
+  <li><?= icon('user-plus', 24) ?><b><?= $chOpen ?></b><span>chapters welcoming members</span></li>
+</ul>
+<?php endif; ?>
 <section class="section">
   <h2>Our regional chapters</h2>
   <div class="grid chapter-grid">

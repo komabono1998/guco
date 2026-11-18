@@ -69,7 +69,8 @@
   </div>
 </footer>
 <button type="button" class="to-top" id="toTop" aria-label="Back to top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><?= icon('arrow-right', 20) ?></button>
-<script src="<?= url('assets/js/countdown.js') ?>"></script>
+<script src="<?= asset('assets/js/countdown.js') ?>"></script>
+<script src="<?= asset('assets/js/site.js') ?>" defer></script>
 <script>
 (function () {
   var b = document.getElementById('toTop');

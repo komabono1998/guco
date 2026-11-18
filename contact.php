@@ -18,10 +18,12 @@ $details = [
   </div>
   <div>
     <h2>Official address</h2>
-    <address class="card"><?= implode('<br>', array_map('e', c_lines('contact.address'))) ?></address>
+    <address class="card contact-card"><span class="ic-circle"><?= icon('map-pin', 24) ?></span><div><?= implode('<br>', array_map('e', c_lines('contact.address'))) ?></div></address>
     <?php $any = array_filter($details); if ($any): ?>
       <h2>Contact details</h2>
-      <div class="card"><?php foreach ($any as $label => $v): ?><p><strong><?= e($label) ?>:</strong> <?= e($v) ?></p><?php endforeach; ?></div>
+      <div class="card contact-list2"><?php $ci = ['Email' => 'mail', 'Telephone' => 'phone', 'Office hours' => 'clock', 'Membership support' => 'users', 'Chapter enquiries' => 'map-pin']; foreach ($any as $label => $v): ?>
+        <div class="contact-row"><span class="ic-circle"><?= icon($ci[$label] ?? 'mail', 22) ?></span><div><small><?= e($label) ?></small><?= $label === 'Email' ? '<a href="mailto:' . e($v) . '">' . e($v) . '</a>' : e($v) ?></div></div>
+      <?php endforeach; ?></div>
     <?php endif; ?>
   </div>
 </div>

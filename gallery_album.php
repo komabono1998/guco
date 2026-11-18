@@ -16,7 +16,7 @@ if (!$a): ?>
   <div class="album">
     <?php foreach ($photos as $p): ?>
       <a href="<?= e(gallery_src($p['filename'])) ?>" target="_blank" rel="noopener"><figure class="photo" style="margin:0"><img src="<?= e(gallery_src($p['filename'])) ?>" alt="<?= e($p['caption'] ?: $a['title']) ?>" loading="lazy"><?= $p['caption'] ? '<figcaption>' . e($p['caption']) . '</figcaption>' : '' ?></figure></a>
-    <?php endforeach; if (!$photos): ?><p>No photos in this album yet.</p><?php endif; ?>
+    <?php endforeach; if (!$photos): ?><div class="empty-state"><?= icon('image', 36) ?><strong>No photos yet</strong><span>Photos will be added to this album soon.</span></div><?php endif; ?>
   </div>
 <?php endif;
 require __DIR__ . '/includes/footer.php'; ?>

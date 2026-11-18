@@ -38,9 +38,10 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <title><?= e($pageTitle) ?> | <?= e(config('short_name')) ?></title>
 <meta name="description" content="<?= e($pageDesc) ?>">
 <link rel="icon" href="<?= e($logo) ?>">
-<link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
-<link rel="stylesheet" href="<?= url('assets/css/theme.css') ?>">
-<link rel="stylesheet" href="<?= url('assets/css/ui.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/theme.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/ui.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/corporate.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
 </head>
 <body class="site">

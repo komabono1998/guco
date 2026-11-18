@@ -181,6 +181,13 @@ function e($v): string
     return htmlspecialchars((string) $v, ENT_QUOTES, 'UTF-8');
 }
 
+/** URL of a static file with its modification time, so browsers load updated CSS and JS at once. */
+function asset(string $path): string
+{
+    $file = __DIR__ . '/../' . ltrim($path, '/');
+    return url($path) . (is_file($file) ? '?v=' . filemtime($file) : '');
+}
+
 function url(string $path = ''): string
 {
     return rtrim(config('base_url'), '/') . '/' . ltrim($path, '/');

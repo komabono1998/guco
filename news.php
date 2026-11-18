@@ -31,11 +31,11 @@ require __DIR__ . '/includes/header.php';
   </label>
   <button>Filter</button>
 </form>
-<div class="grid">
-<?php foreach ($items as $n):
+<div class="grid news-grid">
+<?php foreach ($items as $ni => $n):
     $external = $n['source_type'] === 'link';
     $href = $external ? $n['external_url'] : url('news_view.php?slug=' . urlencode($n['slug'])); ?>
-  <a class="card news-card" href="<?= e($href) ?>"<?= $external ? ' target="_blank" rel="noopener"' : '' ?>>
+  <a class="card news-card<?= $ni === 0 && $page === 1 && !$cat && $search === '' ? ' feat' : '' ?>" href="<?= e($href) ?>"<?= $external ? ' target="_blank" rel="noopener"' : '' ?>>
     <?php if ($n['image']): ?><img src="<?= e(url('uploads/' . rawurlencode($n['image']))) ?>" alt="" loading="lazy" style="width:100%;height:160px;object-fit:cover;border-radius:10px;margin-bottom:8px"><?php endif; ?>
     <div><span class="badge"><?= e($n['category']) ?></span>
       <?php if ($external): ?><span class="badge warn">From <?= e($n['source_name'] ?: parse_url($n['external_url'], PHP_URL_HOST)) ?></span>
@@ -47,6 +47,6 @@ require __DIR__ . '/includes/header.php';
   </a>
 <?php endforeach; ?>
 </div>
-<?php if (!$items): ?><p>No articles found.</p><?php endif; ?>
+<?php if (!$items): ?><div class="empty-state"><?= icon('search', 36) ?><strong>No articles found</strong><span>Try another search or category, or check back soon for new stories.</span></div><?php endif; ?>
 <?= pagination($total, $per, $page, http_build_query(array_filter(['q' => $search, 'category' => $cat]))) ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

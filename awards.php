@@ -14,8 +14,8 @@ $status = ['not_open' => ['Nominations not open', 'warn'], 'open' => ['Nominatio
 <div class="grid two">
 <?php foreach ($awards as $a): [$label, $cls] = $status[$a['nomination_status']]; ?>
   <article class="card accent">
-    <h2 style="margin-top:0"><?= e($a['name']) ?></h2>
-    <span class="badge <?= $cls ?>"><?= e($label) ?></span>
+    <div class="award-head"><span class="ic-circle"><?= icon('award', 26) ?></span><div><h2 style="margin:0"><?= e($a['name']) ?></h2>
+    <span class="badge <?= $cls ?>"><?= e($label) ?></span></div></div>
     <p><?= nl2br(e($a['description'])) ?></p>
     <?php if ($a['eligibility']): ?><p><strong>Eligibility:</strong> <?= nl2br(e($a['eligibility'])) ?></p><?php endif; ?>
     <?php if ($a['nomination_status'] === 'open'): ?>

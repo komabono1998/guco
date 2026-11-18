@@ -15,6 +15,6 @@ $albums = q("SELECT a.*, (SELECT COUNT(*) FROM gallery g WHERE g.album_id = a.id
       <p class="meta" style="margin:0"><?= $a['event_date'] ? e(fmt_date($a['event_date'], 'F Y')) . ' &middot; ' : '' ?><?= (int) $a['n'] ?> photo<?= (int) $a['n'] === 1 ? '' : 's' ?></p>
       <?php if ($a['description']): ?><p style="margin:.4em 0 0"><?= e(excerpt($a['description'], 110)) ?></p><?php endif; ?>
     </a>
-  <?php endforeach; if (!$albums): ?><p>No albums yet.</p><?php endif; ?>
+  <?php endforeach; if (!$albums): ?><div class="empty-state"><?= icon('image', 36) ?><strong>No albums yet</strong><span>Photo albums from GUCO events will appear here once they are published.</span></div><?php endif; ?>
 </div>
 <?php require __DIR__ . '/includes/footer.php'; ?>
