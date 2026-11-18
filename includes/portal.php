@@ -29,12 +29,16 @@ function portal_header(string $title): void
         ['Membership card', 'card.php', 'id-card', true],
         ['Payments & renewal', 'payments.php', 'wallet', false],
         ['Events', 'events.php', 'calendar', false],
+        ['Careers', 'applications.php', 'briefcase', false],
+        ['My giving', 'giving.php', 'heart', false],
         ['Chapters', 'chapters.php', 'map-pin', true, ['chapter_join.php']],
         ['Projects', 'projects.php', 'target', true, ['project.php', 'project_form.php']],
         ['Documents', 'documents.php', 'file', true],
         ["Members' directory", 'directory.php', 'users', true],
+        ['Notifications', 'notifications.php', 'bell', false],
         ['Support', 'support.php', 'life-buoy', false],
     ];
+    $unread = unread_notifications((int) $me['id']);
     ?><!doctype html>
 <html lang="en">
 <head>
@@ -71,7 +75,7 @@ function portal_header(string $title): void
         <?php if ($locked && !$member): ?>
           <span class="locked" title="Available once your membership is approved"><?= icon($ic, 18) ?><?= e($label) ?><?= icon('lock', 14) ?></span>
         <?php else: ?>
-          <a href="<?= e(url('member/' . $file)) ?>"<?= $current === $file || in_array($current, $aliases, true) ? ' aria-current="page"' : '' ?>><?= icon($ic, 18) ?><?= e($label) ?></a>
+          <a href="<?= e(url('member/' . $file)) ?>"<?= $current === $file || in_array($current, $aliases, true) ? ' aria-current="page"' : '' ?>><?= icon($ic, 18) ?><?= e($label) ?><?= $file === 'notifications.php' && $unread ? ' <span class="badge warn" style="margin-left:auto">' . $unread . '</span>' : '' ?></a>
         <?php endif; ?>
       <?php endforeach; ?>
     </nav>

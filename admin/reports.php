@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/../includes/admin.php';
 require_perm('reports');
+require_once __DIR__ . '/../includes/careers.php';
 $from = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['from'] ?? '') ? $_GET['from'] : date('Y-01-01');
 $to = preg_match('/^\d{4}-\d{2}-\d{2}$/', $_GET['to'] ?? '') ? $_GET['to'] : date('Y-m-d');
 $toEnd = $to . ' 23:59:59';
@@ -38,6 +39,20 @@ $reports['subscribers'] = ["Newsletter subscribers gained ($from to $to)", ['Mon
     $rows("SELECT DATE_FORMAT(created_at, '%Y-%m'), COUNT(*) FROM subscribers WHERE created_at BETWEEN ? AND ? GROUP BY 1 ORDER BY 1", [$from, $toEnd])];
 $reports['messages'] = ["Enquiries by category ($from to $to)", ['Category', 'Messages', 'Still new'],
     $rows("SELECT category, COUNT(*), SUM(status='new') FROM messages WHERE created_at BETWEEN ? AND ? GROUP BY category ORDER BY 2 DESC", [$from, $toEnd])];
+$reports['faculty'] = ['Approved members by college and programme', ['College', 'Programme', 'Members'],
+    $rows("SELECT COALESCE(NULLIF(p.college,''),'Not stated'), COALESCE(NULLIF(p.programme,''),'Not stated'), COUNT(*) FROM users u JOIN member_profiles p ON p.user_id = u.id WHERE u.role = 'member' AND u.status = 'approved' GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 40")];
+$reports['attendance'] = ["Event attendance ($from to $to)", ['Event', 'Date', 'Registered', 'Checked in', 'Attendance %'],
+    $rows("SELECT e.title, DATE_FORMAT(e.starts_at, '%Y-%m-%d'), COUNT(r.id), SUM(r.checked_in_at IS NOT NULL), IFNULL(ROUND(100 * SUM(r.checked_in_at IS NOT NULL) / NULLIF(COUNT(r.id), 0)), 0) FROM events e LEFT JOIN event_registrations r ON r.event_id = e.id WHERE e.starts_at BETWEEN ? AND ? GROUP BY e.id ORDER BY e.starts_at", [$from, $toEnd])];
+$reports['careers'] = ['Opportunities and applications', ['Type', 'Opportunities', 'Applications'],
+    $mapCol($rows("SELECT j.kind, COUNT(DISTINCT j.id), COUNT(a.id) FROM jobs j LEFT JOIN job_applications a ON a.job_id = j.id GROUP BY j.kind ORDER BY 2 DESC"), 0, $label(JOB_KINDS))];
+if (can('donations')) {
+    $reports['don_campaign'] = ["Verified donations by campaign ($from to $to)", ['Campaign', 'Gifts', 'Total (UGX)'],
+        $rows("SELECT COALESCE(c.title, 'General giving'), COUNT(*), SUM(d.amount) FROM donations d LEFT JOIN campaigns c ON c.id = d.campaign_id WHERE d.status = 'verified' AND d.verified_at BETWEEN ? AND ? GROUP BY d.campaign_id ORDER BY 3 DESC", [$from, $toEnd])];
+    $reports['don_method'] = ["Verified donations by method and month ($from to $to)", ['Month', 'Method', 'Gifts', 'Total (UGX)'],
+        $mapCol($rows("SELECT DATE_FORMAT(verified_at, '%Y-%m'), method, COUNT(*), SUM(amount) FROM donations WHERE status = 'verified' AND verified_at BETWEEN ? AND ? GROUP BY 1, 2 ORDER BY 1, 4 DESC", [$from, $toEnd]), 1, $label(DONATION_METHODS))];
+}
+$reports['activity'] = ["Administrative activity ($from to $to)", ['Action', 'Times'],
+    $rows("SELECT action, COUNT(*) FROM audit_log WHERE created_at BETWEEN ? AND ? GROUP BY action ORDER BY 2 DESC LIMIT 30", [$from, $toEnd])];
 if (can('projects')) {
     $reports['projects'] = ['Projects by status', ['Status', 'Projects', 'Budget (UGX)', 'Verified mobilised (UGX)'],
         $mapCol($rows("SELECT p.status, COUNT(*), SUM(p.budget), COALESCE(SUM((SELECT SUM(x.amount) FROM project_updates x WHERE x.project_id = p.id AND x.kind = 'mobilisation' AND x.verified = 1)), 0) FROM projects p WHERE p.status <> 'draft' GROUP BY p.status"), 0, fn($s) => PROJECT_STATUS[$s][0] ?? $s)];

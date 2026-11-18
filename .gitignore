@@ -8,3 +8,5 @@ storage/members/*
 .claude/
 admin-credentials.local.txt
 !uploads/.htaccess
+storage/backups/*
+!storage/backups/.htaccess

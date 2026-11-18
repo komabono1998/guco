@@ -20,6 +20,7 @@ crud([
         'featured' => ['label' => 'Feature on the home page (spotlight banner with flyer and countdown)', 'type' => 'check', 'list' => true],
         'pin_dashboard' => ['label' => 'Show a live countdown for this event on the admin dashboard', 'type' => 'check', 'list' => true],
         'registration_open' => ['label' => 'Registration open', 'type' => 'check', 'list' => true],
+        'capacity' => ['label' => 'Capacity (maximum registrations, 0 for no limit)', 'type' => 'number'],
         'status' => ['label' => 'Status', 'type' => 'select', 'list' => true,
             'options' => ['scheduled' => 'Scheduled', 'postponed' => 'Postponed', 'cancelled' => 'Cancelled']],
         'is_public' => ['label' => 'Show on website', 'type' => 'check', 'default' => 1],

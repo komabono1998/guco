@@ -11,6 +11,11 @@ $fields = [
         'social_facebook' => ['Facebook URL', 'text'], 'social_x' => ['X (Twitter) URL', 'text'],
         'social_linkedin' => ['LinkedIn URL', 'text'], 'social_youtube' => ['YouTube URL', 'text'],
     ],
+    'Giving and donations (shown on the Give page; publish only verified accounts)' => [
+        'mtn_momo_number' => ['MTN Mobile Money number and account name', 'text'], 'airtel_money_number' => ['Airtel Money number and account name', 'text'],
+        'bank_details' => ['Bank name, account name and account number', 'textarea'],
+        'donation_note' => ['Extra note shown to donors (for example how to use the reference)', 'textarea'],
+    ],
     'Membership' => [
         'applications_open' => ['Accept online membership applications', 'check'],
         'require_payment_proof' => ['Require proof of payment on the membership application form', 'check'],

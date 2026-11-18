@@ -120,6 +120,9 @@ portal_header('Dashboard');
         ['Community projects', 'projects.php', 'target', 'Propose a project, then lead it once approved.', true],
         ['Documents', 'documents.php', 'file', 'Open reports and member-only documents.', true],
         ["Members' directory", 'directory.php', 'users', 'Find fellow alumni who chose to be listed.', true],
+        ['Careers', 'applications.php', 'briefcase', 'Jobs, scholarships and fellowships; track your applications.', false],
+        ['My giving', 'giving.php', 'heart', 'Your contributions and receipts.', false],
+        ['Notifications', 'notifications.php', 'bell', 'Approvals, receipts, tickets and updates.', false],
         ['Support', 'support.php', 'life-buoy', 'Ask for help or a correction to your details.', false],
     ];
     foreach ($tools as [$tl, $th, $ti, $td, $tn]):

@@ -1,13 +1,16 @@
 <?php
 require_once __DIR__ . '/../includes/admin.php';
 $admin = require_perm('users');
+// Only a Super Administrator may grant or change the Super Administrator role.
+$isSuper = $admin['role'] === 'super_admin';
+$roleOptions = array_filter(ROLE_LABELS, fn($k) => $isSuper || $k !== 'super_admin', ARRAY_FILTER_USE_KEY);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     if (isset($_POST['create'])) {
         $name = trim($_POST['full_name'] ?? '');
         $email = strtolower(trim($_POST['email'] ?? ''));
         $role = $_POST['role'] ?? '';
-        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($_POST['password'] ?? '') < 8 || !isset(ROLE_LABELS[$role])) {
+        if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($_POST['password'] ?? '') < 8 || !isset($roleOptions[$role])) {
             flash('Enter a name, valid email, role and a password of at least 8 characters.', 'error');
         } elseif (q('SELECT 1 FROM users WHERE email = ?', [$email])->fetch()) {
             flash('That email already exists.', 'error');
@@ -20,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $id = (int) ($_POST['id'] ?? 0);
         $u = q('SELECT * FROM users WHERE id = ?', [$id])->fetch();
-        if ($u && $id !== (int) $admin['id'] && isset(ROLE_LABELS[$_POST['role'] ?? ''])) {
+        if ($u && $id !== (int) $admin['id'] && isset($roleOptions[$_POST['role'] ?? '']) && ($isSuper || $u['role'] !== 'super_admin')) {
             $status = in_array($_POST['status'] ?? '', ['pending', 'approved', 'rejected'], true) ? $_POST['status'] : $u['status'];
             q('UPDATE users SET role = ?, status = ? WHERE id = ?', [$_POST['role'], $status, $id]);
             audit('update_user', "{$u['email']}: role={$_POST['role']}, status=$status");
@@ -41,7 +44,7 @@ admin_header('Users & roles');
   </div>
   <div class="cols">
     <label>Temporary password <input type="text" name="password" required minlength="8"></label>
-    <label>Role <select name="role"><?php foreach (ROLE_LABELS as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></label>
+    <label>Role <select name="role"><?php foreach ($roleOptions as $k => $l): ?><option value="<?= $k ?>"><?= e($l) ?></option><?php endforeach; ?></select></label>
   </div>
   <button>Create account</button>
 </form>
@@ -54,7 +57,7 @@ admin_header('Users & roles');
     <?php if ((int) $r['id'] === (int) $admin['id']): ?>
       <td><?= e(ROLE_LABELS[$r['role']]) ?> (you)</td><td><?= e($r['status']) ?></td><td></td>
     <?php else: ?>
-      <td><select name="role" aria-label="Role" form="u<?= (int) $r['id'] ?>"><?php foreach (ROLE_LABELS as $k => $l): ?><option value="<?= $k ?>"<?= $r['role'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></td>
+      <td><select name="role" aria-label="Role" form="u<?= (int) $r['id'] ?>"><?php foreach (($isSuper || $r['role'] !== 'super_admin' ? $roleOptions : ROLE_LABELS) as $k => $l): ?><option value="<?= $k ?>"<?= $r['role'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></td>
       <td><select name="status" aria-label="Status" form="u<?= (int) $r['id'] ?>"><?php foreach (['pending', 'approved', 'rejected'] as $s): ?><option<?= $r['status'] === $s ? ' selected' : '' ?>><?= $s ?></option><?php endforeach; ?></select></td>
       <td><button class="secondary" form="u<?= (int) $r['id'] ?>">Save</button></td>
     <?php endif; ?>

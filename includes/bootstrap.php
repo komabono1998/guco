@@ -62,13 +62,18 @@ function site_origin(): string
     return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . $host;
 }
 
-const STAFF_ROLES = ['super_admin', 'secretariat', 'executive', 'communications', 'newsletter_editor', 'chapter_coordinator'];
+const STAFF_ROLES = ['super_admin', 'system_admin', 'secretariat', 'executive', 'membership_officer', 'finance_officer', 'communications', 'newsletter_editor', 'events_officer', 'career_officer', 'chapter_coordinator'];
 
 const ROLE_LABELS = [
     'member' => 'Member',
     'super_admin' => 'Super Administrator',
+    'system_admin' => 'System Administrator',
     'secretariat' => 'GUCO Secretariat',
-    'executive' => 'Executive Committee member',
+    'executive' => 'Convocation Executive',
+    'membership_officer' => 'Membership Officer',
+    'finance_officer' => 'Finance Officer',
+    'events_officer' => 'Events Officer',
+    'career_officer' => 'Career Officer',
     'communications' => 'Publicity Secretary / Communications Editor',
     'newsletter_editor' => 'Newsletter Editor',
     'chapter_coordinator' => 'Chapter Coordinator',
@@ -87,8 +92,12 @@ const NEWS_CATEGORIES = [
 ];
 
 const PERMS = [
-    'members' => ['super_admin', 'secretariat'],
-    'payments' => ['super_admin', 'secretariat'],
+    'members' => ['super_admin', 'secretariat', 'membership_officer'],
+    'payments' => ['super_admin', 'secretariat', 'finance_officer'],
+    'donations' => ['super_admin', 'secretariat', 'finance_officer'],
+    'careers' => ['super_admin', 'secretariat', 'career_officer'],
+    'checkin' => ['super_admin', 'secretariat', 'events_officer', 'communications'],
+    'backup' => ['super_admin', 'system_admin'],
     'content' => ['super_admin', 'secretariat', 'communications'],
     'pages' => ['super_admin', 'secretariat', 'communications'],
     'menu' => ['super_admin', 'secretariat'],
@@ -96,12 +105,12 @@ const PERMS = [
     'projects' => ['super_admin', 'secretariat', 'executive'],
     'newsletters' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'campus' => ['super_admin', 'secretariat', 'communications'],
-    'mail' => ['super_admin', 'secretariat'],
-    'reports' => ['super_admin', 'secretariat', 'executive'],
+    'mail' => ['super_admin', 'secretariat', 'system_admin'],
+    'reports' => ['super_admin', 'secretariat', 'executive', 'membership_officer', 'finance_officer'],
     'branding' => ['super_admin', 'secretariat'],
     'news' => ['super_admin', 'secretariat', 'communications', 'newsletter_editor'],
     'publish' => ['super_admin', 'secretariat', 'communications'],
-    'events' => ['super_admin', 'secretariat', 'communications'],
+    'events' => ['super_admin', 'secretariat', 'communications', 'events_officer'],
     'chapters' => ['super_admin', 'secretariat', 'chapter_coordinator'],
     'chapters_all' => ['super_admin', 'secretariat'],
     'leaders' => ['super_admin', 'secretariat'],
@@ -111,9 +120,9 @@ const PERMS = [
     'gallery' => ['super_admin', 'secretariat', 'communications'],
     'messages' => ['super_admin', 'secretariat'],
     'subscribers' => ['super_admin', 'secretariat', 'newsletter_editor'],
-    'settings' => ['super_admin', 'secretariat'],
-    'users' => ['super_admin'],
-    'audit' => ['super_admin'],
+    'settings' => ['super_admin', 'secretariat', 'system_admin'],
+    'users' => ['super_admin', 'system_admin'],
+    'audit' => ['super_admin', 'system_admin'],
 ];
 
 function config(string $key = null)
@@ -370,8 +379,10 @@ function csv_download(string $filename, array $header, array $rows): void
     $out = fopen('php://output', 'w');
     fwrite($out, "\xEF\xBB\xBF");
     fputcsv($out, $header);
+    // Neutralise spreadsheet formulas in exported text (CSV injection).
+    $safe = fn($v) => is_string($v) && $v !== '' && strpbrk($v[0], "=+-@	") !== false && !is_numeric($v) ? "'" . $v : $v;
     foreach ($rows as $r) {
-        fputcsv($out, array_values($r));
+        fputcsv($out, array_map($safe, array_values($r)));
     }
     exit;
 }
@@ -398,3 +409,4 @@ require_once __DIR__ . '/icons.php';
 require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/photos.php';
+require_once __DIR__ . '/donations.php';

@@ -13,9 +13,33 @@ if ($ev && $canRegister && $_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Please enter your name and a valid email.', 'error');
     } else {
         $me = current_user();
-        $n = q('INSERT IGNORE INTO event_registrations (event_id, user_id, name, email, phone) VALUES (?,?,?,?,?)',
-            [$ev['id'], $me['id'] ?? null, $name, $email, trim($_POST['phone'] ?? '')])->rowCount();
-        flash($n ? 'You are registered for this event.' : 'This email is already registered for the event.', $n ? 'success' : 'error');
+        $taken = (int) q('SELECT COUNT(*) FROM event_registrations WHERE event_id = ?', [$ev['id']])->fetchColumn();
+        if ($ev['capacity'] && $taken >= (int) $ev['capacity']) {
+            flash('Sorry, this event is full.', 'error');
+            redirect('event_view.php?id=' . $ev['id']);
+        }
+        $code = strtoupper(bin2hex(random_bytes(6)));
+        $n = q('INSERT IGNORE INTO event_registrations (event_id, user_id, name, email, phone, ticket_code) VALUES (?,?,?,?,?,?)',
+            [$ev['id'], $me['id'] ?? null, $name, $email, trim($_POST['phone'] ?? ''), $code])->rowCount();
+        if ($n) {
+            $ticket = absolute_url('ticket.php?code=' . $code);
+            send_mail($email, 'Your ticket: ' . $ev['title'], "Dear $name,
+
+You are registered for {$ev['title']}.
+When: " . event_when($ev, 'l j F Y, g:ia') . ($ev['location'] ? "
+Where: {$ev['location']}" : '') . "
+
+Your ticket with QR code: $ticket
+Show it at the entrance.
+
+Gulu University Convocation");
+            if ($me) {
+                notify((int) $me['id'], 'Event ticket ready', $ev['title'], 'ticket.php?code=' . $code);
+            }
+            flash('You are registered. Your ticket is ready.');
+            redirect('ticket.php?code=' . $code);
+        }
+        flash('This email is already registered for the event.', 'error');
         redirect('event_view.php?id=' . $ev['id']);
     }
 }

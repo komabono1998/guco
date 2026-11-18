@@ -127,6 +127,7 @@ function approve_member(int $userId, bool $waive): ?string
         card_status = 'active', card_issued_at = COALESCE(card_issued_at, NOW()), card_revoked_at = NULL, card_revoke_reason = NULL WHERE user_id = ?",
         [$no, $mid, $userId]);
     audit('approve_member', "{$m['email']} -> $mid" . ($paid ? '' : ' (payment waived)'));
+    notify($userId, 'Membership approved', "Your Membership ID is $mid. Your card is ready.", 'member/card.php');
     send_mail($m['email'], 'Your GUCO membership is approved',
         "Dear {$m['full_name']},\n\nYour membership of Gulu University Convocation has been approved.\nMembership ID: $mid\n\nLog in to the Member Portal to view and print your membership card.\n\nGulu University Convocation");
     return null;
@@ -155,6 +156,7 @@ function decide_payment(int $paymentId, string $decision, ?string $paidUntil, st
     if ($decision === 'verified' && in_array($pay['purpose'], ['registration', 'renewal'], true)) {
         q("UPDATE member_profiles SET subscription_status = 'active', paid_until = ? WHERE user_id = ?", [$paidUntil ?: null, $pay['user_id']]);
     }
+    notify((int) $pay['user_id'], $decision === 'verified' ? 'Payment verified' : 'Payment not verified', 'UGX ' . number_format((float) $pay['amount']) . ($note !== '' ? ": $note" : ''), 'member/payments.php');
     audit($decision === 'verified' ? 'verify_payment' : 'reject_payment', "payment $paymentId, user {$pay['user_id']}, UGX " . number_format((float) $pay['amount']));
 }
 

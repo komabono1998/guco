@@ -33,3 +33,11 @@ Before going live: set `dev_mode` to `false`, configure mail so password-reset e
 - Sign-in is throttled by address and by account (`login_attempts` table), sessions expire after two hours idle, and every form is protected by a CSRF token.
 - `uploads/` cannot run scripts; `storage/` is not web accessible and files are served through `download.php`, `file.php` and `member_file.php`.
 - Serve the site over HTTPS in production: cookies then become `Secure` and HSTS is sent automatically.
+
+## Documentation
+
+- `docs/SYSTEM_AUDIT.md`: audit, feature inventory, what is new, what remains, test results
+- `docs/DEPLOYMENT.md`: install, update, migrations, backup and recovery
+- `docs/ROLES.md`: roles and permissions
+- `docs/PAYMENTS.md`: how giving works and how to add live Mobile Money
+- Database migrations: `php tools/migrate.php` (see `sql/migrations/`)

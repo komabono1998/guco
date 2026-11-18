@@ -20,6 +20,11 @@ const ADMIN_GROUPS = [
     ],
     'Membership' => [
         ['Members', 'members.php', 'members', 'id-card', 'members'], ['Payments', 'payments.php', 'payments', 'credit-card', 'payments'],
+        ['Import / export', 'members_import.php', 'members', 'folder', null],
+    ],
+    'Giving and careers' => [
+        ['Donations', 'donations.php', 'donations', 'heart', 'donations'], ['Campaigns', 'campaigns.php', 'donations', 'target', null],
+        ['Careers', 'jobs.php', 'careers', 'briefcase', null], ['Event check-in', 'checkin.php', 'checkin', 'check', null],
     ],
     'Inbox' => [
         ['Messages', 'messages.php', 'messages', 'inbox', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers', 'mail', null],
@@ -29,7 +34,7 @@ const ADMIN_GROUPS = [
     ],
     'System' => [
         ['Users & roles', 'users.php', 'users', 'shield', null], ['Mail log', 'mail_log.php', 'mail', 'activity', null],
-        ['Audit log', 'audit.php', 'audit', 'clock', null], ['Help & guide', 'help.php', null, 'help', null],
+        ['Audit log', 'audit.php', 'audit', 'clock', null], ['Backup', 'backup.php', 'backup', 'folder', null], ['Help & guide', 'help.php', null, 'help', null],
     ],
 ];
 
@@ -54,6 +59,9 @@ function admin_badges(): array
     }
     if (can('chapters')) {
         $b['chapters'] = $n("SELECT COUNT(*) FROM chapter_members WHERE status = 'pending'");
+    }
+    if (can('donations')) {
+        $b['donations'] = $n("SELECT COUNT(*) FROM donations WHERE status = 'pending'");
     }
     if (can('messages')) {
         $b['messages'] = $n("SELECT COUNT(*) FROM messages WHERE status = 'new'");
