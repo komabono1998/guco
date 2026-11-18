@@ -25,7 +25,7 @@
   onScroll();
 
   /* reveal on scroll: only elements without their own animation; nested items inherit their parent's reveal */
-  var skip = '.mb, .pw, .fd, .ob, .cv, .mvv, .hero2, .anthem, .page-head, .lb, .site-header, .topbar, .slogan-strip, .newsletter-band, .site-footer, .countdown';
+  var skip = '.mb, .po, .pw, .fd, .ob, .cv, .mvv, .hero2, .anthem, .page-head, .lb, .site-header, .topbar, .slogan-strip, .newsletter-band, .site-footer, .countdown';
   var sel = 'main > section, main > .grid, main > .split, main > .cta, main > .filters, main > .table-wrap, main > .calendar, main > .notice, main > .lead, main > h2, main > details, main > article, ' +
     'main .grid > *, main .split > *, main .album > *, main .photo-strip > *, main .steps > li, main .table-wrap, main .cta, main .gov-section, main .event-hero, main .filters, main .calendar';
   var els = [].slice.call(document.querySelectorAll(sel)).filter(function (el) {

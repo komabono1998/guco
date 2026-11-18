@@ -199,18 +199,88 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
-<?php if ($on('welcome')): $areas = array_slice(c_pairs('programmes.areas'), 0, 4); ?>
-<section class="home-section sec-center">
-  <div class="sec-head"><div><span class="eyebrow">What we do</span><h2><?= ct('home.programmes_title') ?></h2></div></div>
-  <div class="prog-grid" style="text-align:left">
-    <?php foreach ($areas as $i => [$t, $d]): ?>
-      <a class="prog-card" href="<?= url('programmes.php') ?>">
-        <img src="<?= e(dinner_src($progPhotos[$i % 4])) ?>" alt="" loading="lazy">
-        <div class="prog-body"><span class="ic"><?= icon($progIcons[$i % 4], 20) ?></span><h3><?= e($t) ?></h3><p><?= e(excerpt($d, 90)) ?></p><span class="more">Read more &rarr;</span></div>
-      </a>
-    <?php endforeach; ?>
+<?php if ($on('welcome')): $areas = array_slice(c_pairs('programmes.areas'), 0, 7);
+$poPhotos = [7, 11, 3, 4, 9, 14, 19];
+$poIcons = ['users', 'target', 'graduation', 'heart', 'book', 'award', 'globe'];
+$poTones = ['#14532d', '#be123c', '#b45309', '#4d7c0f', '#1d4ed8', '#7e22ce', '#0f766e'];
+$poN = max(1, count($areas));
+?>
+<section class="home-section po-sec" aria-label="<?= e(ct('home.programmes_title')) ?>">
+  <div class="sec-head" style="justify-content:center;text-align:center"><div><span class="eyebrow">What we do</span><h2><?= ct('home.programmes_title') ?></h2></div></div>
+  <div class="po" id="po" style="--n:<?= $poN ?>">
+    <div class="po-stage">
+      <div class="po-orbit" aria-hidden="true"></div>
+      <div class="po-ring">
+        <?php foreach ($areas as $i => [$t, $d]): $a = round($i * 360 / $poN - 90, 2); ?>
+          <div class="po-slot" style="--a:<?= $a ?>deg;--c:<?= $poTones[$i % 7] ?>">
+            <button type="button" class="po-node" data-i="<?= $i ?>" aria-label="<?= e($t) ?>" aria-pressed="false" style="background-image:url('<?= e(dinner_src($poPhotos[$i % 7])) ?>')">
+              <span class="po-badge"><?= icon($poIcons[$i % 7], 18) ?></span>
+              <span class="po-tip"><?= e($t) ?></span>
+            </button>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="po-hub" id="poToggle" aria-label="Pause or resume the rotation">
+        <img src="<?= e(logo_url()) ?>" alt="" width="64" height="64">
+        <span class="po-hub-t">Our programmes</span>
+        <span class="po-hub-s" id="poState">Rotating &middot; tap to pause</span>
+      </button>
+    </div>
+    <div class="po-detail" aria-live="polite">
+      <div class="po-card on" data-i="-1">
+        <span class="po-kicker">Explore</span>
+        <h3>Seven ways GUCO serves alumni and the University</h3>
+        <p>Hover a circle to pause the ring, then click it to read about that programme area.</p>
+        <a class="btn" href="<?= url('programmes.php') ?>">See all programmes &rarr;</a>
+      </div>
+      <?php foreach ($areas as $i => [$t, $d]): ?>
+        <article class="po-card" data-i="<?= $i ?>" style="--c:<?= $poTones[$i % 7] ?>">
+          <div class="po-photo" style="background-image:url('<?= e(dinner_src($poPhotos[$i % 7])) ?>')"><span class="po-badge lg"><?= icon($poIcons[$i % 7], 26) ?></span></div>
+          <span class="po-kicker">Programme area <?= $i + 1 ?> of <?= $poN ?></span>
+          <h3><?= e($t) ?></h3>
+          <p><?= e($d) ?></p>
+          <div class="po-actions">
+            <a class="btn" href="<?= url('programmes.php') ?>">Read more &rarr;</a>
+            <button type="button" class="btn secondary po-next">Next area</button>
+            <button type="button" class="btn secondary po-close">Close</button>
+          </div>
+        </article>
+      <?php endforeach; ?>
+    </div>
   </div>
 </section>
+<script>
+(function () {
+  var po = document.getElementById('po'); if (!po) return;
+  var nodes = [].slice.call(po.querySelectorAll('.po-node')), cards = [].slice.call(po.querySelectorAll('.po-card'));
+  var toggle = document.getElementById('poToggle'), state = document.getElementById('poState');
+  var cur = -1, userPaused = false;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function setPaused(p) { po.classList.toggle('paused', p); }
+  function select(i) {
+    cur = i;
+    nodes.forEach(function (n, k) { n.classList.toggle('on', k === i); n.setAttribute('aria-pressed', k === i ? 'true' : 'false'); });
+    cards.forEach(function (c) { c.classList.toggle('on', parseInt(c.getAttribute('data-i'), 10) === i); });
+    po.classList.toggle('sel', i >= 0);
+    setPaused(i >= 0 || userPaused);
+    syncLabel();
+  }
+  function syncLabel() { state.innerHTML = reduce ? 'Tap a circle for details' : (po.classList.contains('paused') ? 'Paused &middot; tap to rotate' : 'Rotating &middot; tap to pause'); }
+  nodes.forEach(function (n, k) {
+    n.addEventListener('click', function () { select(cur === k ? -1 : k); });
+  });
+  cards.forEach(function (c) {
+    var nx = c.querySelector('.po-next'), cl = c.querySelector('.po-close');
+    if (nx) nx.addEventListener('click', function () { select((cur + 1) % nodes.length); });
+    if (cl) cl.addEventListener('click', function () { select(-1); });
+  });
+  toggle.addEventListener('click', function () { userPaused = !userPaused; if (cur < 0) setPaused(userPaused); syncLabel(); });
+  po.querySelector('.po-stage').addEventListener('mouseenter', function () { po.classList.add('hover'); });
+  po.querySelector('.po-stage').addEventListener('mouseleave', function () { po.classList.remove('hover'); });
+  if (reduce) { po.classList.add('paused'); }
+  syncLabel();
+})();
+</script>
 <?php endif; ?>
 
 <?php if ($on('card')): ?>
