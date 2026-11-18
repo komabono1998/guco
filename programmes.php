@@ -7,11 +7,73 @@ $areaPhoto = ['Alumni Networking and Engagement' => 7, 'Awards and Recognition' 
 ?>
 <div class="page-head"><h1>Programmes &amp; Impact</h1><p>Our constitutional objectives in action</p></div>
 <div class="lead"><?= cr('programmes.intro') ?></div>
-<div class="grid">
-  <?php foreach (c_pairs('programmes.areas') as [$t, $d]): ?>
-    <div class="card accent"><?= isset($areaPhoto[$t]) ? dinner_figure($areaPhoto[$t]) : '' ?><h3><?= e($t) ?></h3><p><?= e($d) ?></p></div>
-  <?php endforeach; ?>
-</div>
+<?php
+$areas = c_pairs('programmes.areas');
+$n = max(1, count($areas));
+$icons = ['users', 'target', 'graduation', 'heart', 'award', 'globe', 'book'];
+$pick = function (string $title, int $i) use ($icons): string {
+    $map = ['network' => 'users', 'mentor' => 'target', 'universit' => 'graduation', 'academic' => 'graduation', 'community' => 'heart', 'student' => 'book', 'scholar' => 'book', 'award' => 'award', 'partner' => 'globe', 'fundrais' => 'globe'];
+    foreach ($map as $k => $ic) {
+        if (stripos($title, $k) !== false) {
+            return $ic;
+        }
+    }
+    return $icons[$i % count($icons)];
+};
+$tones = ['#14532d', '#b45309', '#1d4ed8', '#be123c', '#0f766e', '#7e22ce', '#c2410c'];
+?>
+<section class="pw" aria-label="GUCO programme areas">
+  <div class="pw-wheel" id="pw" style="--n:<?= $n ?>">
+    <?php foreach ($areas as $i => [$t, $d]): $a = round(-90 + $i * 360 / $n, 2); ?>
+      <i class="pw-spoke" data-i="<?= $i ?>" style="--a:<?= $a ?>deg;--c:<?= $tones[$i % count($tones)] ?>"></i>
+    <?php endforeach; ?>
+    <div class="pw-hub" aria-live="polite">
+      <div class="pw-hub-default">
+        <img src="<?= e(logo_url()) ?>" alt="" width="64" height="64">
+        <strong>What GUCO does</strong>
+        <span>Hover over or tap a circle to explore a programme area.</span>
+      </div>
+      <?php foreach ($areas as $i => [$t, $d]): ?>
+        <div class="pw-hub-item" data-i="<?= $i ?>" style="--c:<?= $tones[$i % count($tones)] ?>">
+          <span class="pw-hub-ic"><?= icon($pick($t, $i), 30) ?></span>
+          <strong><?= e($t) ?></strong>
+          <span><?= e($d) ?></span>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <?php foreach ($areas as $i => [$t, $d]): $a = round(-90 + $i * 360 / $n, 2); ?>
+      <button type="button" class="pw-node" data-i="<?= $i ?>" style="--a:<?= $a ?>deg;--c:<?= $tones[$i % count($tones)] ?>" aria-label="<?= e($t) ?>">
+        <span class="pw-ic"><?= icon($pick($t, $i), 30) ?></span>
+        <span class="pw-label"><?= e($t) ?></span>
+      </button>
+    <?php endforeach; ?>
+  </div>
+</section>
+<script>
+(function () {
+  var wheel = document.getElementById('pw'); if (!wheel) return;
+  var nodes = [].slice.call(wheel.querySelectorAll('.pw-node')), items = [].slice.call(wheel.querySelectorAll('.pw-hub-item')), spokes = [].slice.call(wheel.querySelectorAll('.pw-spoke'));
+  var cur = -1, timer = null, touched = false;
+  function show(i) {
+    cur = i;
+    wheel.classList.toggle('has-active', i >= 0);
+    nodes.forEach(function (n, k) { n.classList.toggle('on', k === i); n.setAttribute('aria-pressed', k === i ? 'true' : 'false'); });
+    items.forEach(function (n, k) { n.classList.toggle('on', k === i); });
+    spokes.forEach(function (n, k) { n.classList.toggle('on', k === i); });
+  }
+  function auto() {
+    if (touched || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    timer = setInterval(function () { show((cur + 1) % nodes.length); }, 3800);
+  }
+  function stop() { touched = true; clearInterval(timer); }
+  nodes.forEach(function (n, k) {
+    n.addEventListener('mouseenter', function () { stop(); show(k); });
+    n.addEventListener('focus', function () { stop(); show(k); });
+    n.addEventListener('click', function () { stop(); show(k); });
+  });
+  show(0); auto();
+})();
+</script>
 
 <section class="section split">
   <div>
