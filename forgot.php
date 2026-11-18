@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($u && !is_spam()) {
         $token = bin2hex(random_bytes(24));
         q('INSERT INTO password_resets (user_id, token_hash, expires_at) VALUES (?,?,DATE_ADD(NOW(), INTERVAL 1 HOUR))', [$u['id'], hash('sha256', $token)]);
-        $link = (($_SERVER['HTTPS'] ?? '') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . url('reset.php?token=' . $token);
+        $link = absolute_url('reset.php?token=' . $token);
         $sent = send_mail($u['email'], 'GUCO password reset', "Use this link within one hour to choose a new password:\n\n$link\n\nIf you did not ask for this, ignore this email.");
         if (!$sent && config('dev_mode')) {
             $devLink = $link;

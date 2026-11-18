@@ -84,7 +84,8 @@ body.site .badge { background: #e6f2ea; }
 @media (max-width: 860px) {
   .hero2 { grid-template-columns: 1fr; }
   .hero2-text { padding: 32px 22px; }
-  .hero2-img { min-height: 260px; order: -1; }
+  .hero2-img { min-height: 200px; order: 2; }
+  .hero2-card { display: none; }
   .hero2-img > img { -webkit-mask-image: linear-gradient(to top, transparent 0, #000 30%); mask-image: linear-gradient(to top, transparent 0, #000 30%); }
 }
 

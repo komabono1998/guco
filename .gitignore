@@ -7,3 +7,4 @@ storage/members/*
 !storage/members/.gitkeep
 .claude/
 admin-credentials.local.txt
+!uploads/.htaccess

@@ -13,9 +13,11 @@ $config = [
     ],
     'upload_dir' => __DIR__ . '/uploads',
     'storage_dir' => __DIR__ . '/storage/resources',
-    // When true and mail() is unavailable, password-reset links are shown on screen.
-    // Set to false in production.
-    'dev_mode' => true,
+    // Optional fixed public address used in emailed links, e.g. https://guco.example.org
+    'public_url' => '',
+    // Development only: shows PHP errors and, when mail() is unavailable, password-reset links on screen.
+    // Keep false in production; switch it on in config.local.php on a development machine.
+    'dev_mode' => false,
 ];
 
 if (file_exists(__DIR__ . '/config.local.php')) {

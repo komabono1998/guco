@@ -6,6 +6,8 @@
  */
 function deliver_mail(string $to, string $subject, string $text, array $opts = []): bool
 {
+    $to = trim(str_replace(["\r", "\n", ','], '', $to));
+    $subject = str_replace(["\r", "\n"], ' ', $subject);
     $from = setting('contact_email', 'no-reply@localhost');
     $fromName = setting('site_name', 'Gulu University Convocation');
     $boundary = 'b' . bin2hex(random_bytes(8));
@@ -57,7 +59,7 @@ function valid_emails(array $list): array
 /** Absolute URL for links inside emails. */
 function absolute_url(string $path = ''): string
 {
-    return (($_SERVER['HTTPS'] ?? '') ? 'https://' : 'http://') . ($_SERVER['HTTP_HOST'] ?? 'localhost') . url($path);
+    return site_origin() . url($path);
 }
 
 /** Audio/video upload into the public uploads folder. $kind: audio|video. */

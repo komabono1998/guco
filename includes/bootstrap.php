@@ -1,8 +1,66 @@
 <?php
 $config = require __DIR__ . '/../config.php';
-session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax']);
+// --- Transport and session hardening ---------------------------------------------------------
+$isHttps = !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off';
+ini_set('session.use_strict_mode', '1');
+ini_set('session.use_only_cookies', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('display_errors', !empty($config['dev_mode']) ? '1' : '0');
+ini_set('log_errors', '1');
+session_set_cookie_params(['httponly' => true, 'samesite' => 'Lax', 'secure' => $isHttps]);
 session_start();
 date_default_timezone_set('Africa/Kampala');
+
+// Sign out sessions that have been idle for two hours.
+if (!empty($_SESSION['uid']) && time() - ($_SESSION['last_seen'] ?? time()) > 7200) {
+    $_SESSION = [];
+    session_regenerate_id(true);
+}
+$_SESSION['last_seen'] = time();
+
+if (!headers_sent()) {
+    header('X-Frame-Options: SAMEORIGIN');
+    header('X-Content-Type-Options: nosniff');
+    header('Referrer-Policy: strict-origin-when-cross-origin');
+    header('Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()');
+    header("Content-Security-Policy: frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'");
+    if ($isHttps) {
+        header('Strict-Transport-Security: max-age=15552000');
+    }
+    if (preg_match('#/(admin|member)/#', $_SERVER['SCRIPT_NAME'] ?? '') || in_array(basename($_SERVER['SCRIPT_NAME'] ?? ''), ['login.php', 'register.php', 'forgot.php', 'reset.php'], true)) {
+        header('Cache-Control: no-store');
+    }
+}
+
+// Friendly error page instead of leaking stack traces and database details.
+set_exception_handler(function (Throwable $ex) {
+    error_log('GUCO: ' . $ex);
+    if (!headers_sent()) {
+        http_response_code(500);
+    }
+    if (!empty(config('dev_mode'))) {
+        echo '<pre>' . htmlspecialchars((string) $ex) . '</pre>';
+        return;
+    }
+    echo '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Something went wrong</title>'
+        . '<body style="font-family:system-ui,sans-serif;max-width:520px;margin:12vh auto;padding:0 20px;color:#16251c">'
+        . '<h1>Something went wrong</h1><p>We could not complete your request. Please try again in a moment, or contact the Secretariat if it keeps happening.</p>'
+        . '<p><a href="' . htmlspecialchars(rtrim(config('base_url'), '/') . '/', ENT_QUOTES) . '">Back to the website</a></p></body>';
+});
+
+/** Public origin used in emailed links: config 'public_url' wins; otherwise a validated Host header. */
+function site_origin(): string
+{
+    $fixed = (string) config('public_url');
+    if ($fixed !== '') {
+        return rtrim($fixed, '/');
+    }
+    $host = $_SERVER['HTTP_HOST'] ?? '';
+    if (!preg_match('/^[A-Za-z0-9.\-]+(:\d{1,5})?$/', $host)) {
+        $host = 'localhost';
+    }
+    return (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' ? 'https://' : 'http://') . $host;
+}
 
 const STAFF_ROLES = ['super_admin', 'secretariat', 'executive', 'communications', 'newsletter_editor', 'chapter_coordinator'];
 
@@ -94,7 +152,7 @@ function q(string $sql, array $args = []): PDOStatement
 function logo_url(): string
 {
     $l = setting('logo');
-    return $l !== '' ? url('uploads/' . rawurlencode($l)) : url('assets/img/logo.webp');
+    return $l !== '' ? url('uploads/' . rawurlencode($l)) : url('assets/img/logo-sm.webp');
 }
 
 function setting(string $key, string $default = ''): string
@@ -144,8 +202,9 @@ function csrf_field(): string
 
 function csrf_check(): void
 {
-    if (!hash_equals($_SESSION['csrf'] ?? '', $_POST['csrf'] ?? '')) {
-        http_response_code(419);
+    $sent = $_POST['csrf'] ?? '';
+    if (!is_string($sent) || $sent === '' || !hash_equals((string) ($_SESSION['csrf'] ?? ''), $sent)) {
+        http_response_code(403);
         exit('Invalid or expired form. Go back and try again.');
     }
 }

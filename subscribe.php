@@ -11,5 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $back = $_SERVER['HTTP_REFERER'] ?? url();
-header('Location: ' . (str_starts_with($back, 'http://' . ($_SERVER['HTTP_HOST'] ?? '')) || str_starts_with($back, 'https://' . ($_SERVER['HTTP_HOST'] ?? '')) ? $back : url()));
+$backHost = parse_url($back, PHP_URL_HOST);
+$ownHost = parse_url(site_origin(), PHP_URL_HOST);
+header('Location: ' . ($backHost && $backHost === $ownHost && preg_match('#^https?://#', $back) ? $back : url()));
 exit;

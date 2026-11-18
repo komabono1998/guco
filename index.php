@@ -35,6 +35,10 @@ $projectsHome = q("SELECT p.id, p.title, p.theme, p.location, p.summary, p.budge
     (SELECT COALESCE(SUM(x.amount), 0) FROM project_updates x WHERE x.project_id = p.id AND x.kind = 'mobilisation' AND x.verified = 1) AS raised
     FROM projects p JOIN users u ON u.id = p.user_id WHERE p.is_public = 1 AND p.status IN ('approved','in_progress','completed') ORDER BY p.updated_at DESC LIMIT 3")->fetchAll();
 $heroImg = c_image('home.hero_image') ?: dinner_src(3);
+$heroLink = function (string $key): string {
+    $u = trim(c($key));
+    return preg_match('#^https?://#i', $u) ? $u : url(ltrim($u, '/'));
+};
 $progPhotos = [7, 11, 3, 4];
 $progIcons = ['users', 'graduation', 'heart', 'award'];
 ?>
@@ -44,15 +48,15 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
     <h1><?= ct('home.hero_title') ?></h1>
     <div class="hero-copy"><?= cr('home.hero_text') ?></div>
     <div class="actions">
-      <a class="btn" href="<?= url('register.php') ?>"><?= ct('home.hero_btn1') ?></a>
-      <a class="btn outline" href="<?= url('programmes.php') ?>"><?= ct('home.hero_btn2') ?></a>
+      <a class="btn" href="<?= e($heroLink('home.hero_btn1_url')) ?>"><?= ct('home.hero_btn1') ?></a>
+      <a class="btn outline" href="<?= e($heroLink('home.hero_btn2_url')) ?>"><?= ct('home.hero_btn2') ?></a>
     </div>
     <div class="hero-stats">
       <?php foreach (c_pairs('home.stats') as [$v, $l]): ?><div><b><?= e($v) ?></b><span><?= e($l) ?></span></div><?php endforeach; ?>
     </div>
   </div>
   <div class="hero2-img">
-    <img src="<?= e($heroImg) ?>" alt="Guests at a GUCO event">
+    <img src="<?= e($heroImg) ?>" alt="Guests at a GUCO event" width="1200" height="800" fetchpriority="high" decoding="async">
     <?php if (count($live) >= 3): ?>
       <div class="hero2-card">
         <?php foreach (array_slice($live, 0, 3) as [$ic, $n, $label]): ?>

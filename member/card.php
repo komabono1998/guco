@@ -7,7 +7,7 @@ if (!$m || $card['state'] === 'none' || $card['state'] === 'revoked') {
     flash($card['state'] === 'revoked' ? 'Your membership card has been revoked.' : 'Your card is issued when your membership is approved.', 'error');
     redirect('member/');
 }
-$verifyUrl = (($_SERVER['HTTPS'] ?? '') ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . url('verify.php?id=' . urlencode($m['membership_id']));
+$verifyUrl = absolute_url('verify.php?id=' . urlencode($m['membership_id']));
 portal_header('My membership card');
 ?>
 <p class="meta noprint">Present the card, or let others scan the code to verify it.</p>
@@ -15,7 +15,7 @@ portal_header('My membership card');
 
 <div class="idcard<?= $card['state'] === 'expired' ? ' expired' : '' ?>" id="idcard">
   <div class="idcard-head">
-    <img src="<?= url('assets/img/logo.webp') ?>" alt="" width="46" height="46">
+    <img src="<?= url('assets/img/logo-sm.webp') ?>" alt="" width="46" height="46">
     <div><strong>Gulu University Convocation</strong><small>Community Transformation Actualized</small></div>
   </div>
   <div class="idcard-body">

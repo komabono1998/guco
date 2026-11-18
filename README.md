@@ -24,3 +24,12 @@ Before going live: set `dev_mode` to `false`, configure mail so password-reset e
 ## Layout
 - `includes/` bootstrap (DB, roles, CSRF, spam checks, uploads), layout, shared forms, admin helpers (generic CRUD)
 - `admin/` back-office pages; `assets/` CSS and logo; `uploads/` public images (git-ignored); `storage/resources/` protected documents (git-ignored); `sql/` schema
+
+## Security notes
+
+- `dev_mode` in `config.php` is **false** by default. Turn it on only in `config.local.php` (git-ignored) on a development machine; it shows PHP errors and on-screen password-reset links.
+- Set `public_url` (for example `https://guco.example.org`) in `config.local.php` on the live server so emailed links never depend on the request's Host header.
+- Change the database user and password in `config.local.php` before going live (XAMPP's default `root` with no password is for local use only).
+- Sign-in is throttled by address and by account (`login_attempts` table), sessions expire after two hours idle, and every form is protected by a CSRF token.
+- `uploads/` cannot run scripts; `storage/` is not web accessible and files are served through `download.php`, `file.php` and `member_file.php`.
+- Serve the site over HTTPS in production: cookies then become `Secure` and HSTS is sent automatically.

@@ -212,6 +212,15 @@ CREATE TABLE resources (
     FULLTEXT KEY ft_res (title, description)
 );
 
+CREATE TABLE login_attempts (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ip VARCHAR(45) NOT NULL,
+    email VARCHAR(190) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY k_ip (ip, created_at),
+    KEY k_email (email, created_at)
+);
+
 CREATE TABLE gallery_albums (
     id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(200) NOT NULL,

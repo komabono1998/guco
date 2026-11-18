@@ -32,13 +32,18 @@ function auth_close(): void
  */
 function attempt_login(string $email, string $password): array
 {
-    $fails = $_SESSION['login_fails'] ?? [0, 0];
-    if ($fails[0] >= 5 && time() - $fails[1] < 300) {
-        return [null, 'Too many failed attempts. Please wait a few minutes and try again.'];
+    $email = strtolower(trim($email));
+    $ip = substr($_SERVER['REMOTE_ADDR'] ?? '', 0, 45);
+    // Throttle by address and by account, so neither a cleared session nor many addresses defeat it.
+    q('DELETE FROM login_attempts WHERE created_at < DATE_SUB(NOW(), INTERVAL 1 DAY)');
+    $byIp = (int) q('SELECT COUNT(*) FROM login_attempts WHERE ip = ? AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)', [$ip])->fetchColumn();
+    $byMail = (int) q('SELECT COUNT(*) FROM login_attempts WHERE email = ? AND created_at > DATE_SUB(NOW(), INTERVAL 15 MINUTE)', [$email])->fetchColumn();
+    if ($byIp >= 15 || $byMail >= 6) {
+        return [null, 'Too many failed attempts. Please wait 15 minutes and try again.'];
     }
-    $u = q('SELECT * FROM users WHERE email = ?', [strtolower(trim($email))])->fetch();
+    $u = q('SELECT * FROM users WHERE email = ?', [$email])->fetch();
     if (!$u || !password_verify($password, $u['password_hash'])) {
-        $_SESSION['login_fails'] = [$fails[0] + 1, time()];
+        q('INSERT INTO login_attempts (ip, email) VALUES (?,?)', [$ip, mb_substr($email, 0, 190)]);
         return [null, 'Wrong email or password.'];
     }
     if ($u['status'] === 'rejected') {
@@ -46,7 +51,7 @@ function attempt_login(string $email, string $password): array
     }
     session_regenerate_id(true);
     $_SESSION['uid'] = $u['id'];
-    unset($_SESSION['login_fails']);
+    q('DELETE FROM login_attempts WHERE email = ?', [$email]);
     return [$u, null];
 }
 
