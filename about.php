@@ -99,11 +99,77 @@ $objectives = c_lines('about.objectives');
 
 <section id="objectives" class="section">
   <div class="sec-head"><div><span class="eyebrow-s">What we aim to achieve</span><h2>Our objectives</h2></div></div>
-  <div class="objectives">
-    <?php foreach ($objectives as $i => $o): ?>
-      <div class="objective"><span class="o-n"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span><p><?= e($o) ?></p></div>
-    <?php endforeach; ?>
+  <?php
+  $objTones = ['#14532d', '#b45309', '#1d4ed8', '#be123c', '#0f766e', '#7e22ce'];
+  $objIcon = function (string $text): string {
+      $map = ['network' => 'users', 'academic' => 'graduation', 'growth' => 'graduation', 'socio' => 'star', 'cultural' => 'star', 'governance' => 'briefcase', 'chapter' => 'map-pin',
+          'community' => 'heart', 'fundrais' => 'wallet', 'award' => 'award', 'recognition' => 'award', 'welfare' => 'shield', 'relationship' => 'link', 'partnership' => 'globe', 'image' => 'globe'];
+      foreach ($map as $k => $ic) {
+          if (stripos($text, $k) !== false) {
+              return $ic;
+          }
+      }
+      return 'target';
+  };
+  $objTotal = count($objectives);
+  ?>
+  <?php if ($objTotal): ?>
+  <div class="ob" id="ob" aria-label="Our objectives">
+    <div class="ob-track" role="tablist" aria-label="Objectives">
+      <?php foreach ($objectives as $i => $o): ?>
+        <button type="button" role="tab" class="ob-step<?= $i === 0 ? ' on' : '' ?>" id="ob-t-<?= $i ?>" aria-controls="ob-p-<?= $i ?>" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>" data-i="<?= $i ?>" style="--c:<?= $objTones[$i % 6] ?>" title="<?= e(excerpt($o, 70)) ?>">
+          <?= $i + 1 ?>
+        </button>
+      <?php endforeach; ?>
+    </div>
+    <div class="ob-stage">
+      <?php foreach ($objectives as $i => $o): ?>
+        <article class="ob-panel<?= $i === 0 ? ' on' : '' ?>" role="tabpanel" id="ob-p-<?= $i ?>" aria-labelledby="ob-t-<?= $i ?>" style="--c:<?= $objTones[$i % 6] ?>">
+          <span class="ob-big"><?= str_pad((string) ($i + 1), 2, '0', STR_PAD_LEFT) ?></span>
+          <span class="ob-medal"><?= icon($objIcon($o), 34) ?></span>
+          <div class="ob-body">
+            <span class="ob-count">Objective <?= $i + 1 ?> of <?= $objTotal ?></span>
+            <p><?= e($o) ?></p>
+          </div>
+        </article>
+      <?php endforeach; ?>
+      <div class="ob-nav">
+        <button type="button" class="ob-prev" aria-label="Previous objective">&larr;</button>
+        <div class="ob-bar" aria-hidden="true"><i></i></div>
+        <button type="button" class="ob-next" aria-label="Next objective">&rarr;</button>
+      </div>
+    </div>
   </div>
+  <script>
+  (function () {
+    var box = document.getElementById('ob'); if (!box) return;
+    var steps = [].slice.call(box.querySelectorAll('.ob-step')), panels = [].slice.call(box.querySelectorAll('.ob-panel')), bar = box.querySelector('.ob-bar i');
+    var cur = 0, timer = null, touched = false, reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function show(i) {
+      cur = (i + steps.length) % steps.length;
+      steps.forEach(function (s, k) { s.classList.toggle('on', k === cur); s.classList.toggle('done', k < cur); s.setAttribute('aria-selected', k === cur ? 'true' : 'false'); });
+      panels.forEach(function (p, k) { p.classList.toggle('on', k === cur); });
+      box.style.setProperty('--cur', steps[cur].style.getPropertyValue('--c'));
+      var track = box.querySelector('.ob-track'), s = steps[cur];
+      if (track.scrollWidth > track.clientWidth) { track.scrollTo({ left: s.offsetLeft - track.clientWidth / 2 + s.offsetWidth / 2, behavior: reduce ? 'auto' : 'smooth' }); }
+      if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = touched || reduce ? 'none' : ''; bar.style.width = touched || reduce ? ((cur + 1) / steps.length * 100) + '%' : ''; }
+    }
+    function stop() { touched = true; clearInterval(timer); }
+    steps.forEach(function (s, k) {
+      s.addEventListener('click', function () { stop(); show(k); });
+      s.addEventListener('mouseenter', function () { if (window.matchMedia('(hover: hover)').matches) { stop(); show(k); } });
+      s.addEventListener('keydown', function (e) {
+        var d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : (e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0);
+        if (d) { e.preventDefault(); stop(); show(k + d); steps[cur].focus(); }
+      });
+    });
+    box.querySelector('.ob-prev').addEventListener('click', function () { stop(); show(cur - 1); });
+    box.querySelector('.ob-next').addEventListener('click', function () { stop(); show(cur + 1); });
+    show(0);
+    if (!reduce) { timer = setInterval(function () { show(cur + 1); }, 6000); }
+  })();
+  </script>
+  <?php endif; ?>
 </section>
 
 <section class="section split">

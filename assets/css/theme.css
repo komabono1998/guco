@@ -545,3 +545,37 @@ body.site .cv-pill.on { background: var(--c); color: #fff; border-color: var(--c
 @media (prefers-reduced-motion: reduce) { .cv-panel, .cv-pill, .cv-ic { transition: none !important; } .cv-panel.on .cv-medal, .cv-bar i { animation: none; } }
 
 @media (max-width: 800px) { .cv { grid-template-columns: minmax(0, 1fr); } .cv-list, .cv-stage { min-width: 0; } }
+
+/* About: interactive objectives journey */
+.ob { margin-top: 12px; min-width: 0; }
+.ob-track { position: relative; display: flex; gap: 8px; overflow-x: auto; padding: 10px 6px 18px; scrollbar-width: none; justify-content: space-between; }
+.ob-track::-webkit-scrollbar { display: none; }
+.ob-track::before { content: ""; position: absolute; left: 24px; right: 24px; top: 31px; height: 4px; border-radius: 4px; background: #dfeae2; z-index: 0; }
+body.site .ob-step { position: relative; z-index: 1; flex: none; width: 46px; height: 46px; padding: 0; border-radius: 50%; background: #fff; color: var(--c); border: 3px solid color-mix(in srgb, var(--c) 40%, #fff); font-weight: 800; font-size: .95rem; box-shadow: 0 3px 10px rgba(15, 40, 28, .08); transition: transform .2s, background .2s, color .2s, box-shadow .2s, border-color .2s; }
+body.site .ob-step.done { background: color-mix(in srgb, var(--c) 14%, #fff); }
+body.site .ob-step:hover { transform: translateY(-4px) scale(1.1); border-color: var(--c); box-shadow: 0 10px 20px color-mix(in srgb, var(--c) 30%, transparent); }
+body.site .ob-step.on { background: var(--c); color: #fff; border-color: var(--c); transform: scale(1.22); box-shadow: 0 0 0 7px color-mix(in srgb, var(--c) 20%, transparent), 0 12px 24px color-mix(in srgb, var(--c) 35%, transparent); }
+.ob-stage { position: relative; min-height: 250px; border-radius: 26px; overflow: hidden; background: #fff; border: 1px solid var(--line); box-shadow: 0 10px 34px rgba(15, 40, 28, .08); padding-bottom: 44px; }
+.ob-panel { position: absolute; inset: 0 0 44px 0; display: flex; align-items: center; gap: 28px; padding: 30px 40px; opacity: 0; visibility: hidden; transform: translateY(16px); transition: opacity .4s, transform .4s, visibility .4s; background: radial-gradient(circle at 90% 10%, color-mix(in srgb, var(--c) 20%, transparent), transparent 55%), linear-gradient(135deg, color-mix(in srgb, var(--c) 8%, #fff), #fff 75%); border-left: 8px solid var(--c); }
+.ob-panel.on { opacity: 1; visibility: visible; transform: none; }
+.ob-big { position: absolute; right: 24px; bottom: -26px; font-size: clamp(6rem, 15vw, 10rem); font-weight: 900; line-height: 1; color: color-mix(in srgb, var(--c) 12%, transparent); pointer-events: none; }
+.ob-medal { flex: none; width: 82px; height: 82px; border-radius: 50%; background: var(--c); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 0 0 10px color-mix(in srgb, var(--c) 16%, transparent), 0 14px 30px color-mix(in srgb, var(--c) 35%, transparent); }
+.ob-panel.on .ob-medal { animation: cv-pop .6s cubic-bezier(.2, 1.4, .4, 1); }
+.ob-body { position: relative; max-width: 40em; }
+.ob-count { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700; color: var(--c); }
+.ob-body p { margin: 6px 0 0; font-size: clamp(1.15rem, 2.3vw, 1.55rem); line-height: 1.5; font-weight: 600; color: var(--ink); }
+.ob-nav { position: absolute; left: 0; right: 0; bottom: 0; height: 44px; display: flex; align-items: center; gap: 12px; padding: 0 16px; background: #f6faf7; border-top: 1px solid var(--line); }
+body.site .ob-nav button { width: 32px; height: 32px; padding: 0; border-radius: 50%; background: #fff; color: var(--ink); border: 1.5px solid var(--line); font-size: 1rem; line-height: 1; box-shadow: none; }
+body.site .ob-nav button:hover { background: var(--cur, var(--green)); color: #fff; border-color: var(--cur, var(--green)); }
+.ob-bar { flex: 1; height: 5px; border-radius: 5px; background: #dfeae2; overflow: hidden; }
+.ob-bar i { display: block; height: 100%; width: 0; background: var(--cur, var(--green)); animation: cv-fill 6s linear forwards; }
+@media (max-width: 700px) {
+  .ob-track { justify-content: flex-start; }
+  .ob-stage { min-height: 330px; }
+  .ob-panel { flex-direction: column; align-items: flex-start; gap: 14px; padding: 24px 22px 20px 26px; }
+  .ob-medal { width: 64px; height: 64px; }
+}
+@media (prefers-reduced-motion: reduce) { .ob-panel, .ob-step { transition: none !important; } .ob-panel.on .ob-medal, .ob-bar i { animation: none; } }
+
+.ob-panel, .cv-panel { max-width: none; }
+body.site .ob-panel, body.site .cv-panel { max-width: none; }
