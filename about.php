@@ -172,19 +172,89 @@ $objectives = c_lines('about.objectives');
   <?php endif; ?>
 </section>
 
-<section class="section split">
-  <div class="card accent mandate">
-    <span class="p-ic dark"><?= icon('shield', 26) ?></span>
-    <h2 style="margin-top:8px">Our mandate</h2>
-    <?= cr('about.mandate') ?>
-  </div>
-  <div class="constitution-card">
-    <span class="p-ic"><?= icon('book', 28) ?></span>
-    <h2>The Constitution</h2>
-    <?= cr('about.constitution') ?>
-    <a class="btn gold" href="<?= url('resources.php?q=constitution') ?>">READ THE GUCO CONSTITUTION (2023)</a>
+<?php
+$mandateText = trim(str_replace('**', '', strip_tags(c('about.mandate'))));
+$mandateLines = array_values(array_filter(array_map('trim', preg_split('/(?<=[.!?])\s+/', $mandateText))));
+$constRes = q("SELECT id FROM resources WHERE category = 'Constitution' AND is_public = 1 AND member_only = 0 AND (filename IS NOT NULL OR external_url IS NOT NULL) ORDER BY id LIMIT 1")->fetchColumn();
+$constHref = $constRes ? url('download.php?id=' . (int) $constRes) : url('resources.php?q=constitution');
+$constStats = array_slice(c_pairs('home.stats'), 0, 4);
+?>
+<section class="section fd" id="foundation" aria-label="Our mandate and the Constitution">
+  <div class="sec-head"><div><span class="eyebrow-s">Our foundation</span><h2>Mandate and Constitution</h2></div></div>
+  <div class="fd-grid">
+    <article class="fd-card fd-mandate" data-tilt>
+      <span class="fd-glare" aria-hidden="true"></span>
+      <span class="fd-ic"><?= icon('shield', 28) ?></span>
+      <h3>Our mandate</h3>
+      <ol class="fd-lines">
+        <?php foreach ($mandateLines as $i => $line): ?>
+          <li style="--d:<?= $i * 110 ?>ms"><span class="fd-tick"><?= icon('check', 14) ?></span><span><?= e($line) ?></span></li>
+        <?php endforeach; ?>
+      </ol>
+      <div class="fd-actions fd-foot">
+        <a class="btn" href="#objectives">See our objectives</a>
+        <a class="btn secondary" href="<?= url('register.php') ?>">Join GUCO</a>
+      </div>
+    </article>
+    <article class="fd-card fd-const" data-tilt>
+      <span class="fd-glare" aria-hidden="true"></span>
+      <div class="fd-doc" aria-hidden="true"><i></i><i></i><b>THE CONSTITUTION</b><small>Gulu University Convocation</small><em>2023</em></div>
+      <div class="fd-const-body">
+        <span class="fd-ic gold"><?= icon('book', 26) ?></span>
+        <h3>The Constitution</h3>
+        <p><?= e(trim(str_replace('**', '', strip_tags(c('about.constitution'))))) ?></p>
+        <?php if ($constStats): ?>
+          <div class="fd-stats">
+            <?php foreach ($constStats as [$v, $l]): ?><div><b data-count="<?= e($v) ?>"><?= e($v) ?></b><span><?= e($l) ?></span></div><?php endforeach; ?>
+          </div>
+        <?php endif; ?>
+        <div class="fd-actions">
+          <a class="btn gold" href="<?= e($constHref) ?>"<?= $constRes ? ' target="_blank" rel="noopener"' : '' ?>><?= icon('book', 16) ?> Read the Constitution (2023)</a>
+          <a class="btn outline" href="<?= url('resources.php') ?>">All official documents</a>
+        </div>
+      </div>
+    </article>
   </div>
 </section>
+<script>
+(function () {
+  var sec = document.getElementById('foundation'); if (!sec) return;
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+  if (fine && !reduce) {
+    [].slice.call(sec.querySelectorAll('[data-tilt]')).forEach(function (c) {
+      c.addEventListener('mousemove', function (e) {
+        var r = c.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
+        c.style.setProperty('--ry', ((x - .5) * 7).toFixed(2) + 'deg'); c.style.setProperty('--rx', ((.5 - y) * 7).toFixed(2) + 'deg');
+        c.style.setProperty('--gx', (x * 100).toFixed(1) + '%'); c.style.setProperty('--gy', (y * 100).toFixed(1) + '%');
+      });
+      c.addEventListener('mouseleave', function () { c.style.setProperty('--rx', '0deg'); c.style.setProperty('--ry', '0deg'); });
+    });
+  }
+  function run() {
+    sec.classList.add('in');
+    [].slice.call(sec.querySelectorAll('[data-count]')).forEach(function (el) {
+      var raw = el.getAttribute('data-count'), m = raw.match(/^(\D*)(\d[\d,]*)(\D*)$/);
+      if (!m || reduce) return;
+      var num = parseInt(m[2].replace(/,/g, ''), 10);
+      if (num >= 1900 && num <= 2100) return;
+      var target = parseInt(m[2].replace(/,/g, ''), 10), start = null;
+      function step(t) {
+        if (start === null) start = t;
+        var p = Math.min(1, (t - start) / 1100), v = Math.round(target * (1 - Math.pow(1 - p, 3)));
+        el.textContent = m[1] + v + m[3];
+        if (p < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      setTimeout(function () { el.textContent = raw; }, 1600);
+    });
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) { if (es[0].isIntersecting) { run(); io.disconnect(); } }, { threshold: .25 });
+    io.observe(sec);
+  } else { run(); }
+})();
+</script>
 
 <section class="cta">
   <h2 style="margin-top:0">Be part of the story</h2>

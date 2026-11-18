@@ -579,3 +579,50 @@ body.site .ob-nav button:hover { background: var(--cur, var(--green)); color: #f
 
 .ob-panel, .cv-panel { max-width: none; }
 body.site .ob-panel, body.site .cv-panel { max-width: none; }
+
+/* About: mandate and constitution */
+.fd-grid { display: grid; grid-template-columns: 1fr 1.08fr; gap: 24px; perspective: 1200px; margin-top: 10px; }
+body.site .fd-card { --rx: 0deg; --ry: 0deg; --gx: 50%; --gy: 50%; position: relative; max-width: none; border-radius: 26px; padding: 34px; overflow: hidden; transform: rotateX(var(--rx)) rotateY(var(--ry)); transition: transform .25s ease-out, box-shadow .3s; transform-style: preserve-3d; will-change: transform; }
+.fd-glare { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(circle at var(--gx) var(--gy), rgba(255, 255, 255, .55), transparent 45%); mix-blend-mode: soft-light; }
+.fd-card:hover .fd-glare { opacity: 1; }
+.fd-mandate { background: #fff; border: 1px solid var(--line); box-shadow: 0 10px 34px rgba(15, 40, 28, .08); border-top: 6px solid var(--gold); }
+.fd-mandate:hover { box-shadow: 0 22px 50px rgba(15, 40, 28, .16); }
+.fd-ic { width: 58px; height: 58px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; background: #e6f2ea; color: var(--green); transition: transform .3s; }
+.fd-ic.gold { background: rgba(255, 255, 255, .14); color: var(--gold); }
+.fd-card:hover .fd-ic { transform: rotate(-8deg) scale(1.1); }
+.fd-card h3 { margin: 14px 0 12px; font-size: 1.7rem; }
+.fd-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.fd-lines li { display: flex; gap: 12px; align-items: flex-start; padding: 11px 14px; border-radius: 14px; line-height: 1.55; background: #f6faf7; border: 1px solid transparent; opacity: 0; transform: translateX(-16px); transition: opacity .5s var(--d, 0ms), transform .5s var(--d, 0ms), background .2s, border-color .2s, box-shadow .2s; }
+.fd.in .fd-lines li { opacity: 1; transform: none; }
+.fd-lines li:hover { background: #fff; border-color: var(--green); box-shadow: 0 8px 20px rgba(20, 83, 45, .12); transform: translateX(6px); transition-delay: 0ms; }
+.fd-tick { flex: none; width: 24px; height: 24px; margin-top: 1px; border-radius: 50%; background: var(--green); color: #fff; display: inline-flex; align-items: center; justify-content: center; transition: transform .25s, background .25s; }
+.fd-lines li:hover .fd-tick { background: var(--gold); color: #1a1a1a; transform: scale(1.2) rotate(360deg); }
+.fd-const { display: grid; grid-template-columns: 150px 1fr; gap: 26px; align-items: center; background: radial-gradient(circle at 100% 0, rgba(242, 184, 7, .22), transparent 45%), linear-gradient(130deg, #0b2f1b, var(--green)); color: #fff; box-shadow: 0 16px 44px rgba(15, 61, 34, .32); border-bottom: 6px solid var(--gold); }
+.fd-const:hover { box-shadow: 0 26px 60px rgba(15, 61, 34, .45); }
+body.site .fd-const h3 { color: #fff; margin-top: 12px; }
+.fd-const p { margin: 0 0 16px; opacity: .92; line-height: 1.6; }
+.fd-doc { position: relative; width: 150px; aspect-ratio: 3 / 4; background: #fff; color: #14532d; border-radius: 6px 12px 12px 6px; padding: 18px 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 4px; box-shadow: -6px 6px 0 rgba(255, 255, 255, .16), -12px 12px 0 rgba(255, 255, 255, .08), 0 18px 34px rgba(0, 0, 0, .35); border-left: 10px solid var(--gold); transform: translateZ(40px) rotate(-4deg); transition: transform .4s; }
+.fd-const:hover .fd-doc { transform: translateZ(60px) rotate(0deg) scale(1.06); }
+.fd-doc i { width: 70%; height: 3px; background: #d7e6dc; border-radius: 3px; }
+.fd-doc b { font-size: .72rem; letter-spacing: .12em; margin-top: 6px; }
+.fd-doc small { font-size: .56rem; color: #5a6b60; }
+.fd-doc em { font-style: normal; font-weight: 900; font-size: 1.9rem; color: var(--gold-dark, #b45309); margin-top: 6px; }
+.fd-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 10px; margin: 4px 0 18px; }
+.fd-stats div { background: rgba(255, 255, 255, .1); border-radius: 14px; padding: 10px 12px; transition: transform .2s, background .2s; }
+.fd-stats div:hover { transform: translateY(-4px); background: rgba(255, 255, 255, .2); }
+.fd-stats b { display: block; font-size: 1.55rem; color: var(--gold); line-height: 1.1; font-variant-numeric: tabular-nums; }
+.fd-stats span { font-size: .72rem; opacity: .85; line-height: 1.25; display: block; }
+.fd-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+body.site .fd-actions .btn { display: inline-flex; align-items: center; gap: 8px; }
+@media (max-width: 900px) { .fd-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .fd-const { grid-template-columns: 1fr; } .fd-doc { width: 120px; margin: 0 auto; } body.site .fd-card { padding: 24px 20px; } }
+@media (prefers-reduced-motion: reduce) { body.site .fd-card, .fd-lines li, .fd-doc { transition: none !important; transform: none !important; } .fd-lines li { opacity: 1; } }
+
+.fd-mandate { display: flex; flex-direction: column; }
+.fd-foot { margin-top: auto; padding-top: 22px; }
+.fd-const { grid-template-columns: 1fr; }
+.fd-doc { position: absolute; right: 26px; top: 26px; width: 108px; padding: 12px 8px; }
+.fd-doc b { font-size: .6rem; }
+.fd-doc em { font-size: 1.4rem; }
+.fd-const-body > .fd-ic, .fd-const-body > h3 { max-width: calc(100% - 140px); }
+@media (max-width: 560px) { .fd-doc { position: relative; right: auto; top: auto; margin: 0 auto 6px; } .fd-const-body > .fd-ic, .fd-const-body > h3 { max-width: none; } }
