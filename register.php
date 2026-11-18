@@ -7,7 +7,7 @@ $needProof = setting('require_payment_proof', '1') === '1';
 $showFees = setting('show_fees') === '1';
 $chapters = q('SELECT id, name FROM chapters WHERE is_public = 1 ORDER BY name')->fetchAll();
 $f = fn($k) => e($_POST[$k] ?? '');
-$sel = fn($k, $v) => ($_POST[$k] ?? '') === (string) $v ? ' selected' : '';
+$sel = fn($k, $v) => ($_POST[$k] ?? ($k === 'category' ? ($_GET['category'] ?? '') : '')) === (string) $v ? ' selected' : '';
 $fees = ['founder' => 'fee_founder', 'ordinary' => 'fee_ordinary', 'honorary' => 'fee_honorary', 'life' => 'fee_life'];
 
 if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
