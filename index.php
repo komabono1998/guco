@@ -441,7 +441,7 @@ $poN = max(1, count($areas));
 
 <?php if ($fame): ?>
 <section class="home-section sec-center" aria-label="Alumni Hall of Fame">
-  <div class="sec-head"><div><span class="eyebrow">Alumni Hall of Fame</span><h2>Honouring our outstanding alumni</h2></div><a href="<?= url('hall-of-fame.php') ?>">Meet them all &rarr;</a></div>
+  <div class="sec-head"><div><span class="eyebrow">Alumni Hall of Fame</span><h2>Honouring our outstanding alumni</h2></div><a href="<?= url('awards.php#hall') ?>">Meet them all &rarr;</a></div>
   <div class="grid two" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
     <?php foreach ($fame as $h): $ph = $h['photo'] ? url('uploads/' . rawurlencode($h['photo'])) : ''; ?>
       <a class="card accent" href="<?= url('hall-of-fame.php?id=' . (int) $h['id']) ?>" style="text-decoration:none;color:inherit">

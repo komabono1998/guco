@@ -49,4 +49,10 @@ require __DIR__ . '/includes/header.php';
 </div>
 <?php if (!$items): ?><div class="empty-state"><?= icon('search', 36) ?><strong>No articles found</strong><span>Try another search or category, or check back soon for new stories.</span></div><?php endif; ?>
 <?= pagination($total, $per, $page, http_build_query(array_filter(['q' => $search, 'category' => $cat]))) ?>
+<?php related_links('Stay connected', 'More from GUCO', [
+    ['events.php', 'calendar', 'Events Calendar', 'Dinner, AGM, GUCO League and more'],
+    ['newsletters.php', 'mail', 'Newsletters', 'Read or subscribe to the GUCO newsletter'],
+    ['gallery.php', 'image', 'Photo Gallery', 'Albums from GUCO events'],
+    ['resources.php', 'file', 'Reports and Documents', 'Official documents for public viewing'],
+]); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

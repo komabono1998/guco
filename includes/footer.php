@@ -43,7 +43,7 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
           <li><a href="<?= url('leadership.php') ?>">Leadership &amp; Governance</a></li>
           <li><a href="<?= url('programmes.php') ?>">Programmes</a></li>
           <li><a href="<?= url('chapters.php') ?>">Alumni Chapters</a></li>
-          <li><a href="<?= url('awards.php') ?>">Awards</a></li>
+          <li><a href="<?= url('awards.php') ?>">Awards &amp; Hall of Fame</a></li>
           <li><a href="<?= url('partnerships.php') ?>">Partnerships</a></li>
         </ul>
       </nav>

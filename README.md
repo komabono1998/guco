@@ -47,3 +47,7 @@ Before going live: set `dev_mode` to `false`, configure mail so password-reset e
 - `assets/css/corporate.css` upgrades the shared classes (page hero, cards, tables, forms, FAQ, calendar, gallery, footer) for every public page.
 - `assets/js/site.js` adds the scroll progress bar, reveal-on-scroll, number count-up and the photo lightbox. Pages work without it, and motion is off for visitors who ask for reduced motion.
 - CSS and JS links carry a file-modified version (`asset()` in `includes/bootstrap.php`), so updates reach visitors immediately.
+
+## Public menu
+
+The main menu has seven items: Home, About, Membership, Programmes, News & Events, Give and Contact. Related pages sit in drop-downs (for example Chapters and Careers under Membership, Awards & Hall of Fame under Programmes), and landing pages carry quick-link cards. Hall of Fame is part of the Awards page. Change the menu under Admin > Menu; `sql/migrations/004_simplify_menu.sql` applied this structure.

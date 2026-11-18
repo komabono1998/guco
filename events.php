@@ -80,4 +80,10 @@ $qs = fn($m) => '?' . http_build_query(array_filter(['month' => $m, 'category' =
 <?php foreach ($past as $ev): ?>
   <p><span class="badge"><?= e($ev['category']) ?></span> <a href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>"><strong><?= e($ev['title']) ?></strong></a> <span class="meta">&middot; <?= e(fmt_date($ev['starts_at'])) ?></span> <?= event_status_badge($ev) ?></p>
 <?php endforeach; if (!$past): ?><p>None yet.</p><?php endif; ?>
+<?php related_links('Stay connected', 'More from GUCO', [
+    ['news.php', 'newspaper', 'News and Stories', 'Updates, notices and alumni stories'],
+    ['newsletters.php', 'mail', 'Newsletters', 'Read or subscribe to the GUCO newsletter'],
+    ['gallery.php', 'image', 'Photo Gallery', 'Albums from GUCO events'],
+    ['resources.php', 'file', 'Reports and Documents', 'Official documents for public viewing'],
+]); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

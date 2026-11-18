@@ -319,4 +319,10 @@ $constStats = array_slice(c_pairs('home.stats'), 0, 4);
   <a class="btn" href="<?= url('register.php') ?>">JOIN GUCO</a>
   <a class="btn secondary" href="<?= url('membership.php') ?>">Membership benefits</a>
 </section>
+<?php related_links('Keep exploring', 'More about GUCO', [
+    ['leadership.php', 'users', 'Leadership and Governance', 'The Executive Committee, Board and the organs of GUCO'],
+    ['resources.php', 'file', 'Constitution and Documents', 'The Constitution, reports and official notices'],
+    ['partnerships.php', 'link', 'Partnerships and Support', 'Collaborate with or support GUCO'],
+    ['awards.php', 'award', 'Awards and Hall of Fame', 'Honouring outstanding alumni'],
+]); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

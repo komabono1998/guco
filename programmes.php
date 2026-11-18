@@ -97,4 +97,10 @@ $tones = ['#14532d', '#b45309', '#1d4ed8', '#be123c', '#0f766e', '#7e22ce', '#c2
     </article>
   <?php endforeach; if (!$reports): ?><p>Approved programme reports will be published here.</p><?php endif; ?>
 </section>
+<?php related_links('Get involved', 'More ways to take part', [
+    ['projects.php', 'target', 'Community Projects', 'Member-led projects in action'],
+    ['awards.php', 'award', 'Awards and Hall of Fame', 'Honouring outstanding alumni'],
+    ['partnerships.php', 'link', 'Partnerships and Support', 'Collaborate with or support GUCO'],
+    ['chapters.php', 'map-pin', 'Alumni Chapters', 'Programmes close to where you live'],
+]); ?>
 <?php require __DIR__ . '/includes/footer.php'; ?>

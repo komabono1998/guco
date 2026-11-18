@@ -4,6 +4,16 @@
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.documentElement;
 
+  /* phone menu: fold sub-pages under their parent */
+  [].slice.call(document.querySelectorAll('.mainnav .navitem.has-sub')).forEach(function (item) {
+    var a = item.querySelector(':scope > a'); if (!a) return;
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'sub-toggle'; b.setAttribute('aria-expanded', 'false'); b.setAttribute('aria-label', 'Show pages under ' + a.textContent.trim());
+    b.innerHTML = '&#9662;';
+    b.addEventListener('click', function () { var o = item.classList.toggle('open-sub'); b.setAttribute('aria-expanded', o ? 'true' : 'false'); });
+    a.insertAdjacentElement('afterend', b);
+  });
+
   /* scroll progress bar and header shadow */
   var bar = document.createElement('div');
   bar.className = 'sp-bar';

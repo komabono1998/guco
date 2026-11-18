@@ -15,11 +15,14 @@ $initials = fn(string $n) => mb_strtoupper(mb_substr(implode('', array_map(fn($w
 if ($one) {
     $pageTitle = $one['name'];
 }
+if (!$id) {
+    redirect('awards.php' . (in_array($cat, FAME_CATEGORIES, true) ? '' : '') . '#hall');
+}
 require __DIR__ . '/includes/header.php';
 if ($id && !$one): ?>
-  <h1>Not found</h1><p><a href="<?= url('hall-of-fame.php') ?>">&larr; Hall of Fame</a></p>
+  <h1>Not found</h1><p><a href="<?= url('awards.php#hall') ?>">&larr; Awards &amp; Hall of Fame</a></p>
 <?php elseif ($one): ?>
-  <p><a href="<?= url('hall-of-fame.php') ?>">&larr; Hall of Fame</a></p>
+  <p><a href="<?= url('awards.php#hall') ?>">&larr; Awards &amp; Hall of Fame</a></p>
   <article class="card accent" style="display:grid;grid-template-columns:200px 1fr;gap:26px;align-items:start">
     <?php if ($photo($one)): ?><img src="<?= e($photo($one)) ?>" alt="<?= e($one['name']) ?>" style="width:100%;border-radius:14px;object-fit:cover;aspect-ratio:1/1.1">
     <?php else: ?><div style="aspect-ratio:1/1.1;border-radius:14px;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:3rem;font-weight:700"><?= e($initials($one['name'])) ?></div><?php endif; ?>

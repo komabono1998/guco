@@ -431,3 +431,47 @@ body.site .pt-support-btns .btn.outline:hover { background: rgba(255, 255, 255, 
 @media (max-width: 1000px) { .pt-grid { grid-template-columns: repeat(2, 1fr); } .pt-support-card { grid-template-columns: auto 1fr; } .pt-support-btns { grid-column: 1 / -1; grid-auto-flow: column; } }
 @media (max-width: 600px) { .pt-grid { grid-template-columns: 1fr; } body.site .pt-tile { min-height: 0; flex-direction: row; align-items: center; } .pt-text { margin-top: 0; } .pt-num { display: none; } .pt-support-card { grid-template-columns: 1fr; padding: 26px 22px; } .pt-support-btns { grid-auto-flow: row; } .pt-bar { bottom: 8px; } }
 @media (prefers-reduced-motion: reduce) { .pt-support-ic, .pt-support-card::before, .pt-bar { animation: none; } }
+
+/* ---------- Related-page cards (quick links on landing pages) ---------- */
+.rl-head { margin-bottom: 20px; }
+.rl-head h2 { margin: 4px 0 0; font-size: clamp(1.5rem, 3vw, 2rem); }
+.rl-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+body.site .rl-card { position: relative; display: flex; align-items: center; gap: 16px; padding: 18px 48px 18px 18px; border-radius: 22px; background: #fff; border: 1.5px solid var(--line); color: var(--ink); text-decoration: none; box-shadow: 0 6px 18px rgba(15, 40, 28, .06); overflow: hidden; transition: transform .28s, box-shadow .28s, border-color .28s, background .28s; }
+.rl-ic { flex: none; width: 56px; height: 56px; border-radius: 18px; display: inline-flex; align-items: center; justify-content: center; background: #e6f2ea; color: var(--green); transition: transform .3s, background .3s, color .3s; }
+.rl-text strong { display: block; font-size: 1.02rem; line-height: 1.25; }
+.rl-text span { display: block; margin-top: 3px; font-size: .84rem; line-height: 1.4; color: var(--muted); transition: color .28s; }
+.rl-card i { position: absolute; right: 18px; top: 50%; translate: 0 -50%; font-style: normal; font-size: 1.3rem; color: var(--green); transition: transform .28s, color .28s; }
+body.site .rl-card:hover, body.site .rl-card:focus-visible { transform: translateY(-6px); background: var(--green); border-color: var(--green); box-shadow: 0 20px 40px rgba(20, 83, 45, .32); outline: none; color: #fff; }
+body.site .rl-card:hover .rl-text span { color: #d7ebde; }
+body.site .rl-card:hover .rl-ic { background: rgba(255, 255, 255, .18); color: var(--gold); transform: rotate(-8deg) scale(1.08); }
+body.site .rl-card:hover i { color: var(--gold); transform: translateX(6px); }
+
+/* ---------- Hall of Fame block on the Awards page ---------- */
+.fame-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+body.site .fame-filter button { padding: 8px 18px; border-radius: 99px; background: #fff; color: var(--ink); border: 1.5px solid var(--line); font-weight: 700; font-size: .86rem; box-shadow: none; }
+body.site .fame-filter button:hover { border-color: var(--green); transform: translateY(-2px); }
+body.site .fame-filter button.on { background: var(--green); color: #fff; border-color: var(--green); }
+.fame-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 16px; }
+.fame-grid [hidden] { display: none; }
+body.site .fame-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px; padding: 22px 14px 18px; border-radius: 24px; background: #fff; border: 1.5px solid var(--line); color: var(--ink); text-decoration: none; box-shadow: 0 6px 18px rgba(15, 40, 28, .06); transition: transform .28s, box-shadow .28s, border-color .28s; }
+body.site .fame-card:hover { transform: translateY(-8px); border-color: var(--gold); box-shadow: 0 22px 44px rgba(180, 130, 0, .22); }
+.fame-card img, .fame-init { width: 110px; height: 110px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 4px #fff, 0 0 0 7px var(--gold); margin-bottom: 10px; transition: transform .35s; }
+.fame-init { display: flex; align-items: center; justify-content: center; background: var(--green); color: #fff; font-size: 2.4rem; font-weight: 800; }
+body.site .fame-card:hover img, body.site .fame-card:hover .fame-init { transform: scale(1.08) rotate(-3deg); }
+.fame-card span { font-size: .85rem; color: var(--muted); line-height: 1.35; }
+.fame-card em { font-style: normal; margin-top: 6px; padding: 3px 12px; border-radius: 99px; background: #e6f2ea; color: var(--green); font-size: .72rem; font-weight: 800; }
+
+/* Seven main items fit on laptops, so the full menu shows from 1081px */
+body.site .mainnav { gap: 2px; }
+body.site .navitem > a { padding-left: 14px; padding-right: 14px; font-weight: 700; }
+
+/* Phone menu: sub-pages fold under their parent and open with the arrow button */
+.sub-toggle { display: none; }
+@media (max-width: 1080px) {
+  body.site .navitem.has-sub { position: relative; }
+  body.site .navitem.has-sub > a { padding-right: 56px; }
+  body.site .navitem.has-sub > .sub-toggle { display: inline-flex; position: absolute; right: 0; top: 4px; width: 44px; height: 38px; padding: 0; align-items: center; justify-content: center; border-radius: 12px; background: #eaf1ec; color: var(--green); font-size: 1.1rem; box-shadow: none; transition: transform .25s, background .25s, color .25s; }
+  body.site .navitem.has-sub.open-sub > .sub-toggle { transform: rotate(180deg); background: var(--green); color: #fff; }
+  body.site .navitem.has-sub > .sub { display: none; }
+  body.site .navitem.has-sub.open-sub > .sub { display: block; animation: mb-open .25s ease-out; }
+}

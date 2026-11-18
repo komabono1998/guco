@@ -35,7 +35,7 @@ body.site .account a:hover { color: var(--green); }
 body.site .account .btn { padding: 9px 18px; }
 body.site .account-mobile { display: none; }
 body.site .menu-toggle { display: none; background: var(--soft); color: var(--ink); margin-left: auto; padding: 8px 14px; }
-@media (max-width: 1380px) {
+@media (max-width: 1080px) {
   body.site .site-header .bar { flex-wrap: wrap; }
   body.site .menu-toggle { display: inline-block; }
   body.site .account { display: none; }
