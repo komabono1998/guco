@@ -34,7 +34,8 @@ function portal_header(string $title): void
         ['Chapters', 'chapters.php', 'map-pin', true, ['chapter_join.php']],
         ['Projects', 'projects.php', 'target', true, ['project.php', 'project_form.php']],
         ['Documents', 'documents.php', 'file', true],
-        ["Members' directory", 'directory.php', 'users', true],
+        ['Alumni Connect', 'directory.php', 'users', true, ['connections.php']],
+        ['Mentorship Hub', 'mentorship.php', 'target', true],
         ['Notifications', 'notifications.php', 'bell', false],
         ['Support', 'support.php', 'life-buoy', false],
     ];

@@ -16,6 +16,7 @@ $anthemLyrics = trim(c('home.anthem_lyrics'));
 $campusLink = trim(c('home.campus_link'));
 $campusVideo = trim(c('home.campus_video'));
 $awards = $on('awards') ? q("SELECT name FROM awards WHERE is_public = 1 ORDER BY id LIMIT 4")->fetchAll(PDO::FETCH_COLUMN) : [];
+$fame = $on('fame') ? q('SELECT * FROM hall_of_fame WHERE is_public = 1 AND featured = 1 ORDER BY sort_order, inducted_year DESC LIMIT 4')->fetchAll() : [];
 $partners = q('SELECT * FROM partners WHERE is_public = 1 ORDER BY sort_order, id')->fetchAll();
 $photoCount = $count('SELECT COUNT(*) FROM gallery');
 
@@ -284,6 +285,21 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
     <?php endforeach; ?>
   </div>
   <?php endif; ?>
+</section>
+<?php endif; ?>
+
+<?php if ($fame): ?>
+<section class="home-section sec-center" aria-label="Alumni Hall of Fame">
+  <div class="sec-head"><div><span class="eyebrow">Alumni Hall of Fame</span><h2>Honouring our outstanding alumni</h2></div><a href="<?= url('hall-of-fame.php') ?>">Meet them all &rarr;</a></div>
+  <div class="grid two" style="grid-template-columns:repeat(auto-fit,minmax(210px,1fr))">
+    <?php foreach ($fame as $h): $ph = $h['photo'] ? url('uploads/' . rawurlencode($h['photo'])) : ''; ?>
+      <a class="card accent" href="<?= url('hall-of-fame.php?id=' . (int) $h['id']) ?>" style="text-decoration:none;color:inherit">
+        <?php if ($ph): ?><img src="<?= e($ph) ?>" alt="" loading="lazy" width="96" height="96" style="width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;margin:0 auto 8px">
+        <?php else: ?><div style="width:96px;height:96px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-weight:700;margin:0 auto 8px"><?= e(mb_strtoupper(mb_substr($h['name'], 0, 1))) ?></div><?php endif; ?>
+        <strong><?= e($h['name']) ?></strong><br><span class="meta"><?= e($h['title'] ?: $h['category']) ?></span>
+      </a>
+    <?php endforeach; ?>
+  </div>
 </section>
 <?php endif; ?>
 

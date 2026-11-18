@@ -96,6 +96,8 @@ const PERMS = [
     'payments' => ['super_admin', 'secretariat', 'finance_officer'],
     'donations' => ['super_admin', 'secretariat', 'finance_officer'],
     'careers' => ['super_admin', 'secretariat', 'career_officer'],
+    'halloffame' => ['super_admin', 'secretariat', 'executive', 'communications'],
+    'mentorship' => ['super_admin', 'secretariat', 'career_officer', 'membership_officer'],
     'checkin' => ['super_admin', 'secretariat', 'events_officer', 'communications'],
     'backup' => ['super_admin', 'system_admin'],
     'content' => ['super_admin', 'secretariat', 'communications'],
@@ -410,3 +412,4 @@ require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/photos.php';
 require_once __DIR__ . '/donations.php';
+require_once __DIR__ . '/network.php';

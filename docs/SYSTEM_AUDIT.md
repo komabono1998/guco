@@ -38,6 +38,14 @@ Public site and CMS (home, about, membership, leadership, programmes, chapters, 
 | Backup | One-click portable SQL dump (admin only, audited); tested by restoring into a scratch database |
 | Reports | Added faculty/programme, event attendance, careers, donations by campaign and by method/month, administrative activity |
 
+## 3a. Added after the feature-list review (migration 003)
+
+| Module | What it does |
+|---|---|
+| Alumni Hall of Fame | Admin-managed honourees (name, title, category, citation, portrait, year inducted, featured, order, published); public gallery with category filter and profile pages; home-page spotlight (toggle under Branding); menu entry |
+| Mentorship Hub | Members opt in as mentor, mentee or both with areas and availability; mentees search open mentors and send a request (max 5 waiting); mentors accept or decline; contact details are shared only after acceptance; either side can end; admin overview, CSV export, and remove/restore for conduct concerns (closes active pairings) |
+| Alumni Connect | Directory upgraded with graduation-year and chapter filters and a Connect button; connection requests (max 20 waiting); accepting shares contact details both ways; remove at any time; notifications at each step. Only members who gave directory consent are discoverable |
+
 ## 4. Improved
 
 Hero loading (priority image, fixed size, mobile order), configurable hero links, sign-in security, headers, error handling, role separation, audit coverage of exports, imports, verifications and check-ins.
@@ -48,9 +56,9 @@ These were in the brief but are separate products; none was faked with an empty 
 
 1. **Live MoMo / Airtel API collection** and card payments: needs merchant accounts and credentials. Structure and steps in `docs/PAYMENTS.md`. Until then payments are matched by a human against the statement; no payment is ever auto-marked successful.
 2. SMS notifications (needs an SMS gateway account), WhatsApp.
-3. Alumni forums, private messaging, mentorship matching, connection requests (need moderation tooling and a privacy review first).
+3. Alumni forums and private messaging (need moderation tooling and a privacy review first). Connection requests and mentorship are now built (see section 3a).
 4. Voting / elections platform (needs voter-roll rules from the Electoral Committee and an independent audit).
-5. Business directory, hall of fame / success stories, surveys and polls, volunteer registration, scholarship applications, alumni map, public API, AI search and drafting.
+5. Business directory, success stories, surveys and polls, volunteer registration, scholarship applications, alumni map, public API, AI search and drafting.
 6. PDF/Excel-native report export (CSV opens in Excel; use the browser's Print to PDF for reports).
 
 ## 6. External dependencies and unresolved items
@@ -77,4 +85,4 @@ Known failures: none open from this run.
 
 ## 8. Database changes
 
-See `sql/migrations/001_platform_modules.sql` and `002_giving_careers_menu.sql`: new tables `campaigns`, `donations`, `jobs`, `job_applications`, `notifications`, `login_attempts`, `schema_migrations`; new columns `events.capacity`, `event_registrations.ticket_code/checked_in_at/checked_in_by`, `donations.access_token`; widened `users.role` enum; two menu items (Give, Careers). No existing rows were modified except giving existing event registrations a ticket code.
+See `sql/migrations/001_platform_modules.sql` and `002_giving_careers_menu.sql`: new tables `campaigns`, `donations`, `jobs`, `job_applications`, `notifications`, `login_attempts`, `schema_migrations`, `hall_of_fame`, `mentorship_profiles`, `mentorship_requests`, `connections` (migration 003); new columns `events.capacity`, `event_registrations.ticket_code/checked_in_at/checked_in_by`, `donations.access_token`; widened `users.role` enum; two menu items (Give, Careers). No existing rows were modified except giving existing event registrations a ticket code.

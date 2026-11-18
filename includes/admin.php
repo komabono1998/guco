@@ -24,7 +24,8 @@ const ADMIN_GROUPS = [
     ],
     'Giving and careers' => [
         ['Donations', 'donations.php', 'donations', 'heart', 'donations'], ['Campaigns', 'campaigns.php', 'donations', 'target', null],
-        ['Careers', 'jobs.php', 'careers', 'briefcase', null], ['Event check-in', 'checkin.php', 'checkin', 'check', null],
+        ['Careers', 'jobs.php', 'careers', 'briefcase', null], ['Mentorship', 'mentorship.php', 'mentorship', 'users', null],
+        ['Hall of Fame', 'hall_of_fame.php', 'halloffame', 'award', null], ['Event check-in', 'checkin.php', 'checkin', 'check', null],
     ],
     'Inbox' => [
         ['Messages', 'messages.php', 'messages', 'inbox', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers', 'mail', null],
