@@ -106,11 +106,70 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
     <span class="eyebrow" style="color:var(--green);text-transform:uppercase;letter-spacing:.12em;font-size:.74rem;font-weight:700">About us</span>
     <h2 style="margin:4px 0 10px"><?= ct('home.who_title') ?></h2>
     <div class="lead" style="font-size:1rem;color:var(--muted)"><?= cr('home.who_text') ?></div>
-    <div class="feat-row"><span class="ic"><?= icon('target') ?></span><div><h3>Our Mission</h3><p><?= e(excerpt(c('about.mission'), 130)) ?></p></div></div>
-    <div class="feat-row"><span class="ic"><?= icon('eye') ?></span><div><h3>Our Vision</h3><p><?= e(excerpt(c('about.vision'), 130)) ?></p></div></div>
-    <div class="feat-row"><span class="ic"><?= icon('gem') ?></span><div><h3>Our Values</h3>
-      <div class="chips"><?php foreach (c_lines('about.values') as $val): $vt = trim(explode('|', $val)[0]); if ($vt !== ''): ?><span><?= e($vt) ?></span><?php endif; endforeach; ?></div></div></div>
+    <?php
+    $mvv = [
+        ['mission', 'target', 'Our Mission', '#b45309'],
+        ['vision', 'eye', 'Our Vision', '#be123c'],
+        ['values', 'gem', 'Our Values', '#14532d'],
+    ];
+    $valueRows = array_map(fn($l) => array_pad(array_map('trim', explode('|', $l, 2)), 2, ''), c_lines('about.values'));
+    ?>
+    <div class="mvv" id="mvv">
+      <div class="mvv-tabs" role="tablist" aria-label="Mission, vision and values">
+        <?php foreach ($mvv as $k => [$id, $ic, $label, $tone]): ?>
+          <button type="button" role="tab" class="mvv-tab<?= $k === 0 ? ' on' : '' ?>" id="mvv-t-<?= $id ?>" aria-controls="mvv-p-<?= $id ?>" aria-selected="<?= $k === 0 ? 'true' : 'false' ?>" data-i="<?= $k ?>" style="--c:<?= $tone ?>">
+            <span class="mvv-ic"><?= icon($ic, 24) ?></span><span><?= e($label) ?></span>
+          </button>
+        <?php endforeach; ?>
+      </div>
+      <div class="mvv-stage">
+        <div class="mvv-panel on" role="tabpanel" id="mvv-p-mission" aria-labelledby="mvv-t-mission" style="--c:#b45309">
+          <span class="mvv-quote">&ldquo;</span><p><?= e(c('about.mission')) ?></p>
+        </div>
+        <div class="mvv-panel" role="tabpanel" id="mvv-p-vision" aria-labelledby="mvv-t-vision" style="--c:#be123c">
+          <span class="mvv-quote">&ldquo;</span><p><?= e(c('about.vision')) ?></p>
+        </div>
+        <div class="mvv-panel" role="tabpanel" id="mvv-p-values" aria-labelledby="mvv-t-values" style="--c:#14532d">
+          <div class="mvv-values">
+            <?php foreach ($valueRows as $vi => [$vt, $vd]): if ($vt === '') continue; ?>
+              <button type="button" class="mvv-val" aria-expanded="false" style="--d:<?= $vi * 60 ?>ms">
+                <b><?= e($vt) ?></b>
+                <?php if ($vd !== ''): ?><span><?= e($vd) ?></span><?php endif; ?>
+              </button>
+            <?php endforeach; ?>
+          </div>
+        </div>
+      </div>
+      <div class="mvv-dots" aria-hidden="true"><i class="on"></i><i></i><i></i></div>
+    </div>
     <a class="btn" href="<?= url('about.php') ?>">Learn more about us</a>
+<script>
+(function () {
+  var box = document.getElementById('mvv'); if (!box) return;
+  var tabs = [].slice.call(box.querySelectorAll('.mvv-tab')), panels = [].slice.call(box.querySelectorAll('.mvv-panel')), dots = [].slice.call(box.querySelectorAll('.mvv-dots i'));
+  var cur = 0, timer = null, touched = false;
+  function show(i) {
+    cur = i;
+    tabs.forEach(function (t, k) { t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
+    panels.forEach(function (p, k) { p.classList.toggle('on', k === i); });
+    dots.forEach(function (d, k) { d.classList.toggle('on', k === i); });
+  }
+  function stop() { touched = true; clearInterval(timer); }
+  tabs.forEach(function (t, k) {
+    t.addEventListener('click', function () { stop(); show(k); });
+    t.addEventListener('mouseenter', function () { if (window.matchMedia('(hover: hover)').matches) { stop(); show(k); } });
+    t.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { e.preventDefault(); var n = (k + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length; stop(); show(n); tabs[n].focus(); }
+    });
+  });
+  [].slice.call(box.querySelectorAll('.mvv-val')).forEach(function (v) {
+    v.addEventListener('click', function () { var o = v.classList.toggle('open'); v.setAttribute('aria-expanded', o ? 'true' : 'false'); stop(); });
+  });
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    timer = setInterval(function () { show((cur + 1) % tabs.length); }, 6500);
+  }
+})();
+</script>
   </div>
 </section>
 <?php endif; ?>

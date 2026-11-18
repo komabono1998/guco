@@ -483,3 +483,29 @@ body.site .pw-node .pw-label { display: block; font-size: clamp(.5rem, 1.15vw, .
 body.site .pw-node:hover .pw-label, body.site .pw-node.on .pw-label, body.site .pw-node:focus-visible .pw-label { color: #fff; }
 body.site .pw-node .pw-ic { display: inline-flex; line-height: 0; }
 @media (max-width: 640px) { body.site .pw-node .pw-label { display: none; } }
+
+/* Home: interactive mission, vision and values */
+.mvv { margin: 20px 0 22px; }
+.mvv-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+body.site .mvv-tab { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; border-radius: 16px; background: #fff; color: var(--ink); border: 1.5px solid var(--line); font-weight: 700; font-size: .9rem; box-shadow: 0 2px 8px rgba(15, 40, 28, .05); transition: transform .2s, box-shadow .2s, background .2s, color .2s, border-color .2s; }
+.mvv-ic { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--c) 14%, #fff); color: var(--c); transition: .2s; }
+body.site .mvv-tab:hover { transform: translateY(-3px); border-color: var(--c); box-shadow: 0 10px 22px color-mix(in srgb, var(--c) 22%, transparent); }
+body.site .mvv-tab.on { background: var(--c); color: #fff; border-color: var(--c); box-shadow: 0 12px 26px color-mix(in srgb, var(--c) 35%, transparent); transform: translateY(-3px); }
+.mvv-tab.on .mvv-ic { background: rgba(255, 255, 255, .22); color: #fff; transform: rotate(-8deg) scale(1.08); }
+.mvv-stage { position: relative; margin-top: 14px; min-height: 190px; }
+.mvv-panel { position: absolute; inset: 0 0 auto 0; opacity: 0; transform: translateY(14px); visibility: hidden; transition: opacity .35s, transform .35s, visibility .35s; border-radius: 18px; padding: 22px 26px 22px 30px; background: linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, #fff), #fff 70%); border: 1px solid color-mix(in srgb, var(--c) 25%, #fff); border-left: 6px solid var(--c); }
+.mvv-panel.on { position: relative; opacity: 1; transform: none; visibility: visible; }
+.mvv-panel p { margin: 0; font-size: 1.08rem; line-height: 1.65; color: var(--ink); }
+.mvv-quote { position: absolute; top: -6px; right: 18px; font-size: 5rem; line-height: 1; font-family: Georgia, serif; color: color-mix(in srgb, var(--c) 18%, transparent); pointer-events: none; }
+.mvv-values { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+body.site .mvv-val { text-align: left; display: block; padding: 11px 14px; border-radius: 14px; background: #fff; color: var(--c); border: 1.5px solid color-mix(in srgb, var(--c) 28%, #fff); font-weight: 600; box-shadow: none; transition: transform .2s, background .2s, color .2s, box-shadow .2s; opacity: 0; transform: translateY(10px); }
+.mvv-panel.on .mvv-val { opacity: 1; transform: none; transition-delay: var(--d); }
+.mvv-val b { display: block; font-size: .98rem; }
+.mvv-val span { display: block; max-height: 0; overflow: hidden; opacity: 0; font-size: .82rem; font-weight: 400; line-height: 1.4; transition: max-height .3s, opacity .3s, margin .3s; }
+body.site .mvv-val:hover, body.site .mvv-val:focus-visible, body.site .mvv-val.open { background: var(--c); color: #fff; transform: translateY(-2px); box-shadow: 0 10px 22px color-mix(in srgb, var(--c) 30%, transparent); }
+.mvv-val:hover span, .mvv-val:focus-visible span, .mvv-val.open span { max-height: 7em; opacity: .95; margin-top: 4px; }
+.mvv-dots { display: flex; justify-content: center; gap: 7px; margin-top: 12px; }
+.mvv-dots i { width: 8px; height: 8px; border-radius: 99px; background: #cfdcd3; transition: .3s; }
+.mvv-dots i.on { width: 26px; background: var(--green); }
+@media (max-width: 560px) { .mvv-values { grid-template-columns: 1fr; } .mvv-stage { min-height: 230px; } .mvv-tab { font-size: .78rem; } }
+@media (prefers-reduced-motion: reduce) { .mvv-panel, .mvv-val, .mvv-tab, .mvv-ic { transition: none !important; } }
