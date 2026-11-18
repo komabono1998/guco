@@ -62,10 +62,23 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
   </div>
 </div>
 <?php $slogan = setting('site_tagline', 'Community Transformation Actualized'); ?>
-<div class="slogan-strip" role="marquee" aria-label="<?= e($slogan) ?>">
-  <div class="slogan-track" aria-hidden="true">
-    <?php for ($i = 0; $i < 12; $i++): ?><span><?= e($slogan) ?></span><b><?= icon('star', 18) ?></b><?php endfor; ?>
+<?php
+// One slow, readable loop: the slogan, the association's name and its programme areas (all editable in the admin).
+$sgNames = array_map(fn($p) => $p[0], array_slice(c_pairs('programmes.areas'), 0, 4));
+$sgLoop = [['main', $slogan], ['name', setting('site_name', 'Gulu University Convocation')]];
+foreach ($sgNames as $sgN) {
+    $sgLoop[] = ['sub', $sgN];
+}
+?>
+<div class="slogan-strip sg" aria-label="<?= e($slogan) ?>">
+  <div class="sg-view" aria-hidden="true">
+    <div class="sg-track">
+      <?php for ($sgK = 0; $sgK < 4; $sgK++): foreach ($sgLoop as [$sgType, $sgText]): ?>
+        <span class="sg-item sg-<?= $sgType ?>"><?= $sgType === 'main' ? icon('star', 16) : '' ?><?= e($sgText) ?></span><i class="sg-dot"></i>
+      <?php endforeach; endfor; ?>
+    </div>
   </div>
+  <button type="button" class="sg-pause" aria-pressed="false" aria-label="Pause the scrolling slogan" title="Pause or play"><span></span><span></span></button>
 </div>
 <script>
 (function () {

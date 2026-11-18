@@ -57,6 +57,7 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
     </div>
   </div>
   <div class="hero2-img">
+    <a class="hero2-plus" href="<?= url('programmes.php') ?>" aria-label="Explore our programmes">+</a>
     <img src="<?= e($heroImg) ?>" alt="Guests at a GUCO event" width="1200" height="800" fetchpriority="high" decoding="async">
     <?php if (count($live) >= 3): ?>
       <div class="hero2-card">
@@ -209,12 +210,22 @@ $glTones = ['#f2b807', '#5eead4', '#93c5fd', '#fda4af', '#c4b5fd', '#fdba74'];
 <section class="home-section sec-center highlights">
   <div class="sec-head"><div><span class="eyebrow">Everything in one place</span><h2><?= ct('home.highlights_title') ?></h2></div></div>
   <div class="hl-grid">
-    <?php foreach ($hl as $i => [$t, $d, $ic]): ?>
-      <article class="hl hl-<?= $tones[$i % 6] ?>">
-        <span class="hl-ic"><?= icon($ic ?: 'star', 28) ?></span>
+    <?php
+    $hlPages = ['card' => 'verify.php', 'verif' => 'verify.php', 'chapter' => 'chapters.php', 'event' => 'events.php', 'project' => 'projects.php', 'award' => 'awards.php', 'recogni' => 'awards.php', 'news' => 'news.php', 'newsletter' => 'newsletters.php', 'career' => 'careers.php', 'give' => 'donate.php', 'donat' => 'donate.php', 'member' => 'membership.php'];
+    foreach ($hl as $i => [$t, $d, $ic]):
+        $hlHref = 'membership.php';
+        foreach ($hlPages as $hk => $hp) {
+            if (stripos($t, $hk) !== false) {
+                $hlHref = $hp;
+                break;
+            }
+        } ?>
+      <a class="hl hl-<?= $tones[$i % 6] ?>" href="<?= url($hlHref) ?>">
+        <span class="hl-go" aria-hidden="true">&rarr;</span>
+        <span class="hl-ic"><?= icon($ic ?: 'star', 26) ?></span>
         <h3><?= e($t) ?></h3>
         <p><?= e($d) ?></p>
-      </article>
+      </a>
     <?php endforeach; ?>
   </div>
   <p style="margin-top:22px"><a class="btn" href="<?= url('register.php') ?>">Join GUCO today</a> <a class="btn outline" href="<?= url('membership.php') ?>">See membership benefits</a></p>

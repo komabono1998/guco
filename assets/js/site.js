@@ -4,6 +4,16 @@
   var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var root = document.documentElement;
 
+  /* slogan ribbon: pause and play */
+  var sgBtn = document.querySelector('.sg-pause'), sgBox = document.querySelector('.sg');
+  if (sgBtn && sgBox) {
+    sgBtn.addEventListener('click', function () {
+      var p = sgBox.classList.toggle('paused');
+      sgBtn.setAttribute('aria-pressed', p ? 'true' : 'false');
+      sgBtn.setAttribute('aria-label', p ? 'Play the scrolling slogan' : 'Pause the scrolling slogan');
+    });
+  }
+
   /* phone menu: fold sub-pages under their parent */
   [].slice.call(document.querySelectorAll('.mainnav .navitem.has-sub')).forEach(function (item) {
     var a = item.querySelector(':scope > a'); if (!a) return;
