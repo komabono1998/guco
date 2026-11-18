@@ -8,7 +8,7 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
     <section class="ft-news" aria-label="Newsletter">
       <div class="ft-news-text">
         <span class="ft-ic"><?= icon('mail', 26) ?></span>
-        <div><strong>Stay updated with GUCO</strong><span>Subscribe to the newsletter for verified news, events and notices.</span></div>
+        <div><strong><?= ct('footer.news_title') ?></strong><span><?= ct('footer.news_text') ?></span></div>
       </div>
       <form method="post" action="<?= url('subscribe.php') ?>" class="ft-news-form">
         <?= csrf_field() ?><?= spam_fields() ?>
@@ -74,9 +74,10 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
 
     <div class="container">
       <ul class="ft-trust">
-        <li><span class="ft-ci"><?= icon('shield', 20) ?></span><div><strong>Verified membership</strong><span>Every GUCO card carries a unique ID you can <a href="<?= url('verify.php') ?>">check online</a>.</span></div></li>
-        <li><span class="ft-ci"><?= icon('file', 20) ?></span><div><strong>Official documents</strong><span>The Constitution and reports are in <a href="<?= url('resources.php') ?>">Resources</a>.</span></div></li>
-        <li><span class="ft-ci"><?= icon('lock', 20) ?></span><div><strong>Private member portal</strong><span>Your profile, card and payments, <a href="<?= url('member/login.php') ?>">after you log in</a>.</span></div></li>
+        <?php $ftTrustTo = ['verify.php', 'resources.php', 'member/login.php']; $ftTrustIc = ['shield', 'file', 'lock'];
+        foreach (array_slice(c_pairs('footer.trust'), 0, 3) as $tk => [$tt, $tx]): ?>
+          <li><span class="ft-ci"><?= icon($ftTrustIc[$tk], 20) ?></span><div><strong><a href="<?= e(url($ftTrustTo[$tk])) ?>"><?= e($tt) ?></a></strong><span><?= e($tx) ?></span></div></li>
+        <?php endforeach; ?>
       </ul>
     </div>
 

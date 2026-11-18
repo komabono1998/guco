@@ -10,9 +10,11 @@ $events = $on('events') ? q("SELECT * FROM events WHERE is_public = 1 AND status
 $spot = q("SELECT * FROM events WHERE is_public = 1 AND status = 'scheduled' AND starts_at >= NOW() AND (featured = 1 OR show_countdown = 1) ORDER BY featured DESC, starts_at LIMIT 1")->fetch();
 $newsletter = $on('news') ? q("SELECT title, slug, summary, published_at FROM newsletters WHERE status='published' AND published_at <= NOW() ORDER BY published_at DESC LIMIT 1")->fetch() : null;
 $spots = $on('campus') ? q('SELECT * FROM campus_spots WHERE is_public = 1 ORDER BY sort_order, id')->fetchAll() : [];
-$anthemAudio = c_image('home.anthem_audio');
-$anthemVideo = trim(c('home.anthem_video'));
-$anthemLyrics = trim(c('home.anthem_lyrics'));
+// The home page plays the anthem marked "show on the home page" in Admin > Anthems.
+$anthemRow = q('SELECT * FROM anthems WHERE show_home = 1 AND is_public = 1 ORDER BY sort_order, id LIMIT 1')->fetch() ?: [];
+$anthemAudio = !empty($anthemRow['audio']) ? url('uploads/' . rawurlencode($anthemRow['audio'])) : null;
+$anthemVideo = trim((string) ($anthemRow['video_url'] ?? ''));
+$anthemLyrics = trim((string) ($anthemRow['lyrics'] ?? ''));
 $campusLink = trim(c('home.campus_link'));
 $campusVideo = trim(c('home.campus_video'));
 $awards = $on('awards') ? q("SELECT name FROM awards WHERE is_public = 1 ORDER BY id LIMIT 4")->fetchAll(PDO::FETCH_COLUMN) : [];
@@ -181,8 +183,8 @@ $glTones = ['#f2b807', '#5eead4', '#93c5fd', '#fda4af', '#c4b5fd', '#fdba74'];
 ?>
 <section class="band gl" aria-label="GUCO at a glance">
   <div class="gl-head">
-    <span class="gl-eyebrow">Live figures</span>
-    <h2>GUCO at a glance</h2>
+    <span class="gl-eyebrow"><?= ct('home.glance_eyebrow') ?></span>
+    <h2><?= ct('home.glance_title') ?></h2>
     <span class="gl-live"><i></i> Counted live from the website</span>
   </div>
   <div class="gl-grid">
@@ -228,7 +230,7 @@ $glTones = ['#f2b807', '#5eead4', '#93c5fd', '#fda4af', '#c4b5fd', '#fdba74'];
       </a>
     <?php endforeach; ?>
   </div>
-  <p style="margin-top:22px"><a class="btn" href="<?= url('register.php') ?>">Join GUCO today</a> <a class="btn outline" href="<?= url('membership.php') ?>">See membership benefits</a></p>
+  <p style="margin-top:22px"><a class="btn" href="<?= url('register.php') ?>"><?= ct('home.highlights_btn1') ?></a> <a class="btn outline" href="<?= url('membership.php') ?>"><?= ct('home.highlights_btn2') ?></a></p>
 </section>
 <?php endif; ?>
 
@@ -239,7 +241,7 @@ $poTones = ['#14532d', '#be123c', '#b45309', '#4d7c0f', '#1d4ed8', '#7e22ce', '#
 $poN = max(1, count($areas));
 ?>
 <section class="home-section po-sec" aria-label="<?= e(ct('home.programmes_title')) ?>">
-  <div class="sec-head" style="justify-content:center;text-align:center"><div><span class="eyebrow">What we do</span><h2><?= ct('home.programmes_title') ?></h2></div></div>
+  <div class="sec-head" style="justify-content:center;text-align:center"><div><span class="eyebrow"><?= ct('home.ring_eyebrow') ?></span><h2><?= ct('home.programmes_title') ?></h2></div></div>
   <div class="po" id="po" style="--n:<?= $poN ?>">
     <div class="po-stage">
       <div class="po-orbit" aria-hidden="true"></div>
@@ -262,8 +264,8 @@ $poN = max(1, count($areas));
     <div class="po-detail" aria-live="polite">
       <div class="po-card on" data-i="-1">
         <span class="po-kicker">Explore</span>
-        <h3>Seven ways GUCO serves alumni and the University</h3>
-        <p>Hover a circle to pause the ring, then click it to read about that programme area.</p>
+        <h3><?= ct('home.ring_intro_title') ?></h3>
+        <p><?= ct('home.ring_intro_text') ?></p>
         <a class="btn" href="<?= url('programmes.php') ?>">See all programmes &rarr;</a>
       </div>
       <?php foreach ($areas as $i => [$t, $d]): ?>
@@ -479,10 +481,11 @@ $poN = max(1, count($areas));
           <audio preload="none" src="<?= e($anthemAudio) ?>" controls class="anthem-audio">Your browser does not support audio playback.</audio>
         </div>
       <?php elseif (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
-      <?php if ($anthemLyrics && $anthemVideo): ?><details class="anthem-lyrics" open><summary>Lyrics</summary><div><?= cr('home.anthem_lyrics') ?></div></details><?php endif; ?>
+      <p style="margin-top:16px"><a class="btn outline" href="<?= url('anthems.php') ?>">All anthems: Gulu University, Uganda and East Africa &rarr;</a></p>
+      <?php if ($anthemLyrics && $anthemVideo): ?><details class="anthem-lyrics" open><summary>Lyrics</summary><div><?= render_text($anthemLyrics) ?></div></details><?php endif; ?>
     </div>
     <?php if ($anthemVideo): ?><div class="anthem-video"><?= video_embed($anthemVideo, 'Watch the anthem video') ?></div>
-    <?php elseif ($anthemLyrics): ?><div class="anthem-video anthem-sheet"><h3><?= icon('music', 18) ?> Lyrics</h3><div class="lyr"><?= cr('home.anthem_lyrics') ?></div></div>
+    <?php elseif ($anthemLyrics): ?><div class="anthem-video anthem-sheet"><h3><?= icon('music', 18) ?> Lyrics</h3><div class="lyr"><?= render_text($anthemLyrics) ?></div></div>
     <?php else: ?><div class="anthem-video anthem-art" aria-hidden="true"><div class="eq"><?php for ($i = 0; $i < 18; $i++): ?><i style="animation-delay:<?= $i * 0.09 ?>s"></i><?php endfor; ?></div><span><?= icon('music', 44) ?></span></div><?php endif; ?>
   </div>
 </section>

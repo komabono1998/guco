@@ -6,38 +6,37 @@ $showFees = setting('show_fees') === '1';
 $open = setting('applications_open') === '1';
 $fmt = fn($k) => 'UGX ' . number_format((int) setting($k));
 $joinUrl = fn(string $cat = '') => url('register.php' . ($cat !== '' ? '?category=' . $cat : ''));
-$categories = [
-    ['founder', 'Founder Member', 'star', '#b45309', 'Steering Committee members and the first 1,000 eligible persons under Article 5(a).',
-        $showFees ? 'One-time fee of ' . $fmt('fee_founder') : ''],
-    ['ordinary', 'Ordinary / Full Member', 'users', '#14532d', 'Gulu University graduates and other eligible persons described in Article 5, including specified University office holders and staff.',
-        $showFees ? 'Annual subscription of ' . $fmt('fee_ordinary') : ''],
-    ['honorary', 'Honorary Member', 'heart', '#be123c', 'Eligible persons or corporate organisations admitted by invitation and the approval process set out in Article 5.',
-        $showFees ? 'One-time fee of ' . $fmt('fee_honorary') . '; corporate organisations have an additional listed fee.' : ''],
-    ['life', 'Life Member', 'gem', '#1d4ed8', 'Persons qualifying under Article 5, including specified former University office holders and persons meeting the advance subscription condition.',
-        $showFees ? 'One-time fee of ' . $fmt('fee_life') : ''],
+// Wording comes from Admin > Site content > Membership; icons, colours and fees stay fixed.
+$catMeta = [['founder', 'star', '#b45309'], ['ordinary', 'users', '#14532d'], ['honorary', 'heart', '#be123c'], ['life', 'gem', '#1d4ed8']];
+$catFees = [
+    'founder' => $showFees ? 'One-time fee of ' . $fmt('fee_founder') : '',
+    'ordinary' => $showFees ? 'Annual subscription of ' . $fmt('fee_ordinary') : '',
+    'honorary' => $showFees ? 'One-time fee of ' . $fmt('fee_honorary') . '; corporate organisations have an additional listed fee.' : '',
+    'life' => $showFees ? 'One-time fee of ' . $fmt('fee_life') : '',
 ];
-$steps = [
-    ['user-plus', 'Apply online', 'Share your personal, academic and employment details and choose your category.'],
-    ['credit-card', 'Pay and upload proof', 'Pay the applicable fee through the approved channel and upload your receipt.'],
-    ['shield', 'Verification', 'The Secretariat verifies your details and payment.'],
-    ['id-card', 'Get your card', 'On approval you receive a Membership ID and a printable card with a QR code.'],
-];
-$checklist = [
-    'Complete the GUCO membership application form.',
-    'Provide the required identity, graduation or eligibility details.',
-    'Select the membership category for which you qualify.',
-    'Receive confirmation of the applicable fees and approved payment procedure from the Secretariat.',
-    'Submit the application and payment evidence through the approved channel.',
-    'Wait for verification and confirmation of membership.',
-];
+$catText = c_pairs('membership.categories');
+$categories = [];
+foreach ($catMeta as $ci => [$ck, $cic, $ctone]) {
+    if (isset($catText[$ci])) {
+        $categories[] = [$ck, $catText[$ci][0], $cic, $ctone, $catText[$ci][1], $catFees[$ck]];
+    }
+}
+$stepIcons = ['user-plus', 'credit-card', 'shield', 'id-card'];
+$steps = [];
+foreach (c_pairs('membership.steps') as $si => [$st, $sd]) {
+    $steps[] = [$stepIcons[$si % 4], $st, $sd];
+}
+$checklist = c_lines('membership.checklist');
+$factIcons = ['users', 'id-card', 'user-plus', 'shield'];
+$facts = array_slice(c_pairs('membership.facts'), 0, 4);
 ?>
 <div class="mb">
 
 <section class="mb-hero">
   <div class="mb-hero-text">
-    <span class="mb-eyebrow">Join the alumni family</span>
+    <span class="mb-eyebrow"><?= ct('membership.hero_eyebrow') ?></span>
     <h1>Membership</h1>
-    <p class="mb-sub">Become part of the GUCO alumni network</p>
+    <p class="mb-sub"><?= ct('membership.hero_sub') ?></p>
     <div class="mb-intro"><?= cr('membership.intro') ?></div>
     <div class="mb-cta">
       <?php if ($open): ?><a class="btn gold" href="<?= $joinUrl() ?>">Join GUCO</a><?php else: ?><a class="btn gold" href="<?= url('contact.php?category=Membership') ?>">Contact the Secretariat</a><?php endif; ?>
@@ -55,10 +54,7 @@ $checklist = [
 </section>
 
 <ul class="mb-facts">
-  <li><?= icon('users', 22) ?><b>4</b><span>membership categories</span></li>
-  <li><?= icon('id-card', 22) ?><b>QR</b><span>digital membership card</span></li>
-  <li><?= icon('user-plus', 22) ?><b>Online</b><span>application and renewal</span></li>
-  <li><?= icon('shield', 22) ?><b>Verified</b><span>by the Secretariat</span></li>
+  <?php foreach ($facts as $fi => [$fv, $fl]): ?><li><?= icon($factIcons[$fi % 4], 22) ?><b><?= e($fv) ?></b><span><?= e($fl) ?></span></li><?php endforeach; ?>
 </ul>
 
 <section id="how" class="mb-section">
@@ -73,7 +69,7 @@ $checklist = [
       </li>
     <?php endforeach; ?>
   </ol>
-  <p class="mb-note">Ordinary members renew their annual subscription from the Member Portal by uploading proof of payment. Cards can be checked at any time on the <a href="<?= url('verify.php') ?>">card verification page</a>, and a card may be revoked by the Secretariat under the Constitution.</p>
+  <div class="mb-note"><?= cr('membership.renew_note') ?></div>
 </section>
 
 <section id="categories" class="mb-section">
@@ -138,7 +134,7 @@ $checklist = [
 
 <section id="verify" class="mb-section">
   <div class="mb-verify">
-    <div><span class="mb-eyebrow">Trust and transparency</span><h2>Verify a membership card</h2><p>Every GUCO card carries a Membership ID and QR code. Enter an ID to confirm that a card is genuine and still valid.</p></div>
+    <div><span class="mb-eyebrow">Trust and transparency</span><h2>Verify a membership card</h2><p><?= ct('membership.verify_text') ?></p></div>
     <form method="get" action="<?= url('verify.php') ?>">
       <label>Membership ID <input name="id" placeholder="GUCO/ORD/2026/000001" required></label>
       <button><?= icon('search', 16) ?> Verify card</button>
@@ -156,7 +152,7 @@ $checklist = [
 </section>
 
 <section class="mb-final">
-  <div><h2>Ready to be part of GUCO?</h2><p>Join alumni who are building networks, supporting Gulu University and giving back to the community.</p></div>
+  <div><h2><?= ct('membership.final_title') ?></h2><p><?= ct('membership.final_text') ?></p></div>
   <div class="mb-final-btns">
     <?php if ($open): ?><a class="btn gold" href="<?= $joinUrl() ?>">Join GUCO</a><?php endif; ?>
     <a class="btn outline" href="<?= url('contact.php?category=Membership') ?>">Ask a question</a>

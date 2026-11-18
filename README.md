@@ -51,3 +51,7 @@ Before going live: set `dev_mode` to `false`, configure mail so password-reset e
 ## Public menu
 
 The main menu has seven items: Home, About, Membership, Programmes, News & Events, Give and Contact. Related pages sit in drop-downs (for example Chapters and Careers under Membership, Awards & Hall of Fame under Programmes), and landing pages carry quick-link cards. Hall of Fame is part of the Awards page. Change the menu under Admin > Menu; `sql/migrations/004_simplify_menu.sql` applied this structure.
+
+## Anthems
+
+Admin > Anthems manages the Gulu University, Uganda national and East African Community anthems: title, lyrics, recording (MP3/M4A/OGG/WAV up to 25MB), optional video, order and visibility. The public page is `anthems.php`; the anthem ticked "Play on the home page" appears in the home anthem section. The Uganda national anthem text is included. The East African Community anthem is added without lyrics: paste the official words and upload the recording supplied by the EAC Secretariat.

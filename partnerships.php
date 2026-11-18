@@ -27,7 +27,7 @@ $ptIcon = function (string $text): string {
 };
 ?>
 <section class="section pt" id="pt">
-  <div class="pt-head"><span class="eyebrow-s">Work with GUCO</span><h2>Ways to collaborate</h2><p>Select one or more areas you are interested in, then start the conversation. We will fill in your enquiry for you.</p></div>
+  <div class="pt-head"><span class="eyebrow-s">Work with GUCO</span><h2><?= ct('partnerships.ways_title') ?></h2><p><?= ct('partnerships.ways_intro') ?></p></div>
   <div class="pt-grid">
     <?php foreach ($ptWays as $i => $w): ?>
       <button type="button" class="pt-tile" aria-pressed="false" data-way="<?= e(rtrim($w, '.')) ?>" style="--c:<?= $ptTones[$i % 6] ?>;--d:<?= $i * 70 ?>ms">

@@ -52,6 +52,7 @@ $recent = q("SELECT donor_name, amount, is_anonymous, campaign_id, verified_at F
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="page-head"><h1>Give to GUCO</h1><p>Your gift supports Gulu University students, projects and community development</p></div>
+<div class="lead"><?= cr('give.intro') ?></div>
 
 <?php if ($campaigns): ?>
 <section class="grid two" style="margin-bottom:26px">
@@ -78,9 +79,7 @@ require __DIR__ . '/includes/header.php';
       <div class="notice">Online giving details have not been published yet. Please <a href="<?= url('contact.php') ?>">contact the Secretariat</a> to arrange your gift.</div>
     <?php else: ?>
       <ol class="steps">
-        <li>Pay using one of the official accounts shown on this page.</li>
-        <li>Fill in the form with the transaction ID or reference from your payment.</li>
-        <li>The Finance Officer matches it to the money received, then sends your receipt.</li>
+        <?php foreach (c_lines('give.steps') as $gs): ?><li><?= e($gs) ?></li><?php endforeach; ?>
       </ol>
       <form method="post" class="stack">
         <?= csrf_field() ?><?= spam_fields() ?>

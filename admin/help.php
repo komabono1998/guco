@@ -24,7 +24,8 @@ $guide = [
     ]],
     ['Change what the website says', 'edit', [
         ['Edit the wording on any page', 'content.php', 'content'],
-        ['Add the university anthem or campus places to the home page', 'content.php?page=home', 'content'],
+        ['Add the Gulu University, Uganda or East African anthem (recording and lyrics)', 'anthems.php', 'content'],
+        ['Add campus places to the home page', 'campus.php', 'campus'],
         ['Create a new page and put it in the menu', 'pages.php?new=1', 'pages'],
         ['Rename, reorder or hide menu items', 'menu.php', 'menu'],
         ['Change the logo, colours or home page sections', 'branding.php', 'branding'],
@@ -77,7 +78,7 @@ admin_header('Help & guide', 'How to do the common jobs, and what each role can 
       <li><code>**bold**</code> for bold text.</li>
       <li><code>[link text](https://example.com)</code> or <code>[link text](about.php)</code> for links.</li>
     </ul>
-    <p class="meta">Pictures: use the upload buttons. The anthem, newsletter PDF and documents are all added by upload or link.</p>
+    <p class="meta">Pictures: use the upload buttons. Anthem recordings, newsletter PDFs and documents are added by upload or link. Almost every heading, paragraph, step and list on the public pages is an editable block: pick the page under Site content.</p>
   </section>
   <section class="wid w6">
     <h3>Good to know</h3>

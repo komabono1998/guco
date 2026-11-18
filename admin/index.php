@@ -157,7 +157,7 @@ if (can('events')) {
     $check[] = [$n('SELECT COUNT(*) FROM events WHERE starts_at IS NOT NULL AND is_public = 1') > 0, 'At least one event has a confirmed date', 'events.php'];
 }
 if (can('content')) {
-    $check[] = [c('home.anthem_audio') !== '' || trim(c('home.anthem_video')) !== '', 'Gulu University anthem added to the home page', 'content.php?page=home'];
+    $check[] = [(int) db()->query("SELECT COUNT(*) FROM anthems WHERE slug = 'gulu-university' AND (audio IS NOT NULL OR video_url IS NOT NULL OR lyrics <> '')")->fetchColumn() > 0, 'Gulu University anthem added (audio, video or lyrics)', 'anthems.php'];
 }
 if (can('campus')) {
     $check[] = [$n('SELECT COUNT(*) FROM campus_spots WHERE is_public = 1') > 0, 'Campus places added to "Explore your campus"', 'campus.php'];

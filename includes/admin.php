@@ -12,6 +12,7 @@ const ADMIN_GROUPS = [
         ['News', 'news.php', 'news', 'newspaper', 'news'], ['Newsletters', 'newsletters.php', 'newsletters', 'mail', null], ['Events & calendar', 'events.php', 'events', 'calendar', null],
         ['Reports & documents', 'resources.php', 'resources', 'folder', null], ['Gallery', 'gallery.php', 'gallery', 'image', null],
         ['Campus', 'campus.php', 'campus', 'map', null], ['Partners', 'partners.php', 'partners', 'link', null],
+        ['Anthems', 'anthems.php', 'content', 'music', null],
     ],
     'Organisation' => [
         ['Leadership', 'leaders.php', 'leaders', 'users', null], ['Chapters', 'chapters.php', 'chapters', 'map-pin', null],
@@ -265,7 +266,7 @@ function crud(array $c): void
             $row = $limited ? null : $fetch((int) $_POST['delete']);
             if ($row) {
                 foreach ($fields as $n => $f) {
-                    if ($f['type'] === 'image' && !empty($row[$n])) {
+                    if (in_array($f['type'], ['image', 'audio'], true) && !empty($row[$n])) {
                         @unlink(config('upload_dir') . '/' . basename($row[$n]));
                     }
                 }
@@ -303,6 +304,17 @@ function crud(array $c): void
                         $name ? $vals[$n] = $name : $err = "$label: use a JPG, PNG or WebP under 5MB.";
                     } elseif (!$old && !empty($f['required'])) {
                         $err = "$label is required.";
+                    }
+                    break;
+                case 'audio':
+                    $has = ($_FILES[$n]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
+                    if ($has) {
+                        $name = save_media($_FILES[$n], 'audio');
+                        $name ? $vals[$n] = $name : $err = "$label: use an MP3, M4A, OGG or WAV file under 25MB.";
+                    }
+                    if (!$err && !empty($_POST['remove_' . $n]) && $old) {
+                        @unlink(config('upload_dir') . '/' . basename((string) $old[$n]));
+                        $vals[$n] = null;
                     }
                     break;
                 case 'doc':
@@ -343,7 +355,7 @@ function crud(array $c): void
                 default:
                     $vals[$n] = trim($raw);
             }
-            if (!empty($f['required']) && !in_array($f['type'], ['image', 'doc', 'check'], true) && ($vals[$n] ?? '') === '') {
+            if (!empty($f['required']) && !in_array($f['type'], ['image', 'audio', 'doc', 'check'], true) && ($vals[$n] ?? '') === '') {
                 $err = "$label is required.";
             }
         }
@@ -385,6 +397,10 @@ function crud(array $c): void
       <label><?= $label . $hint ?><select name="<?= $n ?>">
         <?php foreach ($f['options'] as $k => $l): ?><option value="<?= e($k) ?>"<?= (string) $val($n) === (string) $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
       </select></label>
+    <?php elseif ($f['type'] === 'audio'): ?>
+      <label><?= $label . $hint ?>
+        <?php if (!empty($edit[$n])): ?><audio controls preload="none" src="<?= e(url('uploads/' . rawurlencode($edit[$n]))) ?>" style="max-width:100%;display:block;margin:6px 0"></audio><span class="check"><input type="checkbox" name="remove_<?= $n ?>" value="1" style="width:auto"> Remove this audio file</span><?php endif; ?>
+        <input type="file" name="<?= $n ?>" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav"></label>
     <?php elseif ($f['type'] === 'image' || $f['type'] === 'doc'): ?>
       <label><?= $label . $hint ?>
         <?php $mf = $f['map']['filename'] ?? 'filename'; $mo = $f['map']['original_name'] ?? 'original_name'; if (!empty($edit[$f['type'] === 'image' ? $n : $mf])): ?><span class="hint">Current: <?= e($f['type'] === 'image' ? $edit[$n] : ($edit[$mo] ?? $edit[$mf])) ?> (upload to replace)</span><?php endif; ?>
@@ -428,6 +444,8 @@ function crud(array $c): void
                     echo e(fmt_date($v, 'j M Y, g:ia'));
                 } elseif ($f['type'] === 'date') {
                     echo e(fmt_date($v));
+                } elseif ($f['type'] === 'audio') {
+                    echo $v ? 'Audio added' : '-';
                 } elseif ($f['type'] === 'image') {
                     echo $v ? '<img src="' . e(url('uploads/' . rawurlencode($v))) . '" alt="" style="width:64px;height:48px;object-fit:cover;border-radius:4px">' : '';
                 } else {
