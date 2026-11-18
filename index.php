@@ -174,11 +174,33 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 </section>
 <?php endif; ?>
 
-<?php if ($live): ?>
-<section class="band" aria-label="GUCO at a glance">
-  <h2>GUCO at a glance</h2>
-  <div class="band-grid">
-    <?php foreach ($live as [$ic, $n, $label]): ?><div><?= icon($ic, 30) ?><b><?= $n ?></b><span><?= e($label) ?></span></div><?php endforeach; ?>
+<?php if ($live):
+$glLinks = ['Members' => 'membership.php', 'Chapters' => 'chapters.php', 'Events listed' => 'events.php', 'Public documents' => 'resources.php', 'Award categories' => 'awards.php', 'News posts' => 'news.php'];
+$glTones = ['#f2b807', '#5eead4', '#93c5fd', '#fda4af', '#c4b5fd', '#fdba74'];
+?>
+<section class="band gl" aria-label="GUCO at a glance">
+  <div class="gl-head">
+    <span class="gl-eyebrow">Live figures</span>
+    <h2>GUCO at a glance</h2>
+    <span class="gl-live"><i></i> Counted live from the website</span>
+  </div>
+  <div class="gl-grid">
+    <?php foreach ($live as $i => [$ic, $n, $label]): ?>
+      <a class="gl-item" href="<?= url($glLinks[$label] ?? 'index.php') ?>" style="--c:<?= $glTones[$i % 6] ?>;--d:<?= $i * 140 ?>ms" aria-label="<?= (int) $n ?> <?= e($label) ?>: open">
+        <span class="gl-ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gl-track" cx="60" cy="60" r="52"/><circle class="gl-run" cx="60" cy="60" r="52"/></svg>
+          <span class="gl-ic"><?= icon($ic, 26) ?></span>
+        </span>
+        <b><?= (int) $n ?></b>
+        <span class="gl-label"><?= e($label) ?></span>
+        <span class="gl-go">View &rarr;</span>
+      </a>
+    <?php endforeach; ?>
+  </div>
+  <div class="gl-ticker" aria-hidden="true">
+    <div class="gl-roll">
+      <?php for ($k = 0; $k < 4; $k++): foreach ($live as [$ic, $n, $label]): ?><span><b><?= (int) $n ?></b> <?= e($label) ?></span><i></i><?php endforeach; endfor; ?>
+    </div>
   </div>
 </section>
 <?php endif; ?>

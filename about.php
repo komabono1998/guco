@@ -8,20 +8,77 @@ $objectives = c_lines('about.objectives');
 ?>
 <div class="page-head"><h1>About GUCO</h1><p><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></p></div>
 
-<section id="overview" class="section split">
-  <div>
+<?php
+$ovSlides = [];
+if ($img) {
+    $ovSlides[] = [$img, 'Gulu University Convocation'];
+}
+foreach ([19, 4, 7, 14, 11, 16] as $ovN) {
+    $ovSlides[] = [dinner_src($ovN), DINNER_PHOTOS[$ovN]];
+}
+$ovFacts = [
+    ['2023', 'Constitution in force', '#foundation', '#b45309'],
+    ['4', 'Membership categories', url('membership.php#categories'), '#14532d'],
+    ['6', 'Core values', '#values', '#1d4ed8'],
+    [(string) count($objectives), 'Objectives', '#objectives', '#be123c'],
+];
+?>
+<section id="overview" class="section ov">
+  <div class="ov-text">
     <span class="eyebrow-s">Who we are</span>
     <h2 style="margin-top:4px">Overview</h2>
-    <?= cr('about.overview') ?>
-    <div class="fact-row">
-      <div><b>2023</b><span>Constitution in force</span></div>
-      <div><b>4</b><span>Membership categories</span></div>
-      <div><b>6</b><span>Core values</span></div>
-      <div><b><?= count($objectives) ?></b><span>Objectives</span></div>
+    <div class="ov-copy"><?= cr('about.overview') ?></div>
+    <div class="ov-facts">
+      <?php foreach ($ovFacts as $fi => [$fv, $fl, $fh, $fc]): ?>
+        <a class="ov-fact" href="<?= e($fh) ?>" style="--c:<?= $fc ?>;--d:<?= $fi * 90 ?>ms">
+          <b><?= e($fv) ?></b><span><?= e($fl) ?></span><i aria-hidden="true">&rarr;</i>
+        </a>
+      <?php endforeach; ?>
     </div>
   </div>
-  <?php if ($img): ?><figure class="photo"><img src="<?= e($img) ?>" alt="GUCO" loading="lazy"></figure><?php else: ?><?= dinner_figure(19, '', DINNER_ALBUM) ?><?php endif; ?>
+  <div class="ov-media" id="ovMedia">
+    <span class="ov-chip one"><?= icon('users', 18) ?> Umbrella body for Gulu University alumni</span>
+    <span class="ov-chip two"><?= icon('book', 18) ?> Constitution in force since 2023</span>
+    <div class="ov-frame">
+      <div class="ov-slides">
+        <?php foreach ($ovSlides as $si => [$src, $alt]): ?>
+          <img class="<?= $si === 0 ? 'on' : '' ?>" src="<?= e($src) ?>" alt="<?= e($alt) ?>" data-cap="<?= e($alt) ?>"<?= $si === 0 ? '' : ' loading="lazy"' ?>>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="ov-arrow prev" aria-label="Previous photo">&lsaquo;</button>
+      <button type="button" class="ov-arrow next" aria-label="Next photo">&rsaquo;</button>
+      <div class="ov-cap"><span id="ovCap"><?= e($ovSlides[0][1]) ?></span><div class="ov-dots"><?php foreach ($ovSlides as $si => $_): ?><button type="button" class="<?= $si === 0 ? 'on' : '' ?>" aria-label="Show photo <?= $si + 1 ?>"></button><?php endforeach; ?></div></div>
+    </div>
+  </div>
 </section>
+<script>
+(function () {
+  var box = document.getElementById('ovMedia'); if (!box) return;
+  var imgs = [].slice.call(box.querySelectorAll('.ov-slides img')), dots = [].slice.call(box.querySelectorAll('.ov-dots button')), cap = document.getElementById('ovCap');
+  var cur = 0, timer = null, reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function show(i) {
+    cur = (i + imgs.length) % imgs.length;
+    imgs.forEach(function (m, k) { m.classList.toggle('on', k === cur); });
+    dots.forEach(function (d, k) { d.classList.toggle('on', k === cur); });
+    cap.textContent = imgs[cur].getAttribute('data-cap');
+  }
+  function start() { if (!reduce) { stop(); timer = setInterval(function () { show(cur + 1); }, 5200); } }
+  function stop() { clearInterval(timer); }
+  dots.forEach(function (d, k) { d.addEventListener('click', function () { show(k); start(); }); });
+  box.querySelector('.prev').addEventListener('click', function () { show(cur - 1); start(); });
+  box.querySelector('.next').addEventListener('click', function () { show(cur + 1); start(); });
+  box.addEventListener('mouseenter', stop); box.addEventListener('mouseleave', start); box.addEventListener('focusin', stop); box.addEventListener('focusout', start);
+  var frame = box.querySelector('.ov-frame');
+  if (!reduce && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+    box.addEventListener('mousemove', function (e) {
+      var r = box.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      frame.style.transform = 'rotateY(' + (x * 8) + 'deg) rotateX(' + (-y * 6) + 'deg)';
+    });
+    box.addEventListener('mouseleave', function () { frame.style.transform = ''; });
+  }
+  start();
+})();
+</script>
 
 <section id="vision" class="section">
   <div class="purpose">
@@ -40,7 +97,7 @@ $objectives = c_lines('about.objectives');
   </div>
 </section>
 
-<section class="section">
+<section id="values" class="section">
   <div class="sec-head"><div><span class="eyebrow-s">What guides us</span><h2>Our core values</h2></div></div>
   <?php
   $cvRows = c_pairs('about.values');
