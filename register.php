@@ -48,8 +48,6 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Enter a valid year of graduation.';
     } elseif ($type === 'alumni' && trim($_POST['programme'] ?? '') === '' && $cat !== 'honorary') {
         $error = 'Enter the course or programme you attained.';
-    } elseif ($type === 'staff' && $year && ($year < 1950 || $year > (int) date('Y') + 1)) {
-        $error = 'Enter a valid year of graduation or leave it blank.';
     } elseif ($type === 'staff' && (!$joinedTs || $joinedTs > time() || $joinedTs < strtotime('1950-01-01'))) {
         $error = 'Enter the date you joined Gulu University.';
     } elseif ($type === 'staff' && (trim($_POST['staff_position'] ?? '') === '' || trim($_POST['staff_department'] ?? '') === '')) {
@@ -90,8 +88,8 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [
             $uid, next_member_no(), $cat, $gender, date('Y-m-d', $dobTs), trim($_POST['nationality']), trim($_POST['phone']),
             trim($_POST['address'] ?? ''), trim($_POST['location'] ?? ''), trim($_POST['country'] ?? ''),
-            trim($_POST['college'] ?? ''), trim($_POST['programme'] ?? ''), trim($_POST['qualification_level'] ?? ''),
-            trim($_POST['student_reg_no'] ?? ''), $year ?: null, trim($_POST['eligibility_details']),
+            $type === 'staff' ? '' : trim($_POST['college'] ?? ''), $type === 'staff' ? '' : trim($_POST['programme'] ?? ''), $type === 'staff' ? '' : trim($_POST['qualification_level'] ?? ''),
+            $type === 'staff' ? '' : trim($_POST['student_reg_no'] ?? ''), $type === 'staff' ? null : ($year ?: null), trim($_POST['eligibility_details']),
             $emp, trim($_POST['employer'] ?? '') ?: ($type === 'staff' ? 'Gulu University' : ''), trim($_POST['profession'] ?? '') ?: ($type === 'staff' ? trim($_POST['staff_position']) : ''),
             implode(', ', array_intersect($_POST['interests'] ?? [], MEMBER_INTERESTS)),
             $photo['name'] ?? null, (int) ($_POST['chapter_id'] ?? 0) ?: null, empty($_POST['directory_consent']) ? 0 : 1,
@@ -108,6 +106,33 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->commit();
         session_regenerate_id(true);
         $_SESSION['uid'] = $uid;
+        $memberNo = (int) q('SELECT member_no FROM member_profiles WHERE user_id = ?', [$uid])->fetchColumn();
+        $payLine = $payLater
+            ? "Payment: still to come. Pay through the approved channel, then upload your proof of payment here:\n" . absolute_url('member/payments.php#renew') . "\nYour membership is approved once the payment is verified."
+            : ($proof || $amount > 0 ? 'Payment: your proof of payment was received and is waiting for verification.' : 'Payment: not yet received.');
+        notify($uid, 'Welcome to GUCO', 'Your application was received. Track it, your payments and everything else from this portal.', 'member/');
+        send_mail($email, 'Welcome to GUCO: your Member Portal account',
+            "Dear $name,\n\nThank you for applying to join Gulu University Convocation. Your Member Portal account has been created.\n\n"
+            . "LOG IN TO YOUR PORTAL\n" . absolute_url('member/login.php') . "\n\n"
+            . "Login email: $email\n"
+            . "Password: the one you chose on the application form (for your security we never send passwords by email).\n"
+            . "Forgotten it? Reset it here: " . absolute_url('forgot.php') . "\n\n"
+            . "YOUR APPLICATION\n"
+            . 'Member no.: ' . member_no_label($memberNo) . "\n"
+            . 'Member type: ' . (MEMBER_TYPES[$type] ?? '') . "\n"
+            . 'Category: ' . (CATEGORY_LABELS[$cat] ?? '') . "\n"
+            . "Status: pending approval\n"
+            . "$payLine\n\n"
+            . "Your Membership ID and card are issued when the Secretariat approves your application.\n\n"
+            . "WHAT YOU CAN TRACK IN THE PORTAL\n"
+            . "- The progress of your application and membership\n"
+            . "- Your payments, receipts and renewals\n"
+            . "- Your membership card and QR code (after approval)\n"
+            . "- Events you registered for and your tickets\n"
+            . "- Your chapter, community projects and mentorship\n"
+            . "- Your job, scholarship and fellowship applications\n"
+            . "- Your giving history and notifications\n\n"
+            . "Need help? Use Support inside the portal, or contact the Secretariat.\n\nGulu University Convocation");
         flash($payLater
             ? 'Application received. Your payment is still to come: pay through the approved channel and upload your proof under Payments in your portal. Your membership is approved once the payment is verified.'
             : 'Application received. The Secretariat will verify your payment and approve your membership; your membership ID is issued on approval.');
@@ -132,15 +157,15 @@ require __DIR__ . '/includes/header.php';
 <form method="post" enctype="multipart/form-data" class="stack wide">
   <?= csrf_field() ?><?= spam_fields() ?>
 
-  <fieldset><legend>1. Account</legend>
+  <fieldset><legend>Account</legend>
     <div class="cols">
       <label>Email address * <input type="email" name="email" required autocomplete="email" value="<?= $f('email') ?>"></label>
       <label>Password * <span class="hint">(at least 8 characters)</span> <input type="password" name="password" required minlength="8" autocomplete="new-password"></label>
     </div>
   </fieldset>
 
-  <fieldset><legend>2. Member type</legend>
-    <p class="meta" style="margin-top:0">GUCO brings together Gulu University alumni and staff. Choose the one that describes you. Staff who are also graduates can add their academic details too.</p>
+  <fieldset><legend>Member type</legend>
+    <p class="meta" style="margin-top:0">GUCO brings together Gulu University alumni and staff. Choose the one that describes you.</p>
     <div class="type-pick" role="radiogroup" aria-label="Member type">
       <?php $mt = $_POST['member_type'] ?? ($_GET['type'] ?? 'alumni'); foreach (MEMBER_TYPES as $k => $l): ?>
         <label class="type-card"><input type="radio" name="member_type" value="<?= $k ?>"<?= $mt === $k ? ' checked' : '' ?>><span class="ic"><?= icon($k === 'staff' ? 'briefcase' : 'graduation', 24) ?></span><b><?= e($l) ?></b>
@@ -149,7 +174,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset><legend>3. Personal details</legend>
+  <fieldset><legend>Personal details</legend>
     <label>Full name * <span class="hint">(as it should appear on your card)</span> <input name="full_name" required autocomplete="name" value="<?= $f('full_name') ?>"></label>
     <div class="cols">
       <label>Gender *
@@ -170,7 +195,7 @@ require __DIR__ . '/includes/header.php';
       <input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label>
   </fieldset>
 
-  <fieldset id="fsStaff"><legend>4. Gulu University staff details</legend>
+  <fieldset id="fsStaff"><legend>Gulu University staff details</legend>
     <div class="cols">
       <label>Date you joined Gulu University * <input type="date" name="staff_joined_on" max="<?= date('Y-m-d') ?>" value="<?= $f('staff_joined_on') ?>"></label>
       <label>Position / job title * <input name="staff_position" placeholder="e.g. Lecturer, Accountant, Librarian" value="<?= $f('staff_position') ?>"></label>
@@ -188,8 +213,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset id="fsAcademic"><legend><span id="acLegend">4. Academic details</span></legend>
-    <p class="meta" id="acHint" hidden style="margin-top:0">Fill this in only if you are also a graduate of Gulu University.</p>
+  <fieldset id="fsAcademic"><legend>Academic details</legend>
     <div class="cols">
       <label>College / faculty <input name="college" value="<?= $f('college') ?>"></label>
       <label>Course / programme attained * <input name="programme" value="<?= $f('programme') ?>"></label>
@@ -203,7 +227,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset><legend>5. Employment</legend>
+  <fieldset><legend>Employment</legend>
     <div class="cols">
       <label>Employment status *
         <select name="employment_status" required><option value="">Select</option>
@@ -213,7 +237,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset><legend>6. Membership</legend>
+  <fieldset><legend>Membership</legend>
     <label>Membership category *
       <select name="category" required>
         <option value="">Select the category you qualify for</option>
@@ -235,7 +259,7 @@ require __DIR__ . '/includes/header.php';
       </div></div>
   </fieldset>
 
-  <fieldset><legend>7. Payment<?= $needProof ? ' *' : '' ?></legend>
+  <fieldset><legend>Payment<?= $needProof ? ' *' : '' ?></legend>
     <?php if ($allowLater): ?>
     <div class="type-pick pay-pick" role="radiogroup" aria-label="When will you pay">
       <?php $pw = $_POST['pay_when'] ?? 'now'; ?>
@@ -263,7 +287,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset><legend>8. Declarations</legend>
+  <fieldset><legend>Declarations</legend>
     <label class="check"><input type="checkbox" name="over18" required> I am above 18 years of age and the information I have given is true.</label>
     <label class="check"><input type="checkbox" name="constitution" required> I have read the <a href="<?= url('resources.php?q=constitution') ?>">Constitution</a> and agree to observe it and pay the applicable fees and subscriptions.</label>
     <label class="check"><input type="checkbox" name="consent" required> I have read the <a href="<?= url('privacy.php') ?>">privacy notice</a> and agree that GUCO may process my details and documents to handle my application.</label>
@@ -275,13 +299,13 @@ require __DIR__ . '/includes/header.php';
 (function () {
   var f = document.querySelector('form.wide'); if (!f) return;
   var types = f.querySelectorAll('input[name=member_type]'), staff = document.getElementById('fsStaff');
-  var acLegend = document.getElementById('acLegend'), acHint = document.getElementById('acHint');
+  var academic = document.getElementById('fsAcademic');
   var need = ['staff_joined_on', 'staff_position', 'staff_department'];
   function type() { var c = f.querySelector('input[name=member_type]:checked'); return c ? c.value : 'alumni'; }
   function sync() {
     var st = type() === 'staff';
-    staff.hidden = !st; acHint.hidden = !st;
-    acLegend.textContent = st ? '5. Academic details (optional for staff)' : '4. Academic details';
+    staff.hidden = !st; academic.hidden = st;
+    [].forEach.call(academic.querySelectorAll('input, select'), function (el) { el.disabled = st; });
     need.forEach(function (n) { var el = f.elements[n]; if (el) el.required = st; });
   }
   [].forEach.call(types, function (r) { r.addEventListener('change', sync); });

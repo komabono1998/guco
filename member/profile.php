@@ -26,6 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     $own = q('SELECT member_type FROM member_profiles WHERE user_id = ?', [$me['id']])->fetchColumn();
     if ($own === 'staff') {
+        // Staff do not edit academic details here; keep whatever is already stored.
+        $keep = q('SELECT college, programme, qualification_level, graduation_year FROM member_profiles WHERE user_id = ?', [$me['id']])->fetch();
+        $_POST['college'] = $keep['college'];
+        $_POST['programme'] = $keep['programme'];
+        $_POST['qualification_level'] = $keep['qualification_level'];
+        $year = (int) $keep['graduation_year'];
         $joinedTs = strtotime(trim($_POST['staff_joined_on'] ?? ''));
         if (trim($_POST['staff_position'] ?? '') === '' || trim($_POST['staff_department'] ?? '') === '' || !$joinedTs || $joinedTs > time()) {
             flash('Staff details need the date you joined, your position and your department or unit.', 'error');
@@ -90,6 +96,7 @@ portal_header('My profile');
     </div>
   </fieldset>
   <?php endif; ?>
+  <?php if (($p['member_type'] ?? 'alumni') !== 'staff'): ?>
   <fieldset><legend>Academic</legend>
     <div class="cols">
       <label>College / faculty <input name="college" value="<?= $v('college') ?>"></label>
@@ -102,6 +109,7 @@ portal_header('My profile');
       <label>Year of graduation <input type="number" name="graduation_year" value="<?= $v('graduation_year') ?>"></label>
     </div>
   </fieldset>
+  <?php endif; ?>
   <fieldset><legend>Employment and interests</legend>
     <div class="cols">
       <label>Employment status
