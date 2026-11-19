@@ -103,6 +103,7 @@ if (isset($_GET['id'])) {
         <span class="badge"><?= ($m['member_type'] ?? 'alumni') === 'staff' ? 'Staff' : 'Alumni' ?></span>
         <?= !empty($m['pay_later']) && !$pays ? '<span class="badge warn">will pay later</span>' : '' ?>
         <?php if ($m['member_no']): ?> <span class="meta">Member no. <?= e(member_no_label($m['member_no'])) ?></span><?php endif; ?></div></div>
+    <?php if (!empty($m['legacy_guco_no'])): ?><p><span class="badge">Existing GUCO member</span> GUCO No. <strong class="mono"><?= e($m['legacy_guco_no']) ?></strong> <span class="meta">(from the register of existing members)</span></p><?php endif; ?>
     <?php if ($m['membership_id']): ?><p>Membership ID: <strong class="mono"><?= e($m['membership_id']) ?></strong><br>Card: <span class="badge <?= $card['state'] === 'valid' ? '' : 'bad' ?>"><?= e($card['label']) ?></span>
       <?= $m['card_status'] === 'revoked' ? '<br><span class="meta">Revoked ' . e(fmt_date($m['card_revoked_at'])) . ': ' . e($m['card_revoke_reason']) . '</span>' : '' ?></p><?php endif; ?>
     <h3>Personal</h3>

@@ -389,7 +389,8 @@ function csv_download(string $filename, array $header, array $rows): void
     fwrite($out, "\xEF\xBB\xBF");
     fputcsv($out, $header);
     // Neutralise spreadsheet formulas in exported text (CSV injection).
-    $safe = fn($v) => is_string($v) && $v !== '' && strpbrk($v[0], "=+-@	") !== false && !is_numeric($v) ? "'" . $v : $v;
+    $safe = fn($v) => is_string($v) && $v !== '' && strpbrk($v[0], "=+-@	
+") !== false && !is_numeric($v) ? "'" . $v : $v;
     foreach ($rows as $r) {
         fputcsv($out, array_map($safe, array_values($r)));
     }
@@ -419,5 +420,6 @@ require_once __DIR__ . '/projects.php';
 require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/photos.php';
 require_once __DIR__ . '/donations.php';
+require_once __DIR__ . '/legacy.php';
 require_once __DIR__ . '/network.php';
 require_once __DIR__ . '/related.php';

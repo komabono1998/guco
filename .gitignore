@@ -10,3 +10,7 @@ admin-credentials.local.txt
 !uploads/.htaccess
 storage/backups/*
 !storage/backups/.htaccess
+
+# Imported member registers hold personal data and must never be committed
+storage/imports/*
+!storage/imports/.htaccess

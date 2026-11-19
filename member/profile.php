@@ -27,7 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $own = q('SELECT member_type FROM member_profiles WHERE user_id = ?', [$me['id']])->fetchColumn();
     if ($own === 'staff') {
         // Staff do not edit academic details here; keep whatever is already stored.
-        $keep = q('SELECT college, programme, qualification_level, graduation_year FROM member_profiles WHERE user_id = ?', [$me['id']])->fetch();
+        $keep = q('SELECT college, programme, qualification_level, graduation_year, employment_status, employer, profession FROM member_profiles WHERE user_id = ?', [$me['id']])->fetch();
+        $_POST['employment_status'] = $keep['employment_status'] ?? '';
+        $emp = (string) ($keep['employment_status'] ?? '');
+        $_POST['employer'] = $keep['employer'] ?? '';
+        $_POST['profession'] = $keep['profession'] ?? '';
         $_POST['college'] = $keep['college'];
         $_POST['programme'] = $keep['programme'];
         $_POST['qualification_level'] = $keep['qualification_level'];
@@ -111,6 +115,7 @@ portal_header('My profile');
   </fieldset>
   <?php endif; ?>
   <fieldset><legend>Employment and interests</legend>
+    <?php if (($p['member_type'] ?? 'alumni') !== 'staff'): ?>
     <div class="cols">
       <label>Employment status
         <select name="employment_status"><option value="">Select</option>
@@ -118,6 +123,7 @@ portal_header('My profile');
       <label>Employer / organisation <input name="employer" value="<?= $v('employer') ?>"></label>
       <label>Job title / profession <input name="profession" value="<?= $v('profession') ?>"></label>
     </div>
+    <?php endif; ?>
     <label>Chapter
       <select name="chapter_id"><option value="">None</option>
         <?php foreach ($chapters as $c): ?><option value="<?= (int) $c['id'] ?>"<?= (int) ($p['chapter_id'] ?? 0) === (int) $c['id'] ? ' selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>

@@ -21,7 +21,7 @@ const ADMIN_GROUPS = [
     ],
     'Membership' => [
         ['Members', 'members.php', 'members', 'id-card', 'members'], ['Payments', 'payments.php', 'payments', 'credit-card', 'payments'],
-        ['Import / export', 'members_import.php', 'members', 'folder', null],
+        ['Import / export', 'members_import.php', 'members', 'folder', null], ['Existing members', 'legacy_members.php', 'members', 'users', null],
     ],
     'Giving and careers' => [
         ['Donations', 'donations.php', 'donations', 'heart', 'donations'], ['Campaigns', 'campaigns.php', 'donations', 'target', null],

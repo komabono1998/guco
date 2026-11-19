@@ -7,8 +7,16 @@ $needProof = setting('require_payment_proof', '1') === '1';
 $showFees = setting('show_fees') === '1';
 $allowLater = setting('allow_pay_later', '1') === '1';
 $chapters = q('SELECT id, name FROM chapters WHERE is_public = 1 ORDER BY name')->fetchAll();
-$f = fn($k) => e($_POST[$k] ?? '');
-$sel = fn($k, $v) => ($_POST[$k] ?? ($k === 'category' ? ($_GET['category'] ?? '') : '')) === (string) $v ? ' selected' : '';
+// An existing GUCO member who found their record on claim.php registers under their existing number.
+$claim = legacy_pending_claim();
+$pre = $claim ? [
+    'full_name' => $claim['full_name'],
+    'gender' => ['F' => 'female', 'M' => 'male'][$claim['sex'] ?? ''] ?? '',
+    'member_type' => $claim['designation'] === 'staff' ? 'staff' : 'alumni',
+    'eligibility_details' => 'Existing GUCO member, number ' . $claim['guco_no'] . ' (' . $claim['source'] . ').',
+] : [];
+$f = fn($k) => e($_POST[$k] ?? ($pre[$k] ?? ''));
+$sel = fn($k, $v) => ($_POST[$k] ?? ($pre[$k] ?? ($k === 'category' ? ($_GET['category'] ?? '') : ''))) === (string) $v ? ' selected' : '';
 $fees = ['founder' => 'fee_founder', 'ordinary' => 'fee_ordinary', 'honorary' => 'fee_honorary', 'life' => 'fee_life'];
 
 if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -19,7 +27,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $cat = $_POST['category'] ?? '';
     $year = (int) ($_POST['graduation_year'] ?? 0);
     $dob = $_POST['date_of_birth'] ?? '';
-    $emp = $_POST['employment_status'] ?? '';
+    $emp = ($_POST['member_type'] ?? '') === 'staff' ? 'employed' : ($_POST['employment_status'] ?? '');
     $gender = $_POST['gender'] ?? '';
     $amount = (float) ($_POST['amount'] ?? 0);
     $type = ($_POST['member_type'] ?? '') === 'staff' ? 'staff' : 'alumni';
@@ -81,12 +89,17 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $pdo->beginTransaction();
         q('INSERT INTO users (full_name, email, password_hash) VALUES (?,?,?)', [$name, $email, password_hash($pass, PASSWORD_DEFAULT)]);
         $uid = (int) $pdo->lastInsertId();
+        $claimNow = $claim ? legacy_pending_claim() : null;
+        $memNo = next_member_no();
+        if ($claimNow && !q('SELECT 1 FROM member_profiles WHERE member_no = ?', [legacy_number($claimNow)])->fetch()) {
+            $memNo = legacy_number($claimNow);
+        }
         q('INSERT INTO member_profiles (user_id, member_no, category, gender, date_of_birth, nationality, phone, address, location, country,
               college, programme, qualification_level, student_reg_no, graduation_year, eligibility_details,
               employment_status, employer, profession, interests, photo, chapter_id, directory_consent,
               member_type, staff_joined_on, staff_position, staff_department, staff_no, staff_terms, staff_status, pay_later)
            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [
-            $uid, next_member_no(), $cat, $gender, date('Y-m-d', $dobTs), trim($_POST['nationality']), trim($_POST['phone']),
+            $uid, $memNo, $cat, $gender, date('Y-m-d', $dobTs), trim($_POST['nationality']), trim($_POST['phone']),
             trim($_POST['address'] ?? ''), trim($_POST['location'] ?? ''), trim($_POST['country'] ?? ''),
             $type === 'staff' ? '' : trim($_POST['college'] ?? ''), $type === 'staff' ? '' : trim($_POST['programme'] ?? ''), $type === 'staff' ? '' : trim($_POST['qualification_level'] ?? ''),
             $type === 'staff' ? '' : trim($_POST['student_reg_no'] ?? ''), $type === 'staff' ? null : ($year ?: null), trim($_POST['eligibility_details']),
@@ -97,6 +110,17 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $type === 'staff' ? trim($_POST['staff_department']) : null, $type === 'staff' ? (trim($_POST['staff_no'] ?? '') ?: null) : null,
             $type === 'staff' ? $terms : null, $type === 'staff' ? $staffStatus : null, $payLater ? 1 : 0,
         ]);
+        if ($claimNow) {
+            // Link the register entry to this account; only one account can ever claim it.
+            $linked = q("UPDATE legacy_members SET claimed_user_id = ?, claimed_at = NOW(), status = 'claimed' WHERE id = ? AND status = 'unclaimed' AND claimed_user_id IS NULL", [$uid, $claimNow['id']])->rowCount();
+            if (!$linked) {
+                $pdo->rollBack();
+                unset($_SESSION['legacy_claim']);
+                flash('That GUCO number has just been claimed by another account. Please contact the Secretariat.', 'error');
+                redirect('claim.php');
+            }
+            q('UPDATE member_profiles SET legacy_guco_no = ? WHERE user_id = ?', [$claimNow['guco_no'], $uid]);
+        }
         if (!$payLater && ($proof || $amount > 0)) {
             q('INSERT INTO member_payments (user_id, purpose, method, amount, reference, paid_on, proof_file, proof_original) VALUES (?,?,?,?,?,?,?,?)', [
                 $uid, 'registration', in_array($_POST['method'] ?? '', PAYMENT_METHODS, true) ? $_POST['method'] : 'Other', $amount,
@@ -104,6 +128,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
             ]);
         }
         $pdo->commit();
+        unset($_SESSION['legacy_claim']);
         session_regenerate_id(true);
         $_SESSION['uid'] = $uid;
         $memberNo = (int) q('SELECT member_no FROM member_profiles WHERE user_id = ?', [$uid])->fetchColumn();
@@ -118,6 +143,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
             . "Password: the one you chose on the application form (for your security we never send passwords by email).\n"
             . "Forgotten it? Reset it here: " . absolute_url('forgot.php') . "\n\n"
             . "YOUR APPLICATION\n"
+            . ($claimNow ? 'GUCO No.: ' . $claimNow['guco_no'] . " (your existing number, kept)\n" : '')
             . 'Member no.: ' . member_no_label($memberNo) . "\n"
             . 'Member type: ' . (MEMBER_TYPES[$type] ?? '') . "\n"
             . 'Category: ' . (CATEGORY_LABELS[$cat] ?? '') . "\n"
@@ -145,7 +171,11 @@ require __DIR__ . '/includes/header.php';
 <?php if (!$open): ?>
   <p class="notice">Online applications are not open at the moment. Please <a href="<?= url('contact.php?category=Membership') ?>">contact the Secretariat</a>.</p>
 <?php else: ?>
-<p class="meta" style="margin-bottom:16px">Already registered? <a href="<?= url('member/login.php') ?>">Log in to your portal</a>.</p>
+<?php if ($claim): ?>
+  <div class="notice"><strong>Existing GUCO member: <?= e(legacy_display_name($claim)) ?> (<?= e($claim['guco_no']) ?>).</strong> Check and complete the details below. Your GUCO number stays the same, and the Secretariat confirms your membership after you submit. <a href="<?= url('claim.php?cancel=1') ?>">Not you?</a></div>
+<?php else: ?>
+<p class="meta" style="margin-bottom:16px">Already registered? <a href="<?= url('member/login.php') ?>">Log in to your portal</a>. Already hold a GUCO number? <a href="<?= url('claim.php') ?>">Find your record</a>.</p>
+<?php endif; ?>
 <ol class="steps">
   <li><strong>Apply</strong> Fill in this form. Upload your proof of payment now, or choose to pay later.</li>
   <li><strong>Verification</strong> The Secretariat checks your details and payment.</li>
@@ -167,7 +197,7 @@ require __DIR__ . '/includes/header.php';
   <fieldset><legend>Member type</legend>
     <p class="meta" style="margin-top:0">GUCO brings together Gulu University alumni and staff. Choose the one that describes you.</p>
     <div class="type-pick" role="radiogroup" aria-label="Member type">
-      <?php $mt = $_POST['member_type'] ?? ($_GET['type'] ?? 'alumni'); foreach (MEMBER_TYPES as $k => $l): ?>
+      <?php $mt = $_POST['member_type'] ?? ($pre['member_type'] ?? ($_GET['type'] ?? 'alumni')); foreach (MEMBER_TYPES as $k => $l): ?>
         <label class="type-card"><input type="radio" name="member_type" value="<?= $k ?>"<?= $mt === $k ? ' checked' : '' ?>><span class="ic"><?= icon($k === 'staff' ? 'briefcase' : 'graduation', 24) ?></span><b><?= e($l) ?></b>
           <small><?= $k === 'staff' ? 'Academic, administrative and support staff, serving, retired or former.' : 'Graduates and former students of the University.' ?></small></label>
       <?php endforeach; ?>
@@ -227,7 +257,7 @@ require __DIR__ . '/includes/header.php';
     </div>
   </fieldset>
 
-  <fieldset><legend>Employment</legend>
+  <fieldset id="fsEmployment"><legend>Employment</legend>
     <div class="cols">
       <label>Employment status *
         <select name="employment_status" required><option value="">Select</option>
@@ -299,13 +329,15 @@ require __DIR__ . '/includes/header.php';
 (function () {
   var f = document.querySelector('form.wide'); if (!f) return;
   var types = f.querySelectorAll('input[name=member_type]'), staff = document.getElementById('fsStaff');
-  var academic = document.getElementById('fsAcademic');
+  var academic = document.getElementById('fsAcademic'), employment = document.getElementById('fsEmployment');
   var need = ['staff_joined_on', 'staff_position', 'staff_department'];
   function type() { var c = f.querySelector('input[name=member_type]:checked'); return c ? c.value : 'alumni'; }
   function sync() {
     var st = type() === 'staff';
     staff.hidden = !st; academic.hidden = st;
+    employment.hidden = st;
     [].forEach.call(academic.querySelectorAll('input, select'), function (el) { el.disabled = st; });
+    [].forEach.call(employment.querySelectorAll('input, select'), function (el) { el.disabled = st; });
     need.forEach(function (n) { var el = f.elements[n]; if (el) el.required = st; });
   }
   [].forEach.call(types, function (r) { r.addEventListener('change', sync); });

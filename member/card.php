@@ -24,6 +24,7 @@ portal_header('My membership card');
       <div class="idname"><?= e($m['full_name']) ?></div>
       <div><?= e(CATEGORY_LABELS[$m['category']]) ?><?= ($m['member_type'] ?? '') === 'staff' ? ' &middot; Staff' : '' ?></div>
       <div class="idrow"><span>Membership ID</span><b class="mono"><?= e($m['membership_id']) ?></b></div>
+      <?php if (!empty($m['legacy_guco_no'])): ?><div class="idrow"><span>GUCO No.</span><b class="mono"><?= e($m['legacy_guco_no']) ?></b></div><?php endif; ?>
       <div class="idrow"><span>Member no.</span><b><?= e(member_no_label($m['member_no'])) ?></b></div>
       <div class="idrow"><span>Member since</span><b><?= e(fmt_date($m['approved_at'], 'M Y')) ?></b></div>
       <div class="idrow"><span>Valid until</span><b><?= $card['until'] ? e(fmt_date($card['until'])) : 'Lifetime' ?></b></div>

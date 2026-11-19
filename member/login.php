@@ -50,7 +50,7 @@ auth_page_open('member', 'Member login');
     </form>
     <div class="or">New to GUCO?</div>
     <a class="create" href="<?= url('register.php') ?>">Create a member account</a>
-    <div class="small"><a href="<?= url('forgot.php') ?>">Forgot your password?</a><a href="<?= url() ?>">&larr; Back to the website</a></div>
+    <div class="small"><a href="<?= url('forgot.php') ?>">Forgot your password?</a><a href="<?= url('claim.php') ?>">Hold a GUCO number? Find your record</a><a href="<?= url() ?>">&larr; Back to the website</a></div>
     <p class="note">Accounts can also be created for you by the Secretariat. If you were given a temporary password, log in and change it under <strong>My profile</strong>. Staff sign in at <a href="<?= url('admin/login.php') ?>">Admin login</a>.</p>
   </section>
 </div>

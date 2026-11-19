@@ -55,7 +55,7 @@ portal_header('Dashboard');
   <div class="tile"><span class="ic"><?= icon('shield', 24) ?></span><div><small>Membership</small><b><?= $approved ? 'Approved' : ucfirst($me['status']) ?></b></div></div>
   <div class="tile"><span class="ic"><?= icon('wallet', 24) ?></span><div><small>Subscription</small><b><?= e($subLabel) ?></b><?= !empty($p['paid_until']) ? '<small>to ' . e(fmt_date($p['paid_until'])) . '</small>' : '' ?></div></div>
   <div class="tile"><span class="ic"><?= icon('id-card', 24) ?></span><div><small>Membership card</small><b><?= e($card['label']) ?></b></div></div>
-  <div class="tile"><span class="ic"><?= icon('user', 24) ?></span><div><small>Member no.</small><b><?= e(member_no_label($p['member_no'] ?? 0) ?: '-') ?></b></div></div>
+  <div class="tile"><span class="ic"><?= icon('user', 24) ?></span><div><small><?= !empty($p['legacy_guco_no']) ? 'GUCO No.' : 'Member no.' ?></small><b><?= e(!empty($p['legacy_guco_no']) ? $p['legacy_guco_no'] : (member_no_label($p['member_no'] ?? 0) ?: '-')) ?></b></div></div>
 </div>
 
 <div class="dash-grid">
