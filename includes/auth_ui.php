@@ -49,9 +49,18 @@ function attempt_login(string $email, string $password): array
     if ($u['status'] === 'rejected') {
         return [null, 'Your application was not approved. Please contact the Secretariat.'];
     }
+    q('DELETE FROM login_attempts WHERE email = ?', [$email]);
+    // Staff accounts need a second step: a code emailed to them. The session is not opened until it is entered.
+    if (twofa_required($u)) {
+        session_regenerate_id(true);
+        unset($_SESSION['uid']);
+        $_SESSION['2fa'] = ['uid' => (int) $u['id'], 'at' => time(), 'sent' => time()];
+        [$sent, $msg] = twofa_send($u);
+        flash($msg, $sent ? 'success' : 'error');
+        return [$u, null];
+    }
     session_regenerate_id(true);
     $_SESSION['uid'] = $u['id'];
-    q('DELETE FROM login_attempts WHERE email = ?', [$email]);
     return [$u, null];
 }
 

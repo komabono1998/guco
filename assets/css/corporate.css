@@ -1072,3 +1072,16 @@ body.site .ct-form-wide { max-width: 900px; margin: 0 auto; }
 /* Banner shown to staff while maintenance mode is on */
 body.site .mt-staff-bar { position: sticky; top: 0; z-index: 400; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: center; padding: 8px 14px; background: #b02a2a; color: #fff; font-size: .86rem; text-align: center; }
 body.site .mt-staff-bar a { color: #ffd966; font-weight: 800; }
+
+/* ---------- Hero photo backgrounds and breadcrumbs ---------- */
+body.site .page-head { background-size: cover; background-position: center; }
+body.pg-about .page-head, body.pg-leadership .page-head, body.pg-leader .page-head, body.pg-chapters .page-head, body.pg-partnerships .page-head { background: linear-gradient(115deg, rgba(8, 36, 21, .92) 8%, rgba(11, 47, 27, .78) 55%, rgba(15, 118, 110, .55)), url("../img/dinner/dinner-05.jpg") center / cover no-repeat; }
+body.pg-news .page-head, body.pg-news_view .page-head, body.pg-newsletters .page-head, body.pg-newsletter_view .page-head, body.pg-resources .page-head { background: linear-gradient(115deg, rgba(8, 36, 21, .92) 8%, rgba(11, 47, 27, .78) 55%, rgba(15, 118, 110, .55)), url("../img/dinner/dinner-08.jpg") center / cover no-repeat; }
+body.pg-events .page-head, body.pg-event_view .page-head, body.pg-gallery .page-head, body.pg-gallery_album .page-head, body.pg-anthems .page-head { background: linear-gradient(115deg, rgba(8, 36, 21, .92) 8%, rgba(11, 47, 27, .78) 55%, rgba(15, 118, 110, .55)), url("../img/dinner/dinner-11.jpg") center / cover no-repeat; }
+body.pg-projects .page-head, body.pg-project_view .page-head, body.pg-programmes .page-head, body.pg-donate .page-head, body.pg-careers .page-head { background: linear-gradient(115deg, rgba(8, 36, 21, .92) 8%, rgba(11, 47, 27, .78) 55%, rgba(15, 118, 110, .55)), url("../img/dinner/dinner-14.jpg") center / cover no-repeat; }
+body.pg-awards .page-head, body.pg-hall-of-fame .page-head, body.pg-contact .page-head, body.pg-page .page-head, body.pg-privacy .page-head, body.pg-accessibility .page-head, body.pg-membership .page-head { background: linear-gradient(115deg, rgba(8, 36, 21, .92) 8%, rgba(11, 47, 27, .78) 55%, rgba(15, 118, 110, .55)), url("../img/dinner/dinner-17.jpg") center / cover no-repeat; }
+body.site .crumbs { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .88rem; color: var(--muted); margin: 0 0 12px; }
+body.site .crumbs a { color: var(--green); font-weight: 600; text-decoration: none; }
+body.site .crumbs a:hover { text-decoration: underline; }
+body.site .crumbs [aria-current] { color: var(--ink); max-width: 60ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.site .page-head { min-height: 190px; display: flex; flex-direction: column; justify-content: center; }

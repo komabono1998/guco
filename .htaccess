@@ -1,3 +1,36 @@
-# Friendly error page. If you move the site, change /guco/ to the new base path.
+# Friendly error page. If you move the site, change /guco/ to the new base path
+# (and RewriteBase below).
 ErrorDocument 404 /guco/404.php
+ErrorDocument 403 /guco/404.php
 Options -Indexes
+
+# Clean URLs for search engines.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteBase /guco/
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+RewriteRule ^robots\.txt$ robots.php [L]
+# Hide version control metadata.
+RewriteRule (^|/)\.git - [R=404,L]
+# Uncomment once the site has an SSL certificate to force HTTPS:
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>
+
+# Never serve source, configuration, database or log files.
+<FilesMatch "(?i)(\.(sql|md|log|bak|ini|lock|sh|eml|dist|yml|yaml|json)$|^config.*\.php$|^\.)">
+    Require all denied
+</FilesMatch>
+
+# Compression and browser caching.
+<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript application/json image/svg+xml
+</IfModule>
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType image/webp "access plus 1 month"
+ExpiresByType image/jpeg "access plus 1 month"
+ExpiresByType image/png "access plus 1 month"
+ExpiresByType text/css "access plus 1 month"
+ExpiresByType application/javascript "access plus 1 month"
+</IfModule>

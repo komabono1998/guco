@@ -17,6 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash($err, 'error');
         redirect('admin/login.php');
     }
+    if (!empty($_SESSION['2fa'])) {
+        redirect('admin/verify.php');
+    }
     audit('admin_login', $u['email']);
     redirect('admin/');
 }

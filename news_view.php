@@ -6,6 +6,10 @@ if (!$n) {
 }
 $pageTitle = $n['title'] ?? 'Not found';
 $pageDesc = $n ? ($n['summary'] ?: excerpt((string) $n['body'], 150)) : null;
+if ($n) {
+    $pageType = 'article';
+    $jsonLd = [['@context' => 'https://schema.org', '@type' => 'NewsArticle', 'headline' => $n['title'], 'datePublished' => date('c', strtotime($n['published_at'])), 'description' => $pageDesc, 'author' => ['@type' => 'Organization', 'name' => 'Gulu University Convocation'], 'publisher' => ['@type' => 'Organization', 'name' => 'Gulu University Convocation', 'logo' => ['@type' => 'ImageObject', 'url' => absolute_url('assets/img/logo.webp')]], 'mainEntityOfPage' => absolute_url('news_view.php?slug=' . rawurlencode($n['slug']))]];
+}
 require __DIR__ . '/includes/header.php';
 if (!$n): ?>
   <h1>Article not found</h1><p><a href="<?= url('news.php') ?>">Back to news</a></p>

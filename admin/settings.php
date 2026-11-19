@@ -7,6 +7,9 @@ $fields = [
         'office_hours' => ['Secretariat office hours', 'text'], 'membership_contact' => ['Membership support contact', 'text'],
         'chapter_contact' => ['Chapter enquiries contact', 'text'],
     ],
+    'Security' => [
+        'admin_2fa' => ['Require an email code (two-step sign-in) for every staff login. Keep this on. Turn it off only if the site cannot send email, and tell the Secretariat.', 'check'],
+    ],
     'Website welcome' => [
         'show_welcome_logo' => ['Show the animated logo welcome to first-time visitors (10 seconds)', 'check'],
     ],

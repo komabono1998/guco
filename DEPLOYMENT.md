@@ -1,0 +1,44 @@
+# GUCO website: deployment checklist
+
+## 1. Server
+- PHP 8.1+ with `pdo_mysql`, `mbstring`, `gd` (images), `fileinfo`; MariaDB/MySQL 10.4+.
+- Apache with `mod_rewrite` (sitemap.xml / robots.txt), optional `mod_deflate`, `mod_expires`.
+- Upload the project; make `uploads/` and `storage/` writable by the web server.
+- If the site is not at `/guco/`, change the base path in `.htaccess` (ErrorDocument, RewriteBase) and `base_url` in `config.php`.
+
+## 2. Database
+1. Create an empty database and a dedicated MySQL user (not root).
+2. Import `sql/schema.sql`, then run `php tools/migrate.php` (applies every file in `sql/migrations/`).
+
+## 3. Configuration (`config.local.php`, never committed)
+```php
+<?php
+return [
+    'db' => ['host' => 'localhost', 'name' => 'guco', 'user' => 'guco_user', 'pass' => '...'],
+    'public_url' => 'https://your-domain.org',   // used in emailed links, sitemap, canonical URLs
+    'dev_mode' => false,
+    'smtp' => ['host' => 'smtp.example.org', 'port' => 587, 'encryption' => 'tls',
+               'username' => 'mailer@example.org', 'password' => '...', 'from' => 'no-reply@example.org'],
+];
+```
+Keep `dev_mode` off in production.
+
+## 4. Email and two-step sign-in
+- Every staff/admin login asks for a 6-digit code emailed to the account.
+- Before relying on it: Admin > Mail log > "Send a test email to me". If it fails, fix SMTP first.
+- After the first login, open Admin > My account and generate **backup codes**; store them safely.
+- Emergency, from the server command line: `php tools/twofa.php off` (turns the check off), `php tools/twofa.php unlock EMAIL`.
+- `'admin_2fa' => false` in `config.local.php` also overrides the setting.
+
+## 5. Security
+- Create the first super admin, then change/remove any seeded demo accounts.
+- Enable HTTPS and uncomment the redirect in `.htaccess`.
+- `.htaccess` blocks `.sql`, `.md`, config files, `.git`; `includes/`, `sql/`, `tools/`, `storage/` are denied.
+- Schedule `Admin > Backup` downloads (or a cron database dump).
+
+## 6. Search engines
+- Sitemap: `/sitemap.xml`, robots: `/robots.txt`. Submit the sitemap in Google Search Console.
+- Set the site name/tagline in Admin > Settings; per-page titles and descriptions come from each page.
+
+## 7. Go-live test
+Sign in as admin (with the emailed code), open every Admin menu, submit the contact form, register a test member, check the emails arrive, then delete the test data.

@@ -1,14 +1,98 @@
 <?php
 /**
  * Outgoing email with a delivery log (Admin > Mail log).
- * Uses PHP mail(); on a server without a mail transport the message is logged as "failed"
- * so the Secretariat can see what was not delivered.
+ * Sends through SMTP when config.local.php has an 'smtp' section, otherwise through PHP mail().
+ * A message that could not be sent is logged as "failed" so the Secretariat can see what was not delivered.
+ *
+ * config.local.php example:
+ *   'smtp' => ['host' => 'smtp.example.org', 'port' => 587, 'encryption' => 'tls', 'username' => 'no-reply@example.org',
+ *              'password' => '...', 'from' => 'no-reply@example.org'],
+ * encryption: 'tls' (STARTTLS, usually port 587), 'ssl' (usually port 465) or '' (none, only for a trusted local relay).
  */
+function smtp_deliver(array $cfg, string $to, string $from, string $subject, string $headers, string $body): array
+{
+    $host = (string) ($cfg['host'] ?? '');
+    $port = (int) ($cfg['port'] ?? 587);
+    $enc = strtolower((string) ($cfg['encryption'] ?? 'tls'));
+    $errno = 0;
+    $errstr = '';
+    $fp = @stream_socket_client(($enc === 'ssl' ? 'ssl://' : 'tcp://') . $host . ':' . $port, $errno, $errstr, 15);
+    if (!$fp) {
+        return [false, "Could not connect to $host:$port ($errstr)"];
+    }
+    stream_set_timeout($fp, 20);
+    $read = function () use ($fp) {
+        $out = '';
+        while (($line = fgets($fp, 1024)) !== false) {
+            $out .= $line;
+            if (strlen($line) < 4 || $line[3] === ' ') {
+                break;
+            }
+        }
+        return $out;
+    };
+    $cmd = function (string $line, array $ok) use ($fp, $read, &$lastReply) {
+        if ($line !== '') {
+            fwrite($fp, $line . "\r\n");
+        }
+        $lastReply = trim($read());
+        return in_array((int) substr($lastReply, 0, 3), $ok, true);
+    };
+    $fail = function (string $step) use (&$lastReply, $fp) {
+        @fwrite($fp, "QUIT\r\n");
+        @fclose($fp);
+        return [false, "SMTP $step failed: " . mb_substr(preg_replace('/\s+/', ' ', (string) $lastReply), 0, 160)];
+    };
+    $lastReply = '';
+    if (!$cmd('', [220])) {
+        return $fail('greeting');
+    }
+    $me = preg_replace('/[^A-Za-z0-9.\-]/', '', gethostname() ?: 'localhost') ?: 'localhost';
+    if (!$cmd("EHLO $me", [250])) {
+        return $fail('hello');
+    }
+    if ($enc === 'tls') {
+        if (!$cmd('STARTTLS', [220]) || !@stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+            return $fail('STARTTLS');
+        }
+        if (!$cmd("EHLO $me", [250])) {
+            return $fail('hello after STARTTLS');
+        }
+    }
+    if (($cfg['username'] ?? '') !== '') {
+        if (!$cmd('AUTH LOGIN', [334]) || !$cmd(base64_encode((string) $cfg['username']), [334]) || !$cmd(base64_encode((string) ($cfg['password'] ?? '')), [235])) {
+            return $fail('sign-in (check the username and password)');
+        }
+    }
+    if (!$cmd("MAIL FROM:<$from>", [250])) {
+        return $fail('sender');
+    }
+    if (!$cmd("RCPT TO:<$to>", [250, 251])) {
+        return $fail('recipient');
+    }
+    if (!$cmd('DATA', [354])) {
+        return $fail('data');
+    }
+    $domain = substr(strrchr($from, '@') ?: '@localhost', 1);
+    $msg = 'Date: ' . date('r') . "\r\nMessage-ID: <" . bin2hex(random_bytes(10)) . '@' . $domain . ">\r\nTo: $to\r\nSubject: =?UTF-8?B?" . base64_encode($subject) . "?=\r\n" . $headers . "\r\n\r\n" . $body;
+    $msg = preg_replace('/(?<!\r)\n/', "\r\n", $msg);
+    $msg = preg_replace('/^\./m', '..', $msg);
+    fwrite($fp, $msg . "\r\n.\r\n");
+    $lastReply = trim($read());
+    if ((int) substr($lastReply, 0, 3) !== 250) {
+        return $fail('delivery');
+    }
+    @fwrite($fp, "QUIT\r\n");
+    @fclose($fp);
+    return [true, null];
+}
+
 function deliver_mail(string $to, string $subject, string $text, array $opts = []): bool
 {
     $to = trim(str_replace(["\r", "\n", ','], '', $to));
     $subject = str_replace(["\r", "\n"], ' ', $subject);
-    $from = setting('contact_email', 'no-reply@localhost');
+    $smtp = config('smtp');
+    $from = is_array($smtp) && !empty($smtp['from']) ? (string) $smtp['from'] : setting('contact_email', 'no-reply@localhost');
     $fromName = setting('site_name', 'Gulu University Convocation');
     $boundary = 'b' . bin2hex(random_bytes(8));
     $headers = "From: =?UTF-8?B?" . base64_encode($fromName) . "?= <$from>\r\nReply-To: $from\r\nMIME-Version: 1.0\r\n";
@@ -41,12 +125,16 @@ function deliver_mail(string $to, string $subject, string $text, array $opts = [
     $ok = false;
     $error = null;
     try {
-        $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+        if (is_array($smtp) && !empty($smtp['host'])) {
+            [$ok, $error] = smtp_deliver($smtp, $to, $from, $subject, $headers, $body);
+        } else {
+            $ok = @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+        }
     } catch (Throwable $e) {
         $error = $e->getMessage();
     }
     if (!$ok && !$error) {
-        $error = 'The server could not hand this message to a mail server. Configure SMTP in php.ini (or sendmail) to deliver email.';
+        $error = 'The server could not hand this message to a mail server. Add an smtp section to config.local.php (see includes/mailer.php) or configure sendmail.';
     }
     $u = current_user();
     q('INSERT INTO mail_log (to_email, subject, context, status, error, sent_by) VALUES (?,?,?,?,?,?)',

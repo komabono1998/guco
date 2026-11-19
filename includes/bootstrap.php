@@ -425,5 +425,6 @@ require_once __DIR__ . '/member_report.php';
 require_once __DIR__ . '/network.php';
 require_once __DIR__ . '/related.php';
 require_once __DIR__ . '/portal_mail.php';
+require_once __DIR__ . '/twofactor.php';
 require_once __DIR__ . '/maintenance.php';
 maintenance_gate();

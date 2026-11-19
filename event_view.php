@@ -45,6 +45,10 @@ Gulu University Convocation");
 }
 $pageTitle = $ev['title'] ?? 'Event not found';
 $pageDesc = $ev ? excerpt((string) $ev['description'], 150) : null;
+if ($ev && $ev['starts_at']) {
+    $jsonLd = [['@context' => 'https://schema.org', '@type' => 'Event', 'name' => $ev['title'], 'startDate' => date('c', strtotime($ev['starts_at'])), 'endDate' => $ev['ends_at'] ? date('c', strtotime($ev['ends_at'])) : null, 'eventAttendanceMode' => $ev['online_link'] ? 'https://schema.org/MixedEventAttendanceMode' : 'https://schema.org/OfflineEventAttendanceMode', 'location' => ['@type' => 'Place', 'name' => $ev['location'] ?: 'Gulu University', 'address' => $ev['location'] ?: 'Gulu, Uganda'], 'description' => $pageDesc, 'organizer' => ['@type' => 'Organization', 'name' => 'Gulu University Convocation']]];
+    $jsonLd[0] = array_filter($jsonLd[0], fn($v) => $v !== null);
+}
 require __DIR__ . '/includes/header.php';
 if (!$ev): ?>
   <h1>Event not found</h1>
