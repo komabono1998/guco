@@ -54,3 +54,13 @@ One-time setup:
 4. Run migrations after each release that adds files under `sql/migrations/`: cPanel Terminal (`php tools/migrate.php`) or a cron job run once. The FTP upload does not run them.
 5. If the site is in the domain root, set `base_url` to `''` in `config.php` and update `.htaccess` (ErrorDocument paths, `RewriteBase /`).
 6. Re-run the workflow from the Actions tab if a deploy fails; use FTP-over-TLS (`ftps`). Change `protocol` to `ftp` only if the host has no TLS.
+
+## 9. Hostinger specifics (hPanel)
+- **Database:** hPanel > Databases > MySQL Databases: create the database and user. Names get a prefix (e.g. `u123456789_guco`); put those exact values in `config.local.php`, with `'host' => 'localhost'`.
+- **Import:** hPanel > Databases > phpMyAdmin > Import `sql/schema.sql`. Then apply each file in `sql/migrations/` in order (or use SSH below).
+- **PHP:** hPanel > Advanced > PHP Configuration: choose PHP 8.2, and make sure `pdo_mysql`, `mbstring`, `gd`, `fileinfo` are on.
+- **FTP:** hPanel > Files > FTP Accounts. Secrets for GitHub: `FTP_SERVER` = the FTP hostname shown there (or the server IP), `FTP_USERNAME` = the FTP user (e.g. `u123456789.yourdomain`), `FTP_DIR` = `/public_html/` (or `/domains/yourdomain.com/public_html/` on some plans). If the deploy fails on TLS, change `protocol: ftps` to `ftp` in the workflow.
+- **Alternative to FTP:** hPanel > Advanced > Git can pull straight from `https://github.com/komabono1998/guco.git` (branch `main`) into `public_html`, with an auto-deploy webhook you add under GitHub > Settings > Webhooks. Use one method, not both.
+- **SSH (Business plans and up):** hPanel > Advanced > SSH Access, then `cd domains/yourdomain.com/public_html && php tools/migrate.php`.
+- **Email/SMTP:** create a mailbox in hPanel > Emails; use host `smtp.hostinger.com`, port 465, encryption `ssl` (or 587 `tls`), the full mailbox address as username, and the same address as `from`. Then run the test email.
+- **Domain root:** set `base_url` to `''` in `config.php`, and `.htaccess` paths to `/` (`ErrorDocument 404 /404.php`, `RewriteBase /`). Turn on the free SSL in hPanel, then enable the HTTPS redirect in `.htaccess`.
