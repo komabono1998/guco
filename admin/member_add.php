@@ -12,8 +12,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pass = trim($_POST['password'] ?? '');
     $generate = $pass === '';
     $year = (int) ($_POST['graduation_year'] ?? 0);
+    $type = ($_POST['member_type'] ?? '') === 'staff' ? 'staff' : 'alumni';
+    $joined = trim($_POST['staff_joined_on'] ?? '');
+    $joinedTs = $joined !== '' ? strtotime($joined) : false;
     $error = null;
-    if ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if ($type === 'staff' && (!$joinedTs || $joinedTs > time() || $joinedTs < strtotime('1950-01-01'))) {
+        $error = 'Enter the date the staff member joined Gulu University.';
+    } elseif ($type === 'staff' && (trim($_POST['staff_position'] ?? '') === '' || trim($_POST['staff_department'] ?? '') === '')) {
+        $error = 'Enter the staff member\'s position and department, faculty or unit.';
+    } elseif ($name === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = 'Enter the member\'s full name and a valid email.';
     } elseif (!isset(CATEGORY_LABELS[$cat])) {
         $error = 'Choose a membership category.';
@@ -33,10 +40,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         q('INSERT INTO users (full_name, email, password_hash) VALUES (?,?,?)', [$name, $email, password_hash($pass, PASSWORD_DEFAULT)]);
         $uid = (int) $pdo->lastInsertId();
         $paidUntil = ($_POST['paid_until'] ?? '') ?: null;
-        q('INSERT INTO member_profiles (user_id, member_no, category, subscription_status, paid_until, phone, college, programme, graduation_year, chapter_id, directory_consent, admin_notes)
-           VALUES (?,?,?,?,?,?,?,?,?,?,0,?)', [
-            $uid, next_member_no(), $cat, $paidUntil ? 'active' : 'unpaid', $paidUntil, trim($_POST['phone'] ?? ''), trim($_POST['college'] ?? ''),
+        $staff = $type === 'staff';
+        q('INSERT INTO member_profiles (user_id, member_no, category, member_type, subscription_status, paid_until, phone, college, programme, graduation_year, chapter_id, directory_consent, admin_notes,
+              staff_joined_on, staff_position, staff_department, staff_no, staff_terms, staff_status, employer, profession)
+           VALUES (?,?,?,?,?,?,?,?,?,?,?,0,?,?,?,?,?,?,?,?,?)', [
+            $uid, next_member_no(), $cat, $type, $paidUntil ? 'active' : 'unpaid', $paidUntil, trim($_POST['phone'] ?? ''), trim($_POST['college'] ?? ''),
             trim($_POST['programme'] ?? ''), $year ?: null, (int) ($_POST['chapter_id'] ?? 0) ?: null, 'Account created by ' . $admin['full_name'] . '.',
+            $staff ? date('Y-m-d', $joinedTs) : null, $staff ? trim($_POST['staff_position']) : null, $staff ? trim($_POST['staff_department']) : null,
+            $staff ? (trim($_POST['staff_no'] ?? '') ?: null) : null, $staff && isset(STAFF_TERMS[$_POST['staff_terms'] ?? '']) ? $_POST['staff_terms'] : null,
+            $staff ? (isset(STAFF_STATUS[$_POST['staff_status'] ?? '']) ? $_POST['staff_status'] : 'current') : null,
+            $staff ? 'Gulu University' : null, $staff ? trim($_POST['staff_position']) : null,
         ]);
         $cid = (int) ($_POST['chapter_id'] ?? 0);
         if ($cid && isset($chapters[$cid])) {
@@ -84,6 +97,22 @@ admin_header('Add a member', 'Create a member account on behalf of someone, with
     </div>
   </fieldset>
   <fieldset><legend>Membership</legend>
+    <label>Member type *
+      <select name="member_type" id="mtype"><?php foreach (MEMBER_TYPES as $k => $l): ?><option value="<?= $k ?>"<?= ($_POST['member_type'] ?? 'alumni') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+    <div id="staffBox" class="stack" hidden>
+      <div class="cols">
+        <label>Date joined Gulu University * <input type="date" name="staff_joined_on" max="<?= date('Y-m-d') ?>" value="<?= e($_POST['staff_joined_on'] ?? '') ?>"></label>
+        <label>Position / job title * <input name="staff_position" value="<?= e($_POST['staff_position'] ?? '') ?>"></label>
+      </div>
+      <div class="cols">
+        <label>Department, faculty or unit * <input name="staff_department" value="<?= e($_POST['staff_department'] ?? '') ?>"></label>
+        <label>Staff number <input name="staff_no" value="<?= e($_POST['staff_no'] ?? '') ?>"></label>
+      </div>
+      <div class="cols">
+        <label>Terms of service <select name="staff_terms"><option value="">Select</option><?php foreach (STAFF_TERMS as $k => $l): ?><option value="<?= $k ?>"<?= ($_POST['staff_terms'] ?? '') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+        <label>Current status <select name="staff_status"><?php foreach (STAFF_STATUS as $k => $l): ?><option value="<?= $k ?>"<?= ($_POST['staff_status'] ?? 'current') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+      </div>
+    </div>
     <div class="cols">
       <label>Category *<select name="category" required><option value="">Select</option><?php foreach (CATEGORY_LABELS as $k => $l): ?><option value="<?= $k ?>"<?= ($_POST['category'] ?? '') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
       <label>Chapter<select name="chapter_id"><?php foreach ($chapters as $k => $n): ?><option value="<?= e($k) ?>"><?= e($n) ?></option><?php endforeach; ?></select></label>
@@ -102,4 +131,14 @@ admin_header('Add a member', 'Create a member account on behalf of someone, with
   </fieldset>
   <button>Create member account</button>
 </form>
+<script>
+(function () {
+  var t = document.getElementById('mtype'), box = document.getElementById('staffBox'); if (!t || !box) return;
+  function sync() {
+    var st = t.value === 'staff'; box.hidden = !st; box.style.display = st ? '' : 'none';
+    ['staff_joined_on', 'staff_position', 'staff_department'].forEach(function (n) { var el = t.form.elements[n]; if (el) el.required = st; });
+  }
+  t.addEventListener('change', sync); sync();
+})();
+</script>
 <?php admin_footer(); ?>
