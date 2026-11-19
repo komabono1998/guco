@@ -24,6 +24,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             redirect('member/profile.php');
         }
     }
+    $own = q('SELECT member_type FROM member_profiles WHERE user_id = ?', [$me['id']])->fetchColumn();
+    if ($own === 'staff') {
+        $joinedTs = strtotime(trim($_POST['staff_joined_on'] ?? ''));
+        if (trim($_POST['staff_position'] ?? '') === '' || trim($_POST['staff_department'] ?? '') === '' || !$joinedTs || $joinedTs > time()) {
+            flash('Staff details need the date you joined, your position and your department or unit.', 'error');
+            redirect('member/profile.php');
+        }
+        q('UPDATE member_profiles SET staff_joined_on=?, staff_position=?, staff_department=?, staff_no=?, staff_terms=?, staff_status=? WHERE user_id=?', [
+            date('Y-m-d', $joinedTs), trim($_POST['staff_position']), trim($_POST['staff_department']), trim($_POST['staff_no'] ?? '') ?: null,
+            isset(STAFF_TERMS[$_POST['staff_terms'] ?? '']) ? $_POST['staff_terms'] : null,
+            isset(STAFF_STATUS[$_POST['staff_status'] ?? '']) ? $_POST['staff_status'] : 'current', $me['id'],
+        ]);
+    }
     q('UPDATE member_profiles SET phone=?, address=?, location=?, country=?, nationality=?, college=?, programme=?, qualification_level=?,
         graduation_year=?, employment_status=?, employer=?, profession=?, interests=?, bio=?, chapter_id=?, directory_consent=?' . ($photo ? ', photo=?' : '') . ' WHERE user_id=?',
         array_merge([
@@ -58,6 +71,25 @@ portal_header('My profile');
     <div style="display:flex;gap:14px;align-items:center"><?= member_avatar($p + ['user_id' => $me['id'], 'full_name' => $me['full_name']], 'avatar') ?>
       <label style="flex:1">Card photo <span class="hint">(JPG, PNG or WebP, up to 3MB)</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label></div>
   </fieldset>
+  <?php if (($p['member_type'] ?? 'alumni') === 'staff'): ?>
+  <fieldset><legend>Gulu University staff details</legend>
+    <div class="cols">
+      <label>Date you joined Gulu University * <input type="date" name="staff_joined_on" required max="<?= date('Y-m-d') ?>" value="<?= $v('staff_joined_on') ?>"></label>
+      <label>Position / job title * <input name="staff_position" required value="<?= $v('staff_position') ?>"></label>
+    </div>
+    <div class="cols">
+      <label>Department, faculty or unit * <input name="staff_department" required value="<?= $v('staff_department') ?>"></label>
+      <label>Staff number <input name="staff_no" value="<?= $v('staff_no') ?>"></label>
+    </div>
+    <div class="cols">
+      <label>Terms of service
+        <select name="staff_terms"><option value="">Select</option>
+          <?php foreach (STAFF_TERMS as $k => $l): ?><option value="<?= $k ?>"<?= ($p['staff_terms'] ?? '') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+      <label>Current status
+        <select name="staff_status"><?php foreach (STAFF_STATUS as $k => $l): ?><option value="<?= $k ?>"<?= ($p['staff_status'] ?? 'current') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+    </div>
+  </fieldset>
+  <?php endif; ?>
   <fieldset><legend>Academic</legend>
     <div class="cols">
       <label>College / faculty <input name="college" value="<?= $v('college') ?>"></label>

@@ -12,6 +12,12 @@ const EMPLOYMENT_LABELS = [
 
 const GENDER_LABELS = ['female' => 'Female', 'male' => 'Male', 'other' => 'Other', 'undisclosed' => 'Prefer not to say'];
 
+const MEMBER_TYPES = ['alumni' => 'Alumni (graduate of Gulu University)', 'staff' => 'Staff of Gulu University'];
+
+const STAFF_TERMS = ['permanent' => 'Permanent', 'contract' => 'Contract', 'part_time' => 'Part-time', 'visiting' => 'Visiting', 'other' => 'Other'];
+
+const STAFF_STATUS = ['current' => 'Currently serving', 'retired' => 'Retired', 'former' => 'Left the University'];
+
 const PAYMENT_METHODS = ['Mobile money', 'Bank deposit / transfer', 'Cash at the Secretariat', 'Other'];
 
 const MEMBER_INTERESTS = [

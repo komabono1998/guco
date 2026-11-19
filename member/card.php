@@ -22,7 +22,7 @@ portal_header('My membership card');
     <?= member_avatar($m, 'idphoto') ?>
     <div class="idcard-info">
       <div class="idname"><?= e($m['full_name']) ?></div>
-      <div><?= e(CATEGORY_LABELS[$m['category']]) ?></div>
+      <div><?= e(CATEGORY_LABELS[$m['category']]) ?><?= ($m['member_type'] ?? '') === 'staff' ? ' &middot; Staff' : '' ?></div>
       <div class="idrow"><span>Membership ID</span><b class="mono"><?= e($m['membership_id']) ?></b></div>
       <div class="idrow"><span>Member no.</span><b><?= e(member_no_label($m['member_no'])) ?></b></div>
       <div class="idrow"><span>Member since</span><b><?= e(fmt_date($m['approved_at'], 'M Y')) ?></b></div>

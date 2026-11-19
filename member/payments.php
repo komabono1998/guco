@@ -10,10 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('Enter the amount and reference and upload a proof of payment (JPG, PNG, WebP or PDF, up to 5MB).', 'error');
     } else {
         q('INSERT INTO member_payments (user_id, purpose, method, amount, reference, paid_on, proof_file, proof_original) VALUES (?,?,?,?,?,?,?,?)', [
-            $me['id'], in_array($_POST['purpose'] ?? '', ['renewal', 'other'], true) ? $_POST['purpose'] : 'renewal',
+            $me['id'], in_array($_POST['purpose'] ?? '', ['registration', 'renewal', 'other'], true) ? $_POST['purpose'] : 'renewal',
             in_array($_POST['method'] ?? '', PAYMENT_METHODS, true) ? $_POST['method'] : 'Other', $amount,
             trim($_POST['reference']), ($_POST['paid_on'] ?? '') ?: null, $proof['name'], $proof['original'],
         ]);
+        q('UPDATE member_profiles SET pay_later = 0 WHERE user_id = ?', [$me['id']]);
         flash('Payment submitted. The Secretariat will verify it and update your membership.');
     }
     redirect('member/payments.php');
@@ -21,6 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 $p = q('SELECT * FROM member_profiles WHERE user_id = ?', [$me['id']])->fetch() ?: [];
 $payments = q('SELECT * FROM member_payments WHERE user_id = ? ORDER BY created_at DESC', [$me['id']])->fetchAll();
+$approvedReg = !empty($p['membership_id']) || (bool) array_filter($payments, fn($x) => $x['purpose'] === 'registration' && $x['status'] !== 'rejected');
 $badge = ['pending' => ['Awaiting verification', 'warn'], 'verified' => ['Verified', ''], 'rejected' => ['Rejected', 'bad']];
 portal_header('Payments & renewal');
 ?>
@@ -29,6 +31,9 @@ portal_header('Payments & renewal');
   <div class="tile"><span class="ic"><?= icon('calendar', 24) ?></span><div><small>Paid up to</small><b><?= !empty($p['paid_until']) ? e(fmt_date($p['paid_until'])) : (($p['category'] ?? 'ordinary') === 'ordinary' ? 'Not yet recorded' : 'Lifetime') ?></b></div></div>
 </div>
 
+<?php if (!empty($p['pay_later']) && !array_filter($payments, fn($x) => $x['status'] !== 'rejected')): ?>
+  <div class="notice"><strong>Your payment is still to come.</strong> You chose to register now and pay later. Pay through the approved channel, then <a href="#renew">upload your proof below</a>. The Secretariat approves your membership once the payment is verified.</div>
+<?php endif; ?>
 <?php if (setting('payment_instructions')): ?>
   <div class="notice"><strong>Payment instructions</strong><br><?= nl2br(e(setting('payment_instructions'))) ?></div>
 <?php else: ?>
@@ -54,7 +59,7 @@ portal_header('Payments & renewal');
   <form method="post" enctype="multipart/form-data" class="stack wide">
     <?= csrf_field() ?>
     <div class="cols">
-      <label>Purpose <select name="purpose"><option value="renewal">Subscription renewal</option><option value="other">Other</option></select></label>
+      <label>Purpose <select name="purpose"><?php if (!$approvedReg): ?><option value="registration">Registration / joining fee</option><?php endif; ?><option value="renewal">Subscription renewal</option><option value="other">Other</option></select></label>
       <label>Payment method <select name="method"><?php foreach (PAYMENT_METHODS as $m): ?><option><?= e($m) ?></option><?php endforeach; ?></select></label>
       <label>Amount paid (UGX) <input type="number" name="amount" min="1" step="any" required></label>
     </div>

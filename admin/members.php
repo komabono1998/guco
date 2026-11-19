@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } elseif (in_array($action, ['save', 'approve', 'reject'], true)) {
             $cat = isset(CATEGORY_LABELS[$_POST['category'] ?? '']) ? $_POST['category'] : 'ordinary';
             $sub = in_array($_POST['subscription_status'] ?? '', ['unpaid', 'active', 'arrears'], true) ? $_POST['subscription_status'] : 'unpaid';
-            q('UPDATE member_profiles SET category=?, subscription_status=?, paid_until=?, chapter_id=?, admin_notes=? WHERE user_id=?', [
-                $cat, $sub, ($_POST['paid_until'] ?? '') ?: null, (int) ($_POST['chapter_id'] ?? 0) ?: null, trim($_POST['admin_notes'] ?? ''), $id,
+            q('UPDATE member_profiles SET member_type=?, category=?, subscription_status=?, paid_until=?, chapter_id=?, admin_notes=? WHERE user_id=?', [
+                isset(MEMBER_TYPES[$_POST['member_type'] ?? '']) ? $_POST['member_type'] : 'alumni', $cat, $sub, ($_POST['paid_until'] ?? '') ?: null, (int) ($_POST['chapter_id'] ?? 0) ?: null, trim($_POST['admin_notes'] ?? ''), $id,
             ]);
             if ($action === 'approve') {
                 $err = approve_member($id, !empty($_POST['waive']));
@@ -78,9 +78,9 @@ if ($search !== '') {
 $base = "FROM users u LEFT JOIN member_profiles p ON p.user_id = u.id WHERE $where";
 
 if (isset($_GET['export'])) {
-    $rows = q("SELECT p.member_no, p.membership_id, u.full_name, u.email, u.role, u.status, p.category, p.card_status, p.subscription_status, p.paid_until, p.gender, p.date_of_birth, p.nationality, p.phone, p.address, p.location, p.country, p.college, p.programme, p.qualification_level, p.graduation_year, p.employment_status, p.employer, p.profession, p.interests, p.approved_at $base ORDER BY p.member_no, u.full_name", $args)->fetchAll();
+    $rows = q("SELECT p.member_no, p.membership_id, u.full_name, u.email, u.role, u.status, p.category, p.card_status, p.subscription_status, p.paid_until, p.gender, p.date_of_birth, p.nationality, p.phone, p.address, p.location, p.country, p.college, p.programme, p.qualification_level, p.graduation_year, p.employment_status, p.employer, p.profession, p.interests, p.approved_at, p.member_type, p.staff_joined_on, p.staff_position, p.staff_department, p.staff_no, p.staff_terms, p.staff_status $base ORDER BY p.member_no, u.full_name", $args)->fetchAll();
     audit('export_members', count($rows) . ' records');
-    csv_download('guco-members-' . date('Ymd') . '.csv', ['Member no', 'Membership ID', 'Name', 'Email', 'Role', 'Status', 'Category', 'Card', 'Subscription', 'Paid until', 'Gender', 'Date of birth', 'Nationality', 'Phone', 'Address', 'City/district', 'Country', 'College', 'Programme', 'Qualification', 'Graduation year', 'Employment', 'Employer', 'Profession', 'Interests', 'Approved'], $rows);
+    csv_download('guco-members-' . date('Ymd') . '.csv', ['Member no', 'Membership ID', 'Name', 'Email', 'Role', 'Status', 'Category', 'Card', 'Subscription', 'Paid until', 'Gender', 'Date of birth', 'Nationality', 'Phone', 'Address', 'City/district', 'Country', 'College', 'Programme', 'Qualification', 'Graduation year', 'Employment', 'Employer', 'Profession', 'Interests', 'Approved', 'Member type', 'Staff: date joined', 'Staff: position', 'Staff: department', 'Staff no', 'Staff: terms', 'Staff: status'], $rows);
 }
 
 if (isset($_GET['id'])) {
@@ -100,6 +100,8 @@ if (isset($_GET['id'])) {
     <div style="display:flex;gap:14px;align-items:center"><?= member_avatar($m, 'avatar') ?>
       <div><h2 style="margin:0"><?= e($m['full_name']) ?></h2>
         <span class="badge <?= $m['status'] === 'approved' ? '' : ($m['status'] === 'pending' ? 'warn' : 'bad') ?>"><?= e($m['status']) ?></span>
+        <span class="badge"><?= ($m['member_type'] ?? 'alumni') === 'staff' ? 'Staff' : 'Alumni' ?></span>
+        <?= !empty($m['pay_later']) && !$pays ? '<span class="badge warn">will pay later</span>' : '' ?>
         <?php if ($m['member_no']): ?> <span class="meta">Member no. <?= e(member_no_label($m['member_no'])) ?></span><?php endif; ?></div></div>
     <?php if ($m['membership_id']): ?><p>Membership ID: <strong class="mono"><?= e($m['membership_id']) ?></strong><br>Card: <span class="badge <?= $card['state'] === 'valid' ? '' : 'bad' ?>"><?= e($card['label']) ?></span>
       <?= $m['card_status'] === 'revoked' ? '<br><span class="meta">Revoked ' . e(fmt_date($m['card_revoked_at'])) . ': ' . e($m['card_revoke_reason']) . '</span>' : '' ?></p><?php endif; ?>
@@ -107,6 +109,14 @@ if (isset($_GET['id'])) {
     <p><?= e($m['email']) ?> &middot; <?= e($m['phone']) ?><br>
       <?= e(GENDER_LABELS[$m['gender']] ?? '') ?><?= $m['date_of_birth'] ? ' &middot; born ' . e(fmt_date($m['date_of_birth'])) : '' ?> &middot; <?= e($m['nationality']) ?><br>
       <?= e(trim($m['address'] . ', ' . $m['location'] . ', ' . $m['country'], ', ')) ?></p>
+    <?php if (($m['member_type'] ?? 'alumni') === 'staff'): ?>
+    <h3>Gulu University staff</h3>
+    <p><strong><?= e($m['staff_position']) ?></strong> &middot; <?= e($m['staff_department']) ?><br>
+      Joined <?= $m['staff_joined_on'] ? e(fmt_date($m['staff_joined_on'])) : 'not given' ?>
+      <?= $m['staff_joined_on'] ? ' (' . e(max(0, (int) date_diff(date_create($m['staff_joined_on']), date_create('today'))->y)) . ' years)' : '' ?>
+      <?= $m['staff_terms'] ? ' &middot; ' . e(STAFF_TERMS[$m['staff_terms']] ?? '') : '' ?> &middot; <?= e(STAFF_STATUS[$m['staff_status']] ?? '') ?>
+      <?= $m['staff_no'] ? '<br>Staff no. ' . e($m['staff_no']) : '' ?></p>
+    <?php endif; ?>
     <h3>Academic</h3>
     <p><?= e($m['programme']) ?> (<?= e($m['qualification_level']) ?>)<br><?= e($m['college']) ?> &middot; graduated <?= e($m['graduation_year']) ?>
       <?= $m['student_reg_no'] ? '<br>Reg. no. ' . e($m['student_reg_no']) : '' ?></p>
@@ -123,6 +133,8 @@ if (isset($_GET['id'])) {
       <h3 style="margin:0">Membership decision</h3>
       <label>Membership category <?= $m['membership_id'] ? '<span class="hint">(the issued ID keeps its original code)</span>' : '' ?>
         <select name="category"><?php foreach (CATEGORY_LABELS as $k => $l): ?><option value="<?= $k ?>"<?= $m['category'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
+      <label>Member type
+        <select name="member_type"><?php foreach (MEMBER_TYPES as $k => $l): ?><option value="<?= $k ?>"<?= ($m['member_type'] ?? 'alumni') === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
       <label>Subscription status
         <select name="subscription_status"><?php foreach (['unpaid' => 'Unpaid / awaiting confirmation', 'active' => 'Active (paid up)', 'arrears' => 'In arrears'] as $k => $l): ?><option value="<?= $k ?>"<?= $m['subscription_status'] === $k ? ' selected' : '' ?>><?= $l ?></option><?php endforeach; ?></select></label>
       <label>Paid up to <span class="hint">(ordinary members; leave blank for lifetime categories)</span> <input type="date" name="paid_until" value="<?= e($m['paid_until']) ?>"></label>
@@ -184,7 +196,7 @@ if (isset($_GET['id'])) {
     exit;
 }
 
-$rows = q("SELECT u.id, u.full_name, u.email, u.role, u.status, u.created_at, p.member_no, p.membership_id, p.category, p.card_status, p.subscription_status, p.paid_until, p.approved_at, p.graduation_year,
+$rows = q("SELECT u.id, u.full_name, u.email, u.role, u.status, u.created_at, p.member_no, p.membership_id, p.category, p.card_status, p.subscription_status, p.paid_until, p.approved_at, p.graduation_year, p.member_type, p.pay_later,
     (SELECT COUNT(*) FROM member_payments mp WHERE mp.user_id = u.id AND mp.status = 'pending') AS pending_pay $base
     ORDER BY FIELD(u.status,'pending','approved','rejected'), u.created_at DESC", $args)->fetchAll();
 admin_header('Members & applications');
@@ -202,10 +214,11 @@ admin_header('Members & applications');
   <?php foreach ($rows as $r): $cs = card_state($r + ['status' => $r['status']]); ?>
   <tr>
     <td><?= e(member_no_label($r['member_no'])) ?></td>
-    <td><?= e($r['full_name']) ?><?= $r['role'] !== 'member' ? ' <span class="badge">' . e(ROLE_LABELS[$r['role']]) . '</span>' : '' ?><br><span class="meta"><?= e($r['email']) ?></span></td>
+    <td><?= e($r['full_name']) ?><?= $r['role'] !== 'member' ? ' <span class="badge">' . e(ROLE_LABELS[$r['role']]) . '</span>' : '' ?><?= ($r['member_type'] ?? '') === 'staff' ? ' <span class="badge">Staff</span>' : '' ?><br><span class="meta"><?= e($r['email']) ?></span></td>
     <td class="mono"><?= e($r['membership_id']) ?></td><td><?= e(CATEGORY_LABELS[$r['category']] ?? '') ?></td>
     <td><span class="badge <?= $r['status'] === 'approved' ? '' : ($r['status'] === 'pending' ? 'warn' : 'bad') ?>"><?= e($r['status']) ?></span>
-      <?= $r['pending_pay'] ? '<br><span class="badge warn">payment to verify</span>' : '' ?></td>
+      <?= $r['pending_pay'] ? '<br><span class="badge warn">payment to verify</span>' : '' ?>
+      <?= $r['pay_later'] && !$r['pending_pay'] && $r['status'] === 'pending' ? '<br><span class="badge warn">will pay later</span>' : '' ?></td>
     <td><?= $cs['state'] === 'none' ? '<span class="meta">-</span>' : '<span class="badge ' . ($cs['state'] === 'valid' ? '' : 'bad') . '">' . e($cs['label']) . '</span>' ?></td>
     <td><?= e($r['subscription_status']) ?></td>
     <td><a class="btn secondary" href="?id=<?= (int) $r['id'] ?>">Review</a></td>

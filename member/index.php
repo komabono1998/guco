@@ -31,6 +31,8 @@ portal_header('Dashboard');
 ?>
 <?php if ($card['state'] === 'revoked'): ?>
   <div class="notice bad"><strong>Your membership card has been revoked.</strong> <?= e($p['card_revoke_reason'] ?? '') ?> Member-only features are unavailable. <a href="support.php">Contact the Secretariat</a>.</div>
+<?php elseif (!$approved && !empty($p['pay_later']) && !$payments): ?>
+  <div class="notice"><strong>Your application is in, and your payment is still to come.</strong> Pay through the approved channel, then <a href="payments.php#renew">upload your proof of payment</a>. Your membership is approved once the payment is verified.</div>
 <?php elseif (!$approved): ?>
   <div class="notice"><strong>Your application is <?= e($me['status']) ?>.</strong> The Secretariat is verifying your details and proof of payment. Your membership ID and card are issued on approval.</div>
 <?php elseif ($renewDue): ?>
