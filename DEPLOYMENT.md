@@ -64,3 +64,6 @@ One-time setup:
 - **SSH (Business plans and up):** hPanel > Advanced > SSH Access, then `cd domains/yourdomain.com/public_html && php tools/migrate.php`.
 - **Email/SMTP:** create a mailbox in hPanel > Emails; use host `smtp.hostinger.com`, port 465, encryption `ssl` (or 587 `tls`), the full mailbox address as username, and the same address as `from`. Then run the test email.
 - **Domain root:** set `base_url` to `''` in `config.php`, and `.htaccess` paths to `/` (`ErrorDocument 404 /404.php`, `RewriteBase /`). Turn on the free SSL in hPanel, then enable the HTTPS redirect in `.htaccess`.
+
+## 10. Visitor statistics
+Admin > Website visitors shows visits, countries, top pages, devices and referrers. It needs migration `030_site_visits.sql` (run `php tools/migrate.php`, or import that file in phpMyAdmin). Without it the site works normally and the page shows a setup message. The country is read from the CDN header when present, otherwise looked up once per visitor via ipwho.is and cached.

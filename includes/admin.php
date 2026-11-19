@@ -6,6 +6,7 @@ const ADMIN_GROUPS = [
     'Overview' => [
         ['Dashboard', 'index.php', null, 'grid', null],
         ['Reports & analytics', 'reports.php', 'reports', 'bar-chart', null],
+        ['Website visitors', 'visitors.php', 'analytics', 'activity', null],
     ],
     'Website content' => [
         ['Site content', 'content.php', 'content', 'edit', null], ['Pages', 'pages.php', 'pages', 'file', null], ['Menu', 'menu.php', 'menu', 'menu', null],

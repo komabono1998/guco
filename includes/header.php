@@ -57,6 +57,7 @@ if ($here !== 'index.php' && $robots !== 'noindex,nofollow') {
     $crumbs[] = [$pageTitle, $canonical];
     $jsonLd[] = ['@context' => 'https://schema.org', '@type' => 'BreadcrumbList', 'itemListElement' => array_map(fn($c, $i) => ['@type' => 'ListItem', 'position' => $i + 1, 'name' => $c[0], 'item' => $c[1]], $crumbs, array_keys($crumbs))];
 }
+if ($robots !== 'noindex,nofollow' || $here === 'register.php') { track_visit((string) $pageTitle); }
 $bodyClass = 'site pg-' . preg_replace('/[^a-z0-9]+/', '-', strtolower(basename($here, '.php')));
 ?><!doctype html>
 <html lang="en">

@@ -100,6 +100,7 @@ const PERMS = [
     'mentorship' => ['super_admin', 'secretariat', 'career_officer', 'membership_officer'],
     'checkin' => ['super_admin', 'secretariat', 'events_officer', 'communications'],
     'backup' => ['super_admin', 'system_admin'],
+    'analytics' => ['super_admin', 'system_admin', 'secretariat', 'executive', 'communications'],
     'content' => ['super_admin', 'secretariat', 'communications'],
     'pages' => ['super_admin', 'secretariat', 'communications'],
     'menu' => ['super_admin', 'secretariat'],
@@ -426,5 +427,6 @@ require_once __DIR__ . '/network.php';
 require_once __DIR__ . '/related.php';
 require_once __DIR__ . '/portal_mail.php';
 require_once __DIR__ . '/twofactor.php';
+require_once __DIR__ . '/analytics.php';
 require_once __DIR__ . '/maintenance.php';
 maintenance_gate();
