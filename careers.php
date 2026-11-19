@@ -5,7 +5,7 @@ $pageTitle = 'Scholarships, jobs & funding';
 $pageDesc = 'Scholarships for undergraduate, master\'s and PhD study, fellowships, grants, jobs and internships, locally and abroad, with links to the official application pages.';
 $me = current_user();
 $member = is_member();
-$vis = 'is_public = 1' . ($member ? '' : ' AND member_only = 0') . ' AND (deadline IS NULL OR deadline >= CURDATE())';
+$vis = 'is_public = 1' . ($member ? '' : ' AND member_only = 0') . " AND (deadline IS NULL OR deadline >= CURDATE() OR call_status IN ('closed', 'upcoming'))";
 
 $id = (int) ($_GET['id'] ?? 0);
 if ($id) {
@@ -43,8 +43,15 @@ if ($id) {
       <?php foreach ($lv as $l): ?><span class="badge"><?= e($l) ?></span><?php endforeach; ?>
       <span class="badge <?= $job['scope'] === 'local' ? 'warn' : '' ?>"><?= e(JOB_SCOPES[$job['scope']] ?? '') ?></span>
       <?= $job['member_only'] ? '<span class="badge warn">Members only</span>' : '' ?>
-      <?= $job['deadline'] ? '<span class="meta">Deadline: ' . e(fmt_date($job['deadline'])) . '</span>' : '' ?>
     </p>
+    <?php $stK = job_status_key($job); ?>
+    <div class="op-status-box op-st-<?= $stK ?>">
+      <span class="op-st op-st-<?= $stK ?>"><?= e(JOB_CALL_STATUS[$stK]) ?></span>
+      <?php if ($job['deadline']): ?><strong><?= e(job_deadline_text($job)) ?></strong><?php endif; ?>
+      <?php if ($job['call_note']): ?><span><?= e($job['call_note']) ?></span><?php endif; ?>
+      <?php if ($job['status_checked_on']): ?><small>Call status checked on <?= e(fmt_date($job['status_checked_on'], 'j F Y')) ?>. Confirm on the official page before you apply.</small>
+      <?php elseif ($stK === 'unconfirmed'): ?><small>We have not confirmed the current call. Check the official page for dates.</small><?php endif; ?>
+    </div>
     <?= render_text((string) $job['description']) ?>
     <?php if ($job['requirements']): ?><h2>Before you apply</h2><?= render_text($job['requirements']) ?><?php endif; ?>
     <?php if ($job['verified_on']): ?><p class="meta">Official link checked on <?= e(fmt_date($job['verified_on'], 'j F Y')) ?>. Calls, deadlines and rules change every cycle, so always confirm them on the official page.</p><?php endif; ?>
@@ -79,6 +86,7 @@ $initial = [
     'kind' => isset(JOB_KINDS[$_GET['kind'] ?? '']) ? $_GET['kind'] : '',
     'level' => isset(JOB_LEVELS[$_GET['level'] ?? '']) ? $_GET['level'] : '',
     'scope' => isset(JOB_SCOPES[$_GET['scope'] ?? '']) ? $_GET['scope'] : '',
+    'status' => isset(JOB_CALL_STATUS[$_GET['status'] ?? '']) ? $_GET['status'] : '',
     'q' => trim((string) ($_GET['q'] ?? '')),
 ];
 require __DIR__ . '/includes/header.php';
@@ -104,14 +112,19 @@ require __DIR__ . '/includes/header.php';
       <button type="button" class="op-chip on" data-scope="">Anywhere</button>
       <?php foreach (JOB_SCOPES as $k => $label): ?><button type="button" class="op-chip" data-scope="<?= $k ?>"><?= e($label) ?></button><?php endforeach; ?>
     </div>
+    <div class="op-group" role="group" aria-label="Is the call open">
+      <span class="op-glabel">Call</span>
+      <button type="button" class="op-chip on" data-status="">Any</button>
+      <?php foreach (JOB_CALL_STATUS as $k => $label): ?><button type="button" class="op-chip" data-status="<?= $k ?>"><?= e($label) ?></button><?php endforeach; ?>
+    </div>
     <label class="op-search"><?= icon('search', 18) ?><input type="search" id="opQ" placeholder="Search by name, country or organisation" value="<?= e($initial['q']) ?>" aria-label="Search opportunities"></label>
   </div>
 
   <p class="op-count" aria-live="polite"><b id="opN"><?= count($items) ?></b> <span id="opW">opportunities</span> <button type="button" class="op-reset" id="opReset" hidden>Clear filters</button></p>
 
   <div class="op-grid" id="opGrid">
-    <?php foreach ($items as $j): $lv = array_filter(explode(',', (string) $j['levels'])); ?>
-      <article class="op-card" data-kind="<?= e($j['kind']) ?>" data-levels="<?= e(implode(' ', $lv)) ?>" data-scope="<?= e($j['scope']) ?>"
+    <?php foreach ($items as $j): $lv = array_filter(explode(',', (string) $j['levels'])); $stK = job_status_key($j); ?>
+      <article class="op-card" data-kind="<?= e($j['kind']) ?>" data-levels="<?= e(implode(' ', $lv)) ?>" data-scope="<?= e($j['scope']) ?>" data-status="<?= $stK ?>"
         data-text="<?= e(mb_strtolower($j['title'] . ' ' . $j['organisation'] . ' ' . $j['location'] . ' ' . $j['description'])) ?>">
         <div class="op-top"><span class="op-ic"><?= icon(JOB_KIND_ICONS[$j['kind']] ?? 'briefcase', 24) ?></span>
           <div class="op-badges"><span class="badge"><?= e(JOB_KINDS[$j['kind']]) ?></span><span class="badge <?= $j['scope'] === 'local' ? 'warn' : '' ?>"><?= e($j['scope'] === 'local' ? 'Local' : 'International') ?></span><?= $j['member_only'] ? '<span class="badge warn">Members only</span>' : '' ?></div></div>
@@ -119,6 +132,11 @@ require __DIR__ . '/includes/header.php';
         <p class="op-org"><?= e($j['organisation']) ?></p>
         <p class="op-meta"><?= icon('map-pin', 14) ?> <?= e($j['location'] ?: 'Not specified') ?></p>
         <?php if ($lv): ?><p class="op-levels"><?php foreach (job_level_labels($j['levels']) as $l): ?><span><?= e($l) ?></span><?php endforeach; ?></p><?php endif; ?>
+        <div class="op-call op-st-<?= $stK ?>">
+          <span class="op-st op-st-<?= $stK ?>"><?= e(JOB_CALL_STATUS[$stK]) ?></span>
+          <?php if ($j['deadline']): ?><strong><?= e(job_deadline_text($j)) ?></strong><?php endif; ?>
+          <?php if ($j['call_note']): ?><small><?= e(excerpt((string) $j['call_note'], 110)) ?></small><?php endif; ?>
+        </div>
         <p class="op-desc"><?= e(excerpt((string) $j['description'], 150)) ?></p>
         <div class="op-actions">
           <a class="btn secondary" href="?id=<?= (int) $j['id'] ?>">Details</a>
@@ -136,7 +154,7 @@ require __DIR__ . '/includes/header.php';
 (function () {
   var box = document.getElementById('op'); if (!box) return;
   var cards = [].slice.call(box.querySelectorAll('.op-card')), tabs = [].slice.call(box.querySelectorAll('.op-tab'));
-  var lvl = [].slice.call(box.querySelectorAll('[data-level]')), scp = [].slice.call(box.querySelectorAll('[data-scope].op-chip'));
+  var lvl = [].slice.call(box.querySelectorAll('[data-level]')), scp = [].slice.call(box.querySelectorAll('[data-scope].op-chip')), sta = [].slice.call(box.querySelectorAll('.op-chip[data-status]'));
   var q = document.getElementById('opQ'), n = document.getElementById('opN'), w = document.getElementById('opW'), empty = document.getElementById('opEmpty'), reset = document.getElementById('opReset');
   var st = <?= json_encode($initial) ?>;
   function mark(list, attr, val) { list.forEach(function (b) { var on = b.getAttribute(attr) === val; b.classList.toggle('on', on); if (b.hasAttribute('aria-selected')) b.setAttribute('aria-selected', on ? 'true' : 'false'); }); }
@@ -146,21 +164,23 @@ require __DIR__ . '/includes/header.php';
       var ok = (!st.kind || c.dataset.kind === st.kind) &&
         (!st.level || c.dataset.levels === '' || (' ' + c.dataset.levels + ' ').indexOf(' ' + st.level + ' ') > -1) &&
         (!st.scope || c.dataset.scope === st.scope) &&
+        (!st.status || c.dataset.status === st.status) &&
         (!text || c.dataset.text.indexOf(text) > -1);
       c.hidden = !ok; if (ok) shown++;
     });
     n.textContent = shown; w.textContent = shown === 1 ? 'opportunity' : 'opportunities';
     empty.hidden = shown !== 0 || !cards.length;
-    reset.hidden = !(st.kind || st.level || st.scope || text);
-    mark(tabs, 'data-kind', st.kind); mark(lvl, 'data-level', st.level); mark(scp, 'data-scope', st.scope);
-    var p = new URLSearchParams(); ['kind', 'level', 'scope', 'q'].forEach(function (k) { if (st[k]) p.set(k, st[k]); });
+    reset.hidden = !(st.kind || st.level || st.scope || st.status || text);
+    mark(tabs, 'data-kind', st.kind); mark(lvl, 'data-level', st.level); mark(scp, 'data-scope', st.scope); mark(sta, 'data-status', st.status);
+    var p = new URLSearchParams(); ['kind', 'level', 'scope', 'status', 'q'].forEach(function (k) { if (st[k]) p.set(k, st[k]); });
     history.replaceState(null, '', p.toString() ? '?' + p.toString() : location.pathname);
   }
   tabs.forEach(function (b) { b.addEventListener('click', function () { st.kind = b.getAttribute('data-kind'); apply(); }); });
   lvl.forEach(function (b) { b.addEventListener('click', function () { st.level = b.getAttribute('data-level'); apply(); }); });
+  sta.forEach(function (b) { b.addEventListener('click', function () { st.status = b.getAttribute('data-status'); apply(); }); });
   scp.forEach(function (b) { b.addEventListener('click', function () { st.scope = b.getAttribute('data-scope'); apply(); }); });
   q.addEventListener('input', function () { st.q = q.value; apply(); });
-  reset.addEventListener('click', function () { st = { kind: '', level: '', scope: '', q: '' }; q.value = ''; apply(); });
+  reset.addEventListener('click', function () { st = { kind: '', level: '', scope: '', status: '', q: '' }; q.value = ''; apply(); });
   apply();
 })();
 </script>
