@@ -11,22 +11,54 @@ $details = [
 ];
 ?>
 <div class="page-head"><h1>Contact GUCO</h1><?= cr('contact.intro') ?></div>
-<div class="grid two">
-  <div>
+<?php
+$ctIcons = ['Email' => 'mail', 'Telephone' => 'phone', 'Office hours' => 'clock', 'Membership support' => 'users', 'Chapter enquiries' => 'map-pin'];
+$ctLink = function (string $label, string $v): string {
+    if ($label === 'Email') return 'mailto:' . $v;
+    if ($label === 'Telephone') return 'tel:' . preg_replace('/[^\d+]/', '', $v);
+    return '';
+};
+?>
+<?php if (array_filter($details)): ?>
+<section class="ct-quick" aria-label="Ways to reach GUCO">
+  <?php foreach (array_filter($details) as $label => $v): $href = $ctLink($label, $v); ?>
+    <<?= $href ? 'a href="' . e($href) . '"' : 'div' ?> class="ct-tile">
+      <span class="ct-ic"><?= icon($ctIcons[$label] ?? 'mail', 22) ?></span>
+      <span class="ct-tx"><small><?= e($label) ?></small><b><?= e($v) ?></b></span>
+    </<?= $href ? 'a' : 'div' ?>>
+  <?php endforeach; ?>
+</section>
+<?php endif; ?>
+
+<section class="ct-main">
+  <div class="ct-form">
+    <span class="eyebrow">Write to the Secretariat</span>
     <h2>Send us a message</h2>
+    <p class="ct-lead">Tell us what you need and choose the topic that fits. We will reply by email.</p>
     <?php enquiry_form(in_array($_GET['category'] ?? '', ENQUIRY_CATEGORIES, true) ? $_GET['category'] : 'General'); ?>
   </div>
-  <div>
-    <h2>Official address</h2>
-    <address class="card contact-card"><span class="ic-circle"><?= icon('map-pin', 24) ?></span><div><?= implode('<br>', array_map('e', c_lines('contact.address'))) ?></div></address>
-    <?php $any = array_filter($details); if ($any): ?>
-      <h2>Contact details</h2>
-      <div class="card contact-list2"><?php $ci = ['Email' => 'mail', 'Telephone' => 'phone', 'Office hours' => 'clock', 'Membership support' => 'users', 'Chapter enquiries' => 'map-pin']; foreach ($any as $label => $v): ?>
-        <div class="contact-row"><span class="ic-circle"><?= icon($ci[$label] ?? 'mail', 22) ?></span><div><small><?= e($label) ?></small><?= $label === 'Email' ? '<a href="mailto:' . e($v) . '">' . e($v) . '</a>' : e($v) ?></div></div>
-      <?php endforeach; ?></div>
-    <?php endif; ?>
-  </div>
-</div>
+  <aside class="ct-side">
+    <address class="ct-addr">
+      <span class="ct-addr-ic"><?= icon('map-pin', 26) ?></span>
+      <h2>Official address</h2>
+      <p><?= implode('<br>', array_map('e', c_lines('contact.address'))) ?></p>
+      <a class="ct-addr-link" href="#gmap">See it on the map <?= icon('arrow-right', 16) ?></a>
+    </address>
+    <div class="ct-steps">
+      <h3>What happens next</h3>
+      <ol>
+        <li><span>1</span><div><b>You send your message</b><small>Choose the topic so it reaches the right officer.</small></div></li>
+        <li><span>2</span><div><b>The Secretariat reads it</b><small>Your message is stored safely and handled under our privacy notice.</small></div></li>
+        <li><span>3</span><div><b>You get a reply</b><small>We answer by email, so check the address you give.</small></div></li>
+      </ol>
+    </div>
+    <div class="ct-links">
+      <a href="<?= url('register.php') ?>"><?= icon('user-plus', 18) ?> Join GUCO</a>
+      <a href="<?= url('claim.php') ?>"><?= icon('id-card', 18) ?> Find your GUCO number</a>
+      <a href="<?= url('member/login.php') ?>"><?= icon('lock', 18) ?> Member Portal</a>
+    </div>
+  </aside>
+</section>
 
 <?php require_once __DIR__ . '/includes/places.php'; ?>
 <section class="gm" id="gmap" aria-labelledby="gmTitle" data-places="<?= e(json_encode(gulu_places(), JSON_UNESCAPED_UNICODE)) ?>" data-groups="<?= e(json_encode(PLACE_GROUPS, JSON_UNESCAPED_UNICODE)) ?>">

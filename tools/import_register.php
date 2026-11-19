@@ -9,8 +9,8 @@ if ($argc < 2 || !is_file($argv[1])) {
     exit("Usage: php tools/import_register.php path/to/register.csv [\"Source label\"]\n");
 }
 require __DIR__ . '/../includes/bootstrap.php';
-[$added, $skipped, $disputed, $errors, $other] = legacy_import_csv($argv[1], $argv[2] ?? 'Voters Register 2025');
-echo "Added $added, skipped $skipped already present, $other already present under a different number (noted), marked $disputed record(s) as needing the Secretariat.\n";
+[$added, $skipped, $disputed, $errors, $other, $updated] = legacy_import_csv($argv[1], $argv[2] ?? 'Voters Register 2025');
+echo "Added $added, updated $updated existing record(s), skipped $skipped already present, $other already present under a different number (noted), marked $disputed record(s) as needing the Secretariat.\n";
 foreach ($errors as $e) {
     echo "  $e\n";
 }

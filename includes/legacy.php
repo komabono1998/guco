@@ -93,17 +93,17 @@ function legacy_same_person(string $a, string $b, bool $sameNumber): bool
 }
 
 /**
- * Imports a CSV with the columns guco_no, title, full_name, sex, designation, note.
- * People already on the register are not added again: the same person under the same number is skipped, and the same
- * person under a different number is skipped with a note on the existing record. A number held by more than one
- * person is marked as needing the Secretariat.
- * Returns [added, skipped, disputed, errors[], matchedWithOtherNumber].
+ * Imports a CSV with the columns guco_no, title, full_name, sex, designation, note and, optionally, course, faculty,
+ * faculty_suggested, graduation_series, student_reg_no, phone and subscribed_year.
+ * People already on the register are not added again: details from the file update their record (the same person under a
+ * different number also gets a note). A number held by more than one person is marked as needing the Secretariat.
+ * Returns [added, skipped, disputed, errors[], matchedWithOtherNumber, updated].
  */
 function legacy_import_csv(string $path, string $source = 'Voters Register 2025'): array
 {
     $fh = fopen($path, 'r');
     if (!$fh) {
-        return [0, 0, 0, ['The file could not be opened.'], 0];
+        return [0, 0, 0, ['The file could not be opened.'], 0, 0];
     }
     $head = fgetcsv($fh);
     if ($head) {
@@ -113,12 +113,12 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
     foreach (['guco_no', 'full_name'] as $need) {
         if (!isset($col[$need])) {
             fclose($fh);
-            return [0, 0, 0, ["The file needs a \"$need\" column."], 0];
+            return [0, 0, 0, ["The file needs a \"$need\" column."], 0, 0];
         }
     }
     $get = fn(array $r, string $k) => isset($col[$k]) ? trim((string) ($r[$col[$k]] ?? '')) : '';
     $existing = q('SELECT id, guco_no, full_name, note FROM legacy_members')->fetchAll();
-    $add = $skip = $other = 0;
+    $add = $skip = $other = $upd = 0;
     $errors = [];
     $line = 1;
     while (($r = fgetcsv($fh)) !== false) {
@@ -131,6 +131,17 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
         $des = strtolower(str_replace([' ', '/', '-'], '_', $get($r, 'designation')));
         $des = isset(LEGACY_DESIGNATIONS[$des]) ? $des : 'alumnus';
         $sex = strtoupper(substr($get($r, 'sex'), 0, 1));
+        $series = (int) $get($r, 'graduation_series') ?: null;
+        $year = (int) $get($r, 'subscribed_year') ?: null;
+        $extra = [
+            'course' => mb_substr($get($r, 'course'), 0, 200) ?: null,
+            'faculty' => mb_substr($get($r, 'faculty'), 0, 150) ?: null,
+            'faculty_suggested' => $get($r, 'faculty') !== '' && $get($r, 'faculty_suggested') !== '0' ? 1 : 0,
+            'graduation_series' => $series,
+            'student_reg_no' => mb_substr($get($r, 'student_reg_no'), 0, 60) ?: null,
+            'phone' => mb_substr($get($r, 'phone'), 0, 40) ?: null,
+            'subscribed_year' => $year,
+        ];
         if (!$no || $name === '') {
             $errors[] = "Line $line: a valid GUCO number and a name are required.";
             continue;
@@ -156,10 +167,26 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
             } else {
                 $skip++;
             }
+            // Newer details from the file: fill gaps, and take the latest subscription year, course and designation.
+            $changed = q('UPDATE legacy_members SET
+                    course = COALESCE(?, course),
+                    faculty_suggested = CASE WHEN ? IS NOT NULL AND (faculty IS NULL OR faculty_suggested = 1) THEN ? ELSE faculty_suggested END,
+                    faculty = CASE WHEN ? IS NOT NULL AND (faculty IS NULL OR faculty_suggested = 1) THEN ? ELSE faculty END,
+                    graduation_series = COALESCE(?, graduation_series),
+                    student_reg_no = COALESCE(?, student_reg_no),
+                    phone = COALESCE(?, phone),
+                    subscribed_year = GREATEST(COALESCE(?, 0), COALESCE(subscribed_year, 0)),
+                    designation = ?
+                WHERE id = ?', [
+                $extra['course'], $extra['faculty'], $extra['faculty_suggested'], $extra['faculty'], $extra['faculty'], $series, $extra['student_reg_no'],
+                $extra['phone'], $year, $des, $same['id'],
+            ])->rowCount();
+            $upd += $changed ? 1 : 0;
             continue;
         }
-        q('INSERT INTO legacy_members (guco_no, title, full_name, sex, designation, note, source) VALUES (?,?,?,?,?,?,?)',
-            [$no, mb_substr($get($r, 'title'), 0, 30), mb_substr($name, 0, 200), in_array($sex, ['F', 'M'], true) ? $sex : null, $des, mb_substr($get($r, 'note'), 0, 300) ?: null, mb_substr($source, 0, 80)]);
+        q('INSERT INTO legacy_members (guco_no, title, full_name, sex, designation, note, source, course, faculty, faculty_suggested, graduation_series, student_reg_no, phone, subscribed_year) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            [$no, mb_substr($get($r, 'title'), 0, 30), mb_substr($name, 0, 200), in_array($sex, ['F', 'M'], true) ? $sex : null, $des, mb_substr($get($r, 'note'), 0, 300) ?: null, mb_substr($source, 0, 80),
+                $extra['course'], $extra['faculty'], $extra['faculty_suggested'], $series, $extra['student_reg_no'], $extra['phone'], $year]);
         $existing[] = ['id' => (int) db()->lastInsertId(), 'guco_no' => $no, 'full_name' => $name, 'note' => $get($r, 'note')];
         $add++;
     }
@@ -170,5 +197,5 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
                         WHEN note LIKE '%shared by more than one person%' THEN note
                         ELSE LEFT(CONCAT(note, '; Number shared by more than one person across the registers'), 300) END
         WHERE status = 'unclaimed' AND guco_no IN (SELECT guco_no FROM (SELECT guco_no FROM legacy_members GROUP BY guco_no HAVING COUNT(*) > 1) d)")->rowCount();
-    return [$add, $skip, $dup, $errors, $other];
+    return [$add, $skip, $dup, $errors, $other, $upd];
 }

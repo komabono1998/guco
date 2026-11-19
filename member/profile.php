@@ -47,6 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             isset(STAFF_STATUS[$_POST['staff_status'] ?? '']) ? $_POST['staff_status'] : 'current', $me['id'],
         ]);
     }
+    if (($own ?? 'alumni') !== 'staff') {
+        q('UPDATE member_profiles SET graduation_series = ? WHERE user_id = ?', [(int) ($_POST['graduation_series'] ?? 0) ?: null, $me['id']]);
+    }
     q('UPDATE member_profiles SET phone=?, address=?, location=?, country=?, nationality=?, college=?, programme=?, qualification_level=?,
         graduation_year=?, employment_status=?, employer=?, profession=?, interests=?, bio=?, chapter_id=?, directory_consent=?' . ($photo ? ', photo=?' : '') . ' WHERE user_id=?',
         array_merge([
@@ -111,6 +114,7 @@ portal_header('My profile');
         <select name="qualification_level"><option value="">Select</option>
           <?php foreach (QUALIFICATION_LEVELS as $l): ?><option<?= ($p['qualification_level'] ?? '') === $l ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
       <label>Year of graduation <input type="number" name="graduation_year" value="<?= $v('graduation_year') ?>"></label>
+      <label>Graduation series <span class="hint">(e.g. 21)</span> <input type="number" name="graduation_series" min="1" max="60" value="<?= $v('graduation_series') ?>"></label>
     </div>
   </fieldset>
   <?php endif; ?>

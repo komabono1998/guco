@@ -28,6 +28,16 @@ function deliver_mail(string $to, string $subject, string $text, array $opts = [
     }
     $body .= "--$boundary--";
 
+    // On a development computer, keep a readable copy of every email so it can be checked without a mail server.
+    if (config('dev_mode')) {
+        $dir = __DIR__ . '/../storage/outbox';
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+            file_put_contents($dir . '/.htaccess', "Require all denied\n");
+        }
+        @file_put_contents($dir . '/' . date('Ymd-His') . '-' . substr(preg_replace('/[^a-z0-9]+/i', '-', $to), 0, 40) . '-' . bin2hex(random_bytes(2)) . '.eml',
+            "To: $to\r\nSubject: $subject\r\n" . $headers . "\r\n\r\n" . $body);
+    }
     $ok = false;
     $error = null;
     try {

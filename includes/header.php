@@ -78,6 +78,7 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 </script>
 <?php endif; ?>
 <a class="skip" href="#main">Skip to main content</a>
+<?php if (maintenance_on() && is_staff()): ?><div class="mt-staff-bar" role="status"><strong>Maintenance mode is ON.</strong> Visitors see the maintenance page; you can see the site because you are signed in as staff. <?php if (can('settings')): ?><a href="<?= url('admin/maintenance.php') ?>">Turn it off</a><?php endif; ?></div><?php endif; ?>
 <div class="topbar">
   <div class="container tb">
     <div class="tb-l">

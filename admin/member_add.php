@@ -65,8 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $emailed = false;
         if (!empty($_POST['send_email'])) {
-            $emailed = send_mail($email, 'Your GUCO Member Portal account',
-                "Dear $name,\n\nThe Secretariat has created a Member Portal account for you.\n\nLog in: " . absolute_url('member/login.php') . "\nEmail: $email\nTemporary password: $pass\n\nPlease change your password under My profile after you log in.\n\nGulu University Convocation");
+            $emailed = portal_welcome_mail([
+                'mode' => 'created', 'name' => $name, 'email' => $email, 'password' => $pass,
+                'facts' => array_filter(['Member type' => MEMBER_TYPES[$type] ?? '', 'Category' => CATEGORY_LABELS[$cat] ?? '', 'Membership ID' => (string) $mid]),
+                'next' => [$mid ? 'Your membership is approved. You can view your card in the portal.' : 'The Secretariat will confirm your membership and issue your Membership ID.'],
+            ]);
         }
         $created = ['id' => $uid, 'name' => $name, 'email' => $email, 'password' => $pass, 'generated' => $generate, 'mid' => $mid, 'emailed' => $emailed, 'sent' => !empty($_POST['send_email'])];
     }

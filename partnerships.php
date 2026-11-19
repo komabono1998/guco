@@ -56,8 +56,12 @@ $ptIcon = function (string $text): string {
 </section>
 
 <section class="section" id="partner-form">
-  <h2>Discuss a partnership or enquire about support</h2>
+  <div class="ct-form ct-form-wide">
+    <span class="eyebrow">Write to the Secretariat</span>
+    <h2>Discuss a partnership or enquire about support</h2>
+    <p class="ct-lead">Tell us how you would like to work with or support GUCO. We will reply by email.</p>
   <?php enquiry_form(in_array($_GET['category'] ?? '', ['Partnerships', 'Support GUCO'], true) ? $_GET['category'] : 'Partnerships'); ?>
+  </div>
 </section>
 <script>
 (function () {

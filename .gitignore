@@ -14,3 +14,7 @@ storage/backups/*
 # Imported member registers hold personal data and must never be committed
 storage/imports/*
 !storage/imports/.htaccess
+
+# Copies of outgoing email kept on a development computer
+storage/outbox/*
+!storage/outbox/.htaccess

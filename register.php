@@ -14,6 +14,11 @@ $pre = $claim ? [
     'gender' => ['F' => 'female', 'M' => 'male'][$claim['sex'] ?? ''] ?? '',
     'member_type' => $claim['designation'] === 'staff' ? 'staff' : 'alumni',
     'eligibility_details' => 'Existing GUCO member, number ' . $claim['guco_no'] . ' (' . $claim['source'] . ').',
+    'programme' => (string) ($claim['course'] ?? ''),
+    'graduation_series' => (string) ($claim['graduation_series'] ?? ''),
+    'student_reg_no' => (string) ($claim['student_reg_no'] ?? ''),
+    'phone' => (string) ($claim['phone'] ?? ''),
+    'college' => !empty($claim['faculty']) && empty($claim['faculty_suggested']) ? (string) $claim['faculty'] : '',
 ] : [];
 $f = fn($k) => e($_POST[$k] ?? ($pre[$k] ?? ''));
 $sel = fn($k, $v) => ($_POST[$k] ?? ($pre[$k] ?? ($k === 'category' ? ($_GET['category'] ?? '') : ''))) === (string) $v ? ' selected' : '';
@@ -120,7 +125,16 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
                 redirect('claim.php');
             }
             q('UPDATE member_profiles SET legacy_guco_no = ? WHERE user_id = ?', [$claimNow['guco_no'], $uid]);
+            // Already on a subscribed-members list: record that period, so renewal shows as due once it has passed.
+            if (!empty($claimNow['subscribed_year'])) {
+                $subYear = (int) $claimNow['subscribed_year'];
+                q('UPDATE member_profiles SET subscription_status = ?, paid_until = ?, admin_notes = CONCAT(COALESCE(admin_notes, \'\'), ?) WHERE user_id = ?', [
+                    $subYear >= (int) date('Y') ? 'active' : 'arrears', $subYear . '-12-31',
+                    'Subscribed for ' . $subYear . " (subscribed-members list). Renewal needed once that period has passed.\n", $uid,
+                ]);
+            }
         }
+        q('UPDATE member_profiles SET graduation_series = ? WHERE user_id = ?', [$type === 'alumni' ? ((int) ($_POST['graduation_series'] ?? 0) ?: null) : null, $uid]);
         if (!$payLater && ($proof || $amount > 0)) {
             q('INSERT INTO member_payments (user_id, purpose, method, amount, reference, paid_on, proof_file, proof_original) VALUES (?,?,?,?,?,?,?,?)', [
                 $uid, 'registration', in_array($_POST['method'] ?? '', PAYMENT_METHODS, true) ? $_POST['method'] : 'Other', $amount,
@@ -132,33 +146,19 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         session_regenerate_id(true);
         $_SESSION['uid'] = $uid;
         $memberNo = (int) q('SELECT member_no FROM member_profiles WHERE user_id = ?', [$uid])->fetchColumn();
-        $payLine = $payLater
-            ? "Payment: still to come. Pay through the approved channel, then upload your proof of payment here:\n" . absolute_url('member/payments.php#renew') . "\nYour membership is approved once the payment is verified."
-            : ($proof || $amount > 0 ? 'Payment: your proof of payment was received and is waiting for verification.' : 'Payment: not yet received.');
         notify($uid, 'Welcome to GUCO', 'Your application was received. Track it, your payments and everything else from this portal.', 'member/');
-        send_mail($email, 'Welcome to GUCO: your Member Portal account',
-            "Dear $name,\n\nThank you for applying to join Gulu University Convocation. Your Member Portal account has been created.\n\n"
-            . "LOG IN TO YOUR PORTAL\n" . absolute_url('member/login.php') . "\n\n"
-            . "Login email: $email\n"
-            . "Password: the one you chose on the application form (for your security we never send passwords by email).\n"
-            . "Forgotten it? Reset it here: " . absolute_url('forgot.php') . "\n\n"
-            . "YOUR APPLICATION\n"
-            . ($claimNow ? 'GUCO No.: ' . $claimNow['guco_no'] . " (your existing number, kept)\n" : '')
-            . 'Member no.: ' . member_no_label($memberNo) . "\n"
-            . 'Member type: ' . (MEMBER_TYPES[$type] ?? '') . "\n"
-            . 'Category: ' . (CATEGORY_LABELS[$cat] ?? '') . "\n"
-            . "Status: pending approval\n"
-            . "$payLine\n\n"
-            . "Your Membership ID and card are issued when the Secretariat approves your application.\n\n"
-            . "WHAT YOU CAN TRACK IN THE PORTAL\n"
-            . "- The progress of your application and membership\n"
-            . "- Your payments, receipts and renewals\n"
-            . "- Your membership card and QR code (after approval)\n"
-            . "- Events you registered for and your tickets\n"
-            . "- Your chapter, community projects and mentorship\n"
-            . "- Your job, scholarship and fellowship applications\n"
-            . "- Your giving history and notifications\n\n"
-            . "Need help? Use Support inside the portal, or contact the Secretariat.\n\nGulu University Convocation");
+        portal_welcome_mail([
+            'mode' => 'applied', 'name' => $name, 'email' => $email,
+            'facts' => array_filter([
+                'GUCO No.' => $claimNow ? $claimNow['guco_no'] . ' (your existing number, kept)' : '',
+                'Member no.' => member_no_label($memberNo), 'Member type' => MEMBER_TYPES[$type] ?? '', 'Category' => CATEGORY_LABELS[$cat] ?? '', 'Status' => 'Pending approval',
+            ]),
+            'next' => [
+                $payLater ? 'Pay through the approved channel, then upload your proof of payment in the portal under Payments: ' . absolute_url('member/payments.php#renew') : ($proof || $amount > 0 ? 'Your proof of payment was received and is waiting for verification.' : 'Your payment has not been received yet. Upload your proof of payment in the portal under Payments.'),
+                'The Secretariat checks your details and payment, then approves your membership.',
+                'Your Membership ID and card are issued when you are approved. We will email you.',
+            ],
+        ]);
         flash($payLater
             ? 'Application received. Your payment is still to come: pay through the approved channel and upload your proof under Payments in your portal. Your membership is approved once the payment is verified.'
             : 'Application received. The Secretariat will verify your payment and approve your membership; your membership ID is issued on approval.');
@@ -264,6 +264,7 @@ require __DIR__ . '/includes/header.php';
         <select name="qualification_level"><option value="">Select</option>
           <?php foreach (QUALIFICATION_LEVELS as $l): ?><option<?= $sel('qualification_level', $l) ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
       <label>Year of graduation * <input type="number" name="graduation_year" min="1990" max="<?= (int) date('Y') + 1 ?>" value="<?= $f('graduation_year') ?>"></label>
+      <label>Graduation series <span class="hint">(e.g. 21 for the 21st graduation)</span> <input type="number" name="graduation_series" min="1" max="60" value="<?= $f('graduation_series') ?>"></label>
       <label>Student registration number <span class="hint">(optional)</span> <input name="student_reg_no" value="<?= $f('student_reg_no') ?>"></label>
     </div>
   </fieldset>

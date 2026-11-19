@@ -35,7 +35,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         flash('The first row must contain the column names full_name and email. Download the template to see the layout.', 'error');
         redirect('admin/members_import.php');
     }
-    $report = ['added' => 0, 'duplicates' => [], 'invalid' => [], 'possible' => [], 'created' => []];
+    $report = ['added' => 0, 'duplicates' => [], 'invalid' => [], 'possible' => [], 'created' => [], 'emailed' => 0, 'email_failed' => []];
+    $sendMail = !empty($_POST['send_email']);
     $n = 0;
     $seen = [];
     while (($raw = fgetcsv($h)) !== false && $n < 2000) {
@@ -90,6 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $report['added']++;
         $report['created'][] = [$name, $email, $pass];
+        if ($sendMail) {
+            $mid = (string) q('SELECT membership_id FROM member_profiles WHERE user_id = ?', [$uid])->fetchColumn();
+            $ok = portal_welcome_mail([
+                'mode' => 'created', 'name' => $name, 'email' => $email, 'password' => $pass,
+                'facts' => array_filter(['Category' => CATEGORY_LABELS[$cat] ?? '', 'Membership ID' => $mid]),
+                'next' => [$mid ? 'Your membership is approved. You can view your card in the portal.' : 'The Secretariat will confirm your membership and issue your Membership ID.'],
+            ]);
+            $ok ? $report['emailed']++ : $report['email_failed'][] = $email;
+        }
     }
     fclose($h);
     if (!$dry) {
@@ -106,6 +116,7 @@ admin_header('Import and export members', 'Bulk add alumni from a spreadsheet, a
     <form method="post" enctype="multipart/form-data" class="stack"><?= csrf_field() ?>
       <label>CSV file <input type="file" name="file" accept=".csv,text/csv" required></label>
       <label class="check"><input type="checkbox" name="dry_run" checked> Test run only (do not save)</label>
+      <label class="check"><input type="checkbox" name="send_email" checked> Email each new member a link to the portal and how to sign in (with their temporary password)</label>
       <label class="check"><input type="checkbox" name="approve"> Approve imported members now and issue membership IDs (recorded as approved without a payment)</label>
       <button>Run import</button>
     </form>
@@ -126,6 +137,7 @@ admin_header('Import and export members', 'Bulk add alumni from a spreadsheet, a
   <?php foreach (['invalid' => 'Invalid rows', 'duplicates' => 'Skipped duplicates', 'possible' => 'Possible duplicates to review (imported anyway)'] as $k => $label): if ($report[$k]): ?>
     <h3><?= e($label) ?></h3><ul><?php foreach (array_slice($report[$k], 0, 100) as $m): ?><li><?= e($m) ?></li><?php endforeach; ?></ul>
   <?php endif; endforeach; ?>
+  <?php if (!$report['dry'] && $report['created']): ?><div class="notice">Login emails: <strong><?= (int) $report['emailed'] ?></strong> sent<?= $report['email_failed'] ? ', <strong>' . count($report['email_failed']) . '</strong> could not be delivered (see the Mail log): ' . e(implode(', ', array_slice($report['email_failed'], 0, 20))) : '' ?>. The temporary passwords are also listed below so you can share them another way.</div><?php endif; ?>
   <?php if ($report['created']): ?>
     <h3>Temporary passwords (shown once, copy them now)</h3>
     <div class="table-wrap"><table><tr><th>Name</th><th>Email</th><th>Temporary password</th></tr>

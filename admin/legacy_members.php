@@ -16,9 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$f || $f['error'] !== UPLOAD_ERR_OK || $f['size'] > 2 * 1024 * 1024 || strtolower(pathinfo($f['name'], PATHINFO_EXTENSION)) !== 'csv') {
             flash('Choose a CSV file under 2MB with the columns guco_no, title, full_name, sex, designation, note.', 'error');
         } else {
-            [$added, $skipped, $disputed, $errors, $other] = legacy_import_csv($f['tmp_name'], trim($_POST['source'] ?? '') ?: 'Imported register');
+            [$added, $skipped, $disputed, $errors, $other, $updated] = legacy_import_csv($f['tmp_name'], trim($_POST['source'] ?? '') ?: 'Imported register');
             audit('import_existing_members', "added $added, skipped $skipped, disputed $disputed");
-            flash("Imported: $added added, $skipped already present, $other already present under a different number (noted on their record), $disputed marked as needing the Secretariat.". ($errors ? ' Problems: ' . implode(' ', array_slice($errors, 0, 3)) : ''), $errors ? 'error' : 'success');
+            flash("Imported: $added added, $updated records updated with new details, $skipped already present, $other already present under a different number (noted on their record), $disputed marked as needing the Secretariat.". ($errors ? ' Problems: ' . implode(' ', array_slice($errors, 0, 3)) : ''), $errors ? 'error' : 'success');
         }
         redirect('admin/legacy_members.php');
     }
@@ -38,9 +38,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             } elseif (q('SELECT 1 FROM legacy_members WHERE guco_no = ? AND full_name = ? AND id <> ?', [$no, $name, $id])->fetch()) {
                 flash('Another record already has that number and name.', 'error');
             } else {
-                q('UPDATE legacy_members SET guco_no=?, title=?, full_name=?, sex=?, designation=?, status=?, note=? WHERE id=?', [
+                q('UPDATE legacy_members SET guco_no=?, title=?, full_name=?, sex=?, designation=?, status=?, note=?, course=?, faculty=?, faculty_suggested=?, graduation_series=?, phone=?, subscribed_year=? WHERE id=?', [
                     $no, mb_substr(trim($_POST['title'] ?? ''), 0, 30), mb_substr($name, 0, 200), in_array($_POST['sex'] ?? '', ['F', 'M'], true) ? $_POST['sex'] : null,
-                    $des, $st, mb_substr(trim($_POST['note'] ?? ''), 0, 300) ?: null, $id,
+                    $des, $st, mb_substr(trim($_POST['note'] ?? ''), 0, 300) ?: null,
+                    mb_substr(trim($_POST['course'] ?? ''), 0, 200) ?: null, mb_substr(trim($_POST['faculty'] ?? ''), 0, 150) ?: null,
+                    (trim($_POST['faculty'] ?? '') !== '' && trim($_POST['faculty']) === (string) $row['faculty']) ? (int) $row['faculty_suggested'] : 0,
+                    (int) ($_POST['graduation_series'] ?? 0) ?: null, mb_substr(trim($_POST['phone'] ?? ''), 0, 40) ?: null, (int) ($_POST['subscribed_year'] ?? 0) ?: null, $id,
                 ]);
                 audit('update_existing_member', "{$row['guco_no']} -> $no");
                 flash('Record saved.');
@@ -86,11 +89,11 @@ $total = array_sum($counts);
 $back = http_build_query(array_filter(['status' => $statusF, 'designation' => $desF, 'q' => $search]));
 admin_header('Existing members', 'The register of members who already hold a GUCO number');
 ?>
-<div class="tiles" style="margin-bottom:18px">
-  <div class="tile"><div><small>On the register</small><b><?= (int) $total ?></b></div></div>
-  <div class="tile"><div><small>Portal account created</small><b><?= (int) ($counts['claimed'] ?? 0) ?></b></div></div>
-  <div class="tile"><div><small>Not yet claimed</small><b><?= (int) ($counts['unclaimed'] ?? 0) ?></b></div></div>
-  <div class="tile"><div><small>Needs the Secretariat</small><b><?= (int) ($counts['disputed'] ?? 0) ?></b></div></div>
+<div class="kpis">
+  <div class="kpi"><span class="ic"><?= icon('users', 22) ?></span><div><div class="lbl">On the register</div><div class="val"><?= (int) $total ?></div></div></div>
+  <div class="kpi"><span class="ic"><?= icon('users', 22) ?></span><div><div class="lbl">Portal account created</div><div class="val"><?= (int) ($counts['claimed'] ?? 0) ?></div></div></div>
+  <div class="kpi"><span class="ic"><?= icon('users', 22) ?></span><div><div class="lbl">Not yet claimed</div><div class="val"><?= (int) ($counts['unclaimed'] ?? 0) ?></div></div></div>
+  <div class="kpi"><span class="ic"><?= icon('users', 22) ?></span><div><div class="lbl">Needs the Secretariat</div><div class="val"><?= (int) ($counts['disputed'] ?? 0) ?></div></div></div>
 </div>
 <p class="meta">Members on this register look up their GUCO number on <a href="<?= url('claim.php') ?>" target="_blank" rel="noopener">the Find your record page</a>, confirm their details, renew their subscription and get a portal account that keeps the same number. Approve them from <a href="members.php">Members</a> once their payment is verified, or with a waiver.</p>
 
@@ -103,12 +106,13 @@ admin_header('Existing members', 'The register of members who already hold a GUC
 </form>
 
 <div class="table-wrap"><table>
-  <tr><th>GUCO No.</th><th>Name</th><th>Designation</th><th>Status</th><th>Portal account</th><th></th></tr>
+  <tr><th>GUCO No.</th><th>Name</th><th>Designation</th><th>Course / series</th><th>Status</th><th>Portal account</th><th></th></tr>
   <?php foreach ($rows as $r): ?>
   <tr>
     <td class="mono"><?= e($r['guco_no']) ?></td>
     <td><?= e(legacy_display_name($r)) ?><?= $r['sex'] ? ' <span class="meta">(' . e($r['sex']) . ')</span>' : '' ?><?= $r['note'] ? '<br><span class="meta">' . e($r['note']) . '</span>' : '' ?></td>
     <td><?= e(LEGACY_DESIGNATIONS[$r['designation']]) ?></td>
+    <td><?= e($r['course'] ?: '-') ?><?= $r['graduation_series'] ? '<br><span class="meta">Series ' . (int) $r['graduation_series'] . '</span>' : '' ?><?= $r['subscribed_year'] ? '<br><span class="badge">Subscribed ' . (int) $r['subscribed_year'] . '</span>' : '' ?></td>
     <td><span class="badge <?= $r['status'] === 'claimed' ? '' : ($r['status'] === 'unclaimed' ? 'warn' : 'bad') ?>"><?= e(LEGACY_STATUS[$r['status']]) ?></span></td>
     <td><?php if ($r['claimed_user_id']): ?><a href="members.php?id=<?= (int) $r['claimed_user_id'] ?>"><?= e($r['email']) ?></a><br><span class="meta"><?= e($r['user_status']) ?> &middot; subscription <?= e($r['subscription_status'] ?? 'unpaid') ?><?= $r['paid_until'] ? ' to ' . e(fmt_date($r['paid_until'])) : '' ?></span><?php else: ?><span class="meta">none yet</span><?php endif; ?></td>
     <td>
@@ -121,6 +125,11 @@ admin_header('Existing members', 'The register of members who already hold a GUC
           <label>Sex <select name="sex"><option value="">Not stated</option><option value="F"<?= $r['sex'] === 'F' ? ' selected' : '' ?>>F</option><option value="M"<?= $r['sex'] === 'M' ? ' selected' : '' ?>>M</option></select></label>
           <label>Designation <select name="designation"><?php foreach (LEGACY_DESIGNATIONS as $k => $l): ?><option value="<?= $k ?>"<?= $r['designation'] === $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?></select></label>
           <?php if ($r['status'] !== 'claimed'): ?><label>Status <select name="status"><?php foreach (['unclaimed', 'disputed', 'withdrawn'] as $k): ?><option value="<?= $k ?>"<?= $r['status'] === $k ? ' selected' : '' ?>><?= e(LEGACY_STATUS[$k]) ?></option><?php endforeach; ?></select></label><?php endif; ?>
+          <label>Course <input name="course" value="<?= e($r['course']) ?>"></label>
+          <label>Faculty <?= $r['faculty_suggested'] ? '<span class="hint">(suggested from the course, please confirm)</span>' : '' ?><input name="faculty" value="<?= e($r['faculty']) ?>"></label>
+          <label>Graduation series <input type="number" name="graduation_series" min="1" max="60" value="<?= e($r['graduation_series']) ?>"></label>
+          <label>Phone <input name="phone" value="<?= e($r['phone']) ?>"></label>
+          <label>Subscribed year <input type="number" name="subscribed_year" min="2000" max="2100" value="<?= e($r['subscribed_year']) ?>"></label>
           <label>Note <input name="note" value="<?= e($r['note']) ?>"></label>
           <div class="row-actions">
             <button name="action" value="save">Save</button>
@@ -135,7 +144,7 @@ admin_header('Existing members', 'The register of members who already hold a GUC
       </details>
     </td>
   </tr>
-  <?php endforeach; if (!$rows): ?><tr><td colspan="6">No records<?= $total ? ' match those filters' : ' yet. Import a register below' ?>.</td></tr><?php endif; ?>
+  <?php endforeach; if (!$rows): ?><tr><td colspan="7">No records<?= $total ? ' match those filters' : ' yet. Import a register below' ?>.</td></tr><?php endif; ?>
 </table></div>
 
 <h2 style="margin-top:32px">Import a register</h2>

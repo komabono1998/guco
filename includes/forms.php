@@ -30,28 +30,57 @@ function handle_enquiry_post(string $redirectTo): void
     redirect($redirectTo);
 }
 
+const ENQUIRY_ICONS = [
+    'General' => 'mail', 'Membership' => 'id-card', 'Alumni Chapters' => 'map-pin', 'Events' => 'calendar', 'Partnerships' => 'users',
+    'Support GUCO' => 'heart', 'Profile correction' => 'edit', 'Other' => 'file',
+];
+
+/** The shared enquiry form: topic pills, floating labels, live checks, a progress bar and a clear consent switch. */
 function enquiry_form(string $defaultCategory = 'General'): void
 {
     $me = current_user();
-    $sel = $_POST['category'] ?? $defaultCategory;
+    $sel = in_array($_POST['category'] ?? $defaultCategory, ENQUIRY_CATEGORIES, true) ? ($_POST['category'] ?? $defaultCategory) : 'General';
+    $v = fn($k, $d = '') => e($_POST[$k] ?? $d);
     ?>
-<form method="post" class="stack">
+<form method="post" class="enq" id="enq" novalidate>
   <?= csrf_field() ?><?= spam_fields() ?>
-  <div class="cols">
-    <label>Full name <input name="name" required autocomplete="name" value="<?= e($_POST['name'] ?? ($me['full_name'] ?? '')) ?>"></label>
-    <label>Email address <input type="email" name="email" required autocomplete="email" value="<?= e($_POST['email'] ?? ($me['email'] ?? '')) ?>"></label>
+  <div class="enq-prog" aria-hidden="true"><i id="enqBar"></i></div>
+  <p class="enq-prog-t" id="enqProg" aria-live="polite">0 of 4 required fields done</p>
+
+  <fieldset class="enq-cats">
+    <legend>What is your message about?</legend>
+    <div class="enq-pills">
+      <?php foreach (ENQUIRY_CATEGORIES as $c): ?>
+        <label class="enq-pill"><input type="radio" name="category" value="<?= e($c) ?>"<?= $c === $sel ? ' checked' : '' ?>><span><?= icon(ENQUIRY_ICONS[$c] ?? 'mail', 16) ?> <?= e($c) ?></span></label>
+      <?php endforeach; ?>
+    </div>
+  </fieldset>
+
+  <div class="enq-grid">
+    <div class="enq-f" data-req><input id="enq-name" name="name" required autocomplete="name" placeholder=" " value="<?= $v('name', $me['full_name'] ?? '') ?>"><label for="enq-name">Full name</label><small class="enq-err">Please enter your name.</small></div>
+    <div class="enq-f" data-req data-type="email"><input id="enq-email" type="email" name="email" required autocomplete="email" placeholder=" " value="<?= $v('email', $me['email'] ?? '') ?>"><label for="enq-email">Email address</label><small class="enq-err">Enter a valid email address.</small></div>
+    <div class="enq-f"><input id="enq-phone" name="phone" autocomplete="tel" placeholder=" " value="<?= $v('phone') ?>"><label for="enq-phone">Telephone <em>(optional)</em></label></div>
+    <div class="enq-f"><input id="enq-subject" name="subject" placeholder=" " value="<?= $v('subject') ?>"><label for="enq-subject">Subject <em>(optional)</em></label></div>
   </div>
-  <div class="cols">
-    <label>Telephone number <span class="hint">(optional)</span> <input name="phone" autocomplete="tel" value="<?= e($_POST['phone'] ?? '') ?>"></label>
-    <label>Enquiry category
-      <select name="category"><?php foreach (ENQUIRY_CATEGORIES as $c): ?><option<?= $c === $sel ? ' selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?></select>
-    </label>
+
+  <div class="enq-f enq-msg" data-req>
+    <textarea id="enq-body" name="body" required rows="6" maxlength="4000" placeholder=" "><?= $v('body') ?></textarea><label for="enq-body">Your message</label>
+    <small class="enq-err">Please write your message.</small>
+    <span class="enq-count" id="enqCount" aria-hidden="true">0 / 4000</span>
   </div>
-  <label>Subject <input name="subject" value="<?= e($_POST['subject'] ?? '') ?>"></label>
-  <label>Message <textarea name="body" rows="6" required><?= e($_POST['body'] ?? '') ?></textarea></label>
-  <label class="check"><input type="checkbox" name="consent" required> I agree to be contacted about this enquiry and have read the <a href="<?= url('privacy.php') ?>">privacy notice</a>.</label>
-  <p class="meta">Information submitted through this form will be used to respond to your enquiry and handled according to GUCO's published privacy notice.</p>
-  <button>Send message</button>
+
+  <label class="enq-consent" data-req-check>
+    <input type="checkbox" name="consent" required>
+    <span class="enq-switch" aria-hidden="true"></span>
+    <span class="enq-ctext">I agree to be contacted about this enquiry and have read the <a href="<?= url('privacy.php') ?>">privacy notice</a>.</span>
+  </label>
+  <small class="enq-err enq-err-c" id="enqConsentErr">Please tick the box so we can reply to you.</small>
+
+  <div class="enq-foot">
+    <button class="enq-send" id="enqSend" type="submit"><span class="enq-send-t">Send message</span> <?= icon('arrow-right', 18) ?></button>
+    <p class="enq-note">Your details are used only to answer this enquiry and are handled under GUCO's published privacy notice.</p>
+  </div>
 </form>
+<script src="<?= asset('assets/js/enquiry.js') ?>" defer></script>
 <?php
 }

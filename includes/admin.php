@@ -21,7 +21,7 @@ const ADMIN_GROUPS = [
     ],
     'Membership' => [
         ['Members', 'members.php', 'members', 'id-card', 'members'], ['Payments', 'payments.php', 'payments', 'credit-card', 'payments'],
-        ['Import / export', 'members_import.php', 'members', 'folder', null], ['Existing members', 'legacy_members.php', 'members', 'users', null],
+        ['Import / export', 'members_import.php', 'members', 'folder', null], ['Existing members', 'legacy_members.php', 'members', 'users', null], ['Members database', 'member_reports.php', 'members', 'file', null],
     ],
     'Giving and careers' => [
         ['Donations', 'donations.php', 'donations', 'heart', 'donations'], ['Campaigns', 'campaigns.php', 'donations', 'target', null],
@@ -32,7 +32,7 @@ const ADMIN_GROUPS = [
         ['Messages', 'messages.php', 'messages', 'inbox', 'messages'], ['Subscribers', 'subscribers.php', 'subscribers', 'mail', null],
     ],
     'Site' => [
-        ['Branding & layout', 'branding.php', 'branding', 'layout', null], ['Settings', 'settings.php', 'settings', 'sliders', null],
+        ['Branding & layout', 'branding.php', 'branding', 'layout', null], ['Settings', 'settings.php', 'settings', 'sliders', null], ['Maintenance mode', 'maintenance.php', 'settings', 'shield', null],
     ],
     'System' => [
         ['Users & roles', 'users.php', 'users', 'shield', null], ['Mail log', 'mail_log.php', 'mail', 'activity', null],
@@ -174,6 +174,7 @@ function admin_header(string $title, string $subtitle = ''): void
     <div class="adm-side-foot"><a href="<?= url() ?>" target="_blank" rel="noopener"><?= icon('globe', 18) ?><span class="lbl">View website</span></a></div>
   </aside>
   <main id="main" class="adm-main">
+    <?php if (maintenance_on()): ?><div class="flash error" role="status" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><strong>Maintenance mode is ON.</strong> Visitors see the maintenance page; only signed-in staff see the website. <?php if (can('settings')): ?><a href="<?= url('admin/maintenance.php') ?>" style="font-weight:800">Manage or turn it off</a><?php endif; ?></div><?php endif; ?>
     <?php if ($flash): ?><div class="flash <?= e($flash[1]) ?>" role="status"><?= e($flash[0]) ?></div><?php endif; ?>
     <div class="adm-title">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="<?= url('admin/') ?>">Admin</a><?php if ($crumbGroup && $crumbGroup !== 'Overview'): ?> <span>/</span> <?= e($crumbGroup) ?><?php endif; ?><?php if ($current !== 'index.php'): ?> <span>/</span> <?= e($crumbLabel ?: $title) ?><?php endif; ?></nav>
