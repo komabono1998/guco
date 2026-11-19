@@ -7,6 +7,9 @@ $fields = [
         'office_hours' => ['Secretariat office hours', 'text'], 'membership_contact' => ['Membership support contact', 'text'],
         'chapter_contact' => ['Chapter enquiries contact', 'text'],
     ],
+    'Website welcome' => [
+        'show_welcome_logo' => ['Show the animated logo welcome to first-time visitors (10 seconds)', 'check'],
+    ],
     'Official social media (leave blank until confirmed)' => [
         'social_facebook' => ['Facebook URL', 'text'], 'social_x' => ['X (Twitter) URL', 'text'],
         'social_linkedin' => ['LinkedIn URL', 'text'], 'social_youtube' => ['YouTube URL', 'text'],

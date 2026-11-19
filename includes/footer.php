@@ -22,7 +22,7 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
   <div class="ft-bg">
     <div class="container ft-grid">
       <div class="ft-brand">
-        <a class="ft-logo" href="<?= url() ?>"><img src="<?= e(logo_url()) ?>" alt="" width="52" height="52"><strong><?= e($ftName) ?></strong></a>
+        <a class="ft-logo" href="<?= url() ?>"><img src="<?= e(logo_url()) ?>" alt="" width="84" height="84"><strong><?= e($ftName) ?></strong></a>
         <p class="ft-tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></p>
         <div class="ft-about"><?= cr('footer.about') ?></div>
         <div class="ft-actions">

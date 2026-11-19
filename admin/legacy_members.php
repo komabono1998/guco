@@ -16,9 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!$f || $f['error'] !== UPLOAD_ERR_OK || $f['size'] > 2 * 1024 * 1024 || strtolower(pathinfo($f['name'], PATHINFO_EXTENSION)) !== 'csv') {
             flash('Choose a CSV file under 2MB with the columns guco_no, title, full_name, sex, designation, note.', 'error');
         } else {
-            [$added, $skipped, $disputed, $errors] = legacy_import_csv($f['tmp_name'], trim($_POST['source'] ?? '') ?: 'Imported register');
+            [$added, $skipped, $disputed, $errors, $other] = legacy_import_csv($f['tmp_name'], trim($_POST['source'] ?? '') ?: 'Imported register');
             audit('import_existing_members', "added $added, skipped $skipped, disputed $disputed");
-            flash("Imported: $added added, $skipped already present, $disputed marked as needing the Secretariat." . ($errors ? ' Problems: ' . implode(' ', array_slice($errors, 0, 3)) : ''), $errors ? 'error' : 'success');
+            flash("Imported: $added added, $skipped already present, $other already present under a different number (noted on their record), $disputed marked as needing the Secretariat.". ($errors ? ' Problems: ' . implode(' ', array_slice($errors, 0, 3)) : ''), $errors ? 'error' : 'success');
         }
         redirect('admin/legacy_members.php');
     }

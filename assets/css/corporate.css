@@ -776,3 +776,38 @@ body.site .type-card:has(input:checked) { border-color: var(--gold); background:
 body.site .type-card:has(input:checked) .ic { background: var(--green); color: #fff; }
 body.site .type-card:has(input:focus-visible) { outline: 3px solid var(--gold); outline-offset: 3px; }
 body.site .pay-pick { margin-bottom: 16px; }
+
+/* Official logo: larger in the header and footer */
+body.site .site-header .brand img { width: 84px; height: 84px; transition: width .25s, height .25s; filter: drop-shadow(0 4px 10px rgba(15, 40, 28, .18)); }
+body.site .site-header.scrolled .brand img { width: 62px; height: 62px; }
+body.site .site-header .bar { padding: 8px 0; }
+body.site .ft-logo img { width: 84px; height: 84px; }
+@media (max-width: 700px) { body.site .site-header .brand img, body.site .site-header.scrolled .brand img { width: 60px; height: 60px; } body.site .ft-logo img { width: 72px; height: 72px; } }
+
+/* First-visit welcome: the official logo pops in, floats for 10 seconds, then fades away */
+.welcome { display: none; }
+html.welcome-show .welcome { display: flex; }
+html.welcome-open, html.welcome-open body { overflow: hidden; }
+.welcome { position: fixed; inset: 0; z-index: 1000; align-items: center; justify-content: center; padding: 20px; cursor: pointer;
+  background: radial-gradient(circle at 50% 38%, rgba(20, 83, 45, .86), rgba(6, 28, 16, .94) 70%); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  animation: w-in .6s ease-out both; transition: opacity .8s ease, visibility .8s; }
+.welcome.out { opacity: 0; visibility: hidden; }
+.welcome.out .welcome-card { transform: scale(.82) translateY(-24px); transition: transform .8s ease; }
+.welcome-card { position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; color: #fff; width: min(92vw, 640px); }
+.welcome-logo { position: relative; width: min(56vh, 80vw, 480px); aspect-ratio: 1; animation: w-pop 1.1s cubic-bezier(.2, 1.4, .35, 1) both, w-float 4.5s ease-in-out 1.1s infinite; }
+.welcome-logo img { position: relative; width: 100%; height: 100%; border-radius: 50%; background: #fff; display: block; box-shadow: 0 0 0 8px rgba(242, 184, 7, .9), 0 28px 80px rgba(0, 0, 0, .55), 0 0 120px rgba(242, 184, 7, .35); }
+.w-ring { position: absolute; inset: -4%; border-radius: 50%; border: 3px solid rgba(242, 184, 7, .75); animation: w-ring 2.6s ease-out infinite; }
+.w-ring.r2 { animation-delay: 1.3s; }
+.welcome-name { margin: 22px 0 4px; font-size: clamp(1.15rem, 3.4vw, 1.7rem); font-weight: 800; letter-spacing: .01em; animation: w-rise .8s .7s ease-out both; }
+.welcome-tag { margin: 0; color: var(--gold); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-size: clamp(.72rem, 2.2vw, .92rem); animation: w-rise .8s .95s ease-out both; }
+.welcome-skip { margin-top: 18px; padding: 11px 26px; border-radius: 99px; border: 2px solid rgba(255, 255, 255, .55); background: rgba(255, 255, 255, .1); color: #fff; font-weight: 700; cursor: pointer; animation: w-rise .8s 1.2s ease-out both; transition: background .2s, color .2s, border-color .2s; }
+.welcome-skip:hover, .welcome-skip:focus-visible { background: var(--gold); color: #1a1a1a; border-color: var(--gold); outline: 0; }
+.welcome-bar { display: block; width: min(60vw, 260px); height: 4px; margin-top: 16px; border-radius: 4px; background: rgba(255, 255, 255, .2); overflow: hidden; position: relative; }
+.welcome-bar::after { content: ""; position: absolute; inset: 0; background: var(--gold); transform-origin: 0 50%; animation: w-bar 10s linear both; }
+@keyframes w-in { from { opacity: 0; } }
+@keyframes w-pop { 0% { opacity: 0; transform: scale(.25) rotate(-14deg); } 60% { opacity: 1; transform: scale(1.08) rotate(3deg); } 100% { transform: scale(1) rotate(0); } }
+@keyframes w-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
+@keyframes w-ring { 0% { transform: scale(.96); opacity: .9; } 100% { transform: scale(1.22); opacity: 0; } }
+@keyframes w-rise { from { opacity: 0; transform: translateY(18px); } }
+@keyframes w-bar { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .welcome-logo, .w-ring, .welcome-name, .welcome-tag, .welcome-skip { animation: none; } .welcome-bar::after { animation-duration: 10s; } }

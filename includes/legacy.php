@@ -55,16 +55,55 @@ function legacy_pending_claim(): ?array
     return $row;
 }
 
+/** Lower-case letters-only name parts, so "OJOK Onono James" and "Ojok James Onono" compare equal. */
+function legacy_name_tokens(string $name): array
+{
+    $t = array_filter(preg_split('/[^\p{L}]+/u', mb_strtolower($name)), fn($x) => $x !== '');
+    return array_values(array_unique($t));
+}
+
+/**
+ * Decides whether two register entries are the same person. With the same GUCO number a shared name part is enough
+ * (spelling differs between lists); with different numbers every name part of the shorter name must match.
+ */
+function legacy_same_person(string $a, string $b, bool $sameNumber): bool
+{
+    $ta = legacy_name_tokens($a);
+    $tb = legacy_name_tokens($b);
+    // "Dropee" is "Dr. Opee" typed together.
+    $fix = function (array $x, array $other) {
+        return array_map(fn($t) => (strlen($t) > 5 && str_starts_with($t, 'dr') && in_array(substr($t, 2), $other, true)) ? substr($t, 2) : $t, $x);
+    };
+    $ta = $fix($ta, $tb);
+    $tb = $fix($tb, $ta);
+    $eq = fn($x, $y) => $x === $y || (strlen($x) >= 5 && strlen($y) >= 5 && levenshtein($x, $y) <= 1);
+    $matched = 0;
+    foreach ($ta as $x) {
+        foreach ($tb as $y) {
+            if ($eq($x, $y)) {
+                $matched++;
+                break;
+            }
+        }
+    }
+    if ($sameNumber) {
+        return $matched >= 1;
+    }
+    return $matched >= 2 && $matched === min(count($ta), count($tb));
+}
+
 /**
  * Imports a CSV with the columns guco_no, title, full_name, sex, designation, note.
- * Existing people (same number and name) are skipped; numbers shared by several people are marked disputed.
- * Returns [added, skipped, disputed, errors[]].
+ * People already on the register are not added again: the same person under the same number is skipped, and the same
+ * person under a different number is skipped with a note on the existing record. A number held by more than one
+ * person is marked as needing the Secretariat.
+ * Returns [added, skipped, disputed, errors[], matchedWithOtherNumber].
  */
 function legacy_import_csv(string $path, string $source = 'Voters Register 2025'): array
 {
     $fh = fopen($path, 'r');
     if (!$fh) {
-        return [0, 0, 0, ['The file could not be opened.']];
+        return [0, 0, 0, ['The file could not be opened.'], 0];
     }
     $head = fgetcsv($fh);
     if ($head) {
@@ -74,11 +113,12 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
     foreach (['guco_no', 'full_name'] as $need) {
         if (!isset($col[$need])) {
             fclose($fh);
-            return [0, 0, 0, ["The file needs a \"$need\" column."]];
+            return [0, 0, 0, ["The file needs a \"$need\" column."], 0];
         }
     }
     $get = fn(array $r, string $k) => isset($col[$k]) ? trim((string) ($r[$col[$k]] ?? '')) : '';
-    $add = $skip = 0;
+    $existing = q('SELECT id, guco_no, full_name, note FROM legacy_members')->fetchAll();
+    $add = $skip = $other = 0;
     $errors = [];
     $line = 1;
     while (($r = fgetcsv($fh)) !== false) {
@@ -89,22 +129,46 @@ function legacy_import_csv(string $path, string $source = 'Voters Register 2025'
         $no = legacy_norm_no($get($r, 'guco_no'));
         $name = $get($r, 'full_name');
         $des = strtolower(str_replace([' ', '/', '-'], '_', $get($r, 'designation')));
-        $des = isset(LEGACY_DESIGNATIONS[$des]) ? $des : ($des === 'alumni' ? 'alumnus' : 'alumnus');
+        $des = isset(LEGACY_DESIGNATIONS[$des]) ? $des : 'alumnus';
         $sex = strtoupper(substr($get($r, 'sex'), 0, 1));
         if (!$no || $name === '') {
             $errors[] = "Line $line: a valid GUCO number and a name are required.";
             continue;
         }
-        if (q('SELECT 1 FROM legacy_members WHERE guco_no = ? AND full_name = ?', [$no, $name])->fetch()) {
-            $skip++;
+        $same = null;
+        $differentNumber = false;
+        foreach ($existing as $e) {
+            if (legacy_same_person($name, $e['full_name'], $e['guco_no'] === $no)) {
+                $same = $e;
+                $differentNumber = $e['guco_no'] !== $no;
+                if (!$differentNumber) {
+                    break;
+                }
+            }
+        }
+        if ($same) {
+            if ($differentNumber) {
+                $msg = "$source lists this person as $no";
+                if (!str_contains((string) $same['note'], $msg)) {
+                    q('UPDATE legacy_members SET note = ? WHERE id = ?', [mb_substr(trim(($same['note'] ? $same['note'] . '; ' : '') . $msg), 0, 300), $same['id']]);
+                }
+                $other++;
+            } else {
+                $skip++;
+            }
             continue;
         }
         q('INSERT INTO legacy_members (guco_no, title, full_name, sex, designation, note, source) VALUES (?,?,?,?,?,?,?)',
             [$no, mb_substr($get($r, 'title'), 0, 30), mb_substr($name, 0, 200), in_array($sex, ['F', 'M'], true) ? $sex : null, $des, mb_substr($get($r, 'note'), 0, 300) ?: null, mb_substr($source, 0, 80)]);
+        $existing[] = ['id' => (int) db()->lastInsertId(), 'guco_no' => $no, 'full_name' => $name, 'note' => $get($r, 'note')];
         $add++;
     }
     fclose($fh);
     // A number held by more than one person cannot be claimed until the Secretariat decides who owns it.
-    $dup = q("UPDATE legacy_members SET status = 'disputed' WHERE status = 'unclaimed' AND guco_no IN (SELECT guco_no FROM (SELECT guco_no FROM legacy_members GROUP BY guco_no HAVING COUNT(*) > 1) d)")->rowCount();
-    return [$add, $skip, $dup, $errors];
+    $dup = q("UPDATE legacy_members SET status = 'disputed',
+            note = CASE WHEN note IS NULL OR note = '' THEN 'Number shared by more than one person across the registers'
+                        WHEN note LIKE '%shared by more than one person%' THEN note
+                        ELSE LEFT(CONCAT(note, '; Number shared by more than one person across the registers'), 300) END
+        WHERE status = 'unclaimed' AND guco_no IN (SELECT guco_no FROM (SELECT guco_no FROM legacy_members GROUP BY guco_no HAVING COUNT(*) > 1) d)")->rowCount();
+    return [$add, $skip, $dup, $errors, $other];
 }

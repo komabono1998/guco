@@ -43,8 +43,40 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <link rel="stylesheet" href="<?= asset('assets/css/ui.css') ?>">
 <link rel="stylesheet" href="<?= asset('assets/css/corporate.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
+<?php $welcomeOn = setting('show_welcome_logo', '1') === '1'; if ($welcomeOn): ?>
+<script>try { if (localStorage.getItem('guco_welcome') !== '1') document.documentElement.classList.add('welcome-show'); } catch (e) {}</script>
+<?php endif; ?>
 </head>
 <body class="site">
+<?php if ($welcomeOn): ?>
+<div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Gulu University Convocation">
+  <div class="welcome-card">
+    <div class="welcome-logo"><span class="w-ring" aria-hidden="true"></span><span class="w-ring r2" aria-hidden="true"></span><img src="<?= e(url('assets/img/logo.webp')) ?>" alt="Gulu University Convocation official logo" width="1000" height="1000"></div>
+    <p class="welcome-name">Welcome to <?= e($siteName) ?></p>
+    <p class="welcome-tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></p>
+    <button type="button" class="welcome-skip" id="welcomeSkip">Enter the website</button>
+    <i class="welcome-bar" aria-hidden="true"></i>
+  </div>
+</div>
+<script>
+(function () {
+  var w = document.getElementById('welcome'); if (!w) return;
+  if (!document.documentElement.classList.contains('welcome-show')) { w.remove(); return; }
+  try { localStorage.setItem('guco_welcome', '1'); } catch (e) {}
+  var closed = false, timer;
+  function close() {
+    if (closed) return; closed = true; clearTimeout(timer);
+    w.classList.add('out'); document.documentElement.classList.remove('welcome-open');
+    setTimeout(function () { document.documentElement.classList.remove('welcome-show'); w.remove(); }, 800);
+  }
+  document.documentElement.classList.add('welcome-open');
+  timer = setTimeout(close, 10000);
+  w.addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+  var b = document.getElementById('welcomeSkip'); if (b) b.focus({ preventScroll: true });
+})();
+</script>
+<?php endif; ?>
 <a class="skip" href="#main">Skip to main content</a>
 <div class="topbar">
   <div class="container tb">
@@ -92,7 +124,7 @@ foreach ($sgNames as $sgN) {
 </script>
 <header class="site-header">
   <div class="container bar">
-    <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="52" height="52"><span><?= e($siteName) ?></span></a>
+    <a class="brand" href="<?= url() ?>"><img src="<?= e($logo) ?>" alt="<?= e(config('short_name')) ?> logo" width="84" height="84"><span><?= e($siteName) ?></span></a>
     <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="mainnav" onclick="var n=document.getElementById('mainnav');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
     <nav id="mainnav" class="mainnav" aria-label="Main">
       <?php foreach ($nav as $navEntry): $item = $navEntry['item']; $kids = $navEntry['children'] ?? []; ?>
