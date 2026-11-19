@@ -99,11 +99,14 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 
 <?php if ($on('welcome')): ?>
 <section class="home-section who">
-  <div class="collage">
-    <figure class="big"><img src="<?= e(dinner_src(19)) ?>" alt="Guests on stage at a GUCO event" loading="lazy"></figure>
-    <figure class="sm"><img src="<?= e(dinner_src(9)) ?>" alt="Alumni at a GUCO event" loading="lazy"></figure>
-    <figure class="sm"><img src="<?= e(dinner_src(7)) ?>" alt="Guests at the GUCO dinner" loading="lazy"></figure>
-    <div class="badge-round"><b>2023</b><span>Constitution in force</span></div>
+  <div class="orb" id="orb">
+    <div class="orb-in">
+      <span class="orb-ring" aria-hidden="true"></span><span class="orb-ring r2" aria-hidden="true"></span>
+      <button type="button" class="orb-ph p0" aria-label="Show this photo larger"><img src="<?= e(dinner_src(19)) ?>" alt="Guests on stage at a GUCO event" loading="lazy"></button>
+      <button type="button" class="orb-ph p1" aria-label="Show this photo larger"><img src="<?= e(dinner_src(9)) ?>" alt="Alumni at a GUCO event" loading="lazy"></button>
+      <button type="button" class="orb-ph p2" aria-label="Show this photo larger"><img src="<?= e(dinner_src(7)) ?>" alt="Guests at the GUCO dinner" loading="lazy"></button>
+      <div class="orb-badge"><b>2023</b><span>Constitution in force</span></div>
+    </div>
   </div>
   <div>
     <span class="eyebrow" style="color:var(--green);text-transform:uppercase;letter-spacing:.12em;font-size:.74rem;font-weight:700">About us</span>
@@ -174,6 +177,34 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 })();
 </script>
   </div>
+  <script>
+  (function () {
+    var box = document.getElementById('orb'); if (!box) return;
+    var els = [].slice.call(box.querySelectorAll('.orb-ph')), pos = [0, 1, 2], paused = false, timer;
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function paint() { els.forEach(function (el, i) { el.classList.remove('p0', 'p1', 'p2'); el.classList.add('p' + pos[i]); }); }
+    // Bring photo i to the middle; the others move round one place.
+    function focusOn(i) {
+      if (pos[i] === 0) { i = pos.indexOf(1); }
+      var from = pos[i];
+      pos = pos.map(function (p, k) { if (k === i) return 0; if (p === 0) return from; return p; });
+      paint();
+    }
+    els.forEach(function (el, i) { el.addEventListener('click', function () { focusOn(i); }); });
+    if (!reduce) {
+      timer = setInterval(function () { if (!paused && !document.hidden) focusOn(pos.indexOf(1)); }, 5200);
+      box.addEventListener('mouseenter', function () { paused = true; });
+      box.addEventListener('mouseleave', function () { paused = false; box.style.setProperty('--mx', 0); box.style.setProperty('--my', 0); });
+      box.addEventListener('focusin', function () { paused = true; });
+      box.addEventListener('focusout', function () { paused = false; });
+      box.addEventListener('mousemove', function (e) {
+        var r = box.getBoundingClientRect();
+        box.style.setProperty('--mx', ((e.clientX - r.left) / r.width - .5).toFixed(3));
+        box.style.setProperty('--my', ((e.clientY - r.top) / r.height - .5).toFixed(3));
+      });
+    }
+  })();
+  </script>
 </section>
 <?php endif; ?>
 
