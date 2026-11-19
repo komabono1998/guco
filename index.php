@@ -478,7 +478,8 @@ $poN = max(1, count($areas));
         <div class="anthem-player">
           <button type="button" class="play" aria-label="Play the anthem"><?= icon('play', 30) ?></button>
           <div><b>Play the anthem</b><small>Press play and sing along with the lyrics.</small></div>
-          <audio preload="none" src="<?= e($anthemAudio) ?>" controls class="anthem-audio">Your browser does not support audio playback.</audio>
+          <?php if (str_ends_with((string) ($anthemRow['audio'] ?? ''), '.mp4')): ?><video preload="metadata" playsinline controls class="anthem-audio anthem-mp4" src="<?= e($anthemAudio) ?>"></video>
+          <?php else: ?><audio preload="none" src="<?= e($anthemAudio) ?>" controls class="anthem-audio">Your browser does not support audio playback.</audio><?php endif; ?>
         </div>
       <?php elseif (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
       <p style="margin-top:16px"><a class="btn outline" href="<?= url('anthems.php') ?>">All anthems: Gulu University, Uganda and East Africa &rarr;</a></p>
@@ -493,7 +494,7 @@ $poN = max(1, count($areas));
 <script>
 (function () {
   var box = document.querySelector('.anthem-player'); if (!box) return;
-  var a = box.querySelector('audio'), b = box.querySelector('.play'), t = box.querySelector('b');
+  var a = box.querySelector('audio, video'), b = box.querySelector('.play'), t = box.querySelector('b');
   var play = '<?= str_replace(["\r", "\n", "'"], ['', '', "\\'"], icon('play', 30)) ?>', pause = '<svg class="icon" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
   b.addEventListener('click', function () { a.paused ? a.play() : a.pause(); });
   a.addEventListener('play', function () { b.innerHTML = pause; t.textContent = 'Now playing'; });

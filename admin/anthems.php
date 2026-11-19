@@ -11,7 +11,7 @@ crud([
         'description' => ['label' => 'Short description', 'type' => 'text'],
         'credit' => ['label' => 'Credit (writer, composer or source)', 'type' => 'text'],
         'lyrics' => ['label' => 'Lyrics', 'type' => 'textarea', 'rows' => 14, 'hint' => 'One line per line. A blank line starts a new verse or chorus.'],
-        'audio' => ['label' => 'Recording (MP3, M4A, OGG or WAV, up to 25MB)', 'type' => 'audio', 'list' => true],
+        'audio' => ['label' => 'Recording (MP3, M4A, OGG or WAV up to 25MB, or MP4 up to 5MB)', 'type' => 'audio', 'list' => true],
         'video_url' => ['label' => 'Video link (optional)', 'type' => 'text', 'hint' => 'A YouTube link plays on the page; any other link opens in a new tab.'],
         'show_home' => ['label' => 'Play on the home page', 'type' => 'check', 'list' => true, 'hint' => 'Only the first ticked anthem is shown on the home page.'],
         'sort_order' => ['label' => 'Order (smaller first)', 'type' => 'number', 'default' => 100],

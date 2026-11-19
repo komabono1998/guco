@@ -69,10 +69,14 @@ function save_media(array $file, string $kind): ?string
         return null;
     }
     $types = $kind === 'audio'
-        ? ['audio/mpeg' => 'mp3', 'audio/mp4' => 'm4a', 'audio/x-m4a' => 'm4a', 'audio/ogg' => 'ogg', 'application/ogg' => 'ogg', 'audio/wav' => 'wav', 'audio/x-wav' => 'wav', 'audio/webm' => 'webm']
+        ? ['audio/mpeg' => 'mp3', 'audio/mp4' => 'm4a', 'audio/x-m4a' => 'm4a', 'audio/ogg' => 'ogg', 'application/ogg' => 'ogg', 'audio/wav' => 'wav', 'audio/x-wav' => 'wav', 'audio/webm' => 'webm', 'video/mp4' => 'mp4']
         : ['video/mp4' => 'mp4', 'video/webm' => 'webm'];
     $max = $kind === 'audio' ? 25 * 1024 * 1024 : 80 * 1024 * 1024;
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
+    // MP4 files are accepted for recordings too, but only up to 5MB.
+    if ($kind === 'audio' && $mime === 'video/mp4') {
+        $max = 5 * 1024 * 1024;
+    }
     if (!isset($types[$mime]) || $file['size'] > $max) {
         return null;
     }

@@ -59,7 +59,6 @@ function portal_header(string $title): void
   <button class="portal-toggle" type="button" aria-expanded="false" aria-controls="portalside" onclick="var n=document.getElementById('portalside');var o=n.classList.toggle('open');this.setAttribute('aria-expanded',o)">Menu</button>
   <div class="portal-user">
     <a href="<?= url() ?>"><?= icon('globe', 16) ?> Website</a>
-    <?php if (is_staff()): ?><a href="<?= url('admin/') ?>">Admin</a><?php endif; ?>
     <a href="<?= url('logout.php') ?>"><?= icon('log-out', 16) ?> Log out</a>
   </div>
 </header>

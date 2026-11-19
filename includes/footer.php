@@ -56,7 +56,7 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
           <li><a href="<?= url('news.php') ?>">News</a></li>
           <li><a href="<?= url('events.php') ?>">Events</a></li>
           <li><a href="<?= url('resources.php') ?>">Resources</a></li>
-          <li><a href="<?= url('careers.php') ?>">Careers</a></li>
+          <li><a href="<?= url('careers.php') ?>">Scholarships &amp; jobs</a></li>
         </ul>
       </nav>
 
@@ -84,7 +84,7 @@ $ftSocials = ['social_facebook' => 'Facebook', 'social_x' => 'X', 'social_linked
     <div class="ft-bottom">
       <div class="container ft-bottom-in">
         <span>&copy; <?= date('Y') ?> <?= e($ftName) ?>. All rights reserved.</span>
-        <span class="ft-legal"><a href="<?= url('privacy.php') ?>">Privacy Notice</a><a href="<?= url('accessibility.php') ?>">Accessibility</a><a href="<?= url('contact.php') ?>">Contact</a></span>
+        <span class="ft-legal"><a href="<?= url('privacy.php') ?>">Privacy Notice</a><a href="<?= url('accessibility.php') ?>">Accessibility</a><a href="<?= url('contact.php') ?>">Contact</a><a href="<?= url('admin/login.php') ?>">Admin</a></span>
       </div>
     </div>
   </div>

@@ -204,7 +204,7 @@ $facts = array_slice(c_pairs('membership.facts'), 0, 4);
 </script>
 <?php related_links('Next steps', 'More for members', [
     ['chapters.php', 'map-pin', 'Alumni Chapters', 'Join the chapter for your region'],
-    ['careers.php', 'briefcase', 'Careers and Opportunities', 'Jobs, scholarships and fellowships'],
+    ['careers.php', 'briefcase', 'Scholarships, Jobs and Funding', 'Study, fellowship, grant and job opportunities'],
     ['member/login.php', 'id-card', 'Member Portal', 'Your card, payments and profile'],
     ['donate.php', 'heart', 'Give', 'Support students and community projects'],
 ]); ?>

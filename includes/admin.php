@@ -306,11 +306,15 @@ function crud(array $c): void
                         $err = "$label is required.";
                     }
                     break;
+                case 'set':
+                    $picked = is_array($_POST[$n] ?? null) ? array_values(array_intersect(array_keys($f['options']), $_POST[$n])) : [];
+                    $vals[$n] = implode(',', $picked);
+                    break;
                 case 'audio':
                     $has = ($_FILES[$n]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
                     if ($has) {
                         $name = save_media($_FILES[$n], 'audio');
-                        $name ? $vals[$n] = $name : $err = "$label: use an MP3, M4A, OGG or WAV file under 25MB.";
+                        $name ? $vals[$n] = $name : $err = "$label: use an MP3, M4A, OGG or WAV file under 25MB, or an MP4 file under 5MB.";
                     }
                     if (!$err && !empty($_POST['remove_' . $n]) && $old) {
                         @unlink(config('upload_dir') . '/' . basename((string) $old[$n]));
@@ -397,10 +401,14 @@ function crud(array $c): void
       <label><?= $label . $hint ?><select name="<?= $n ?>">
         <?php foreach ($f['options'] as $k => $l): ?><option value="<?= e($k) ?>"<?= (string) $val($n) === (string) $k ? ' selected' : '' ?>><?= e($l) ?></option><?php endforeach; ?>
       </select></label>
+    <?php elseif ($f['type'] === 'set'): $have = array_filter(explode(',', (string) $val($n))); ?>
+      <fieldset style="border:0;padding:0;margin:0"><legend style="padding:0;font-weight:600"><?= $label . $hint ?></legend>
+        <?php foreach ($f['options'] as $ok => $ol): ?><label class="check" style="display:inline-flex;margin-right:16px"><input type="checkbox" name="<?= $n ?>[]" value="<?= e($ok) ?>"<?= in_array($ok, $have, true) ? ' checked' : '' ?> style="width:auto"> <?= e($ol) ?></label><?php endforeach; ?>
+      </fieldset>
     <?php elseif ($f['type'] === 'audio'): ?>
       <label><?= $label . $hint ?>
-        <?php if (!empty($edit[$n])): ?><audio controls preload="none" src="<?= e(url('uploads/' . rawurlencode($edit[$n]))) ?>" style="max-width:100%;display:block;margin:6px 0"></audio><span class="check"><input type="checkbox" name="remove_<?= $n ?>" value="1" style="width:auto"> Remove this audio file</span><?php endif; ?>
-        <input type="file" name="<?= $n ?>" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,.mp3,.m4a,.ogg,.wav"></label>
+        <?php if (!empty($edit[$n])): ?><<?= str_ends_with((string) $edit[$n], '.mp4') ? 'video playsinline' : 'audio' ?> controls preload="none" src="<?= e(url('uploads/' . rawurlencode($edit[$n]))) ?>" style="max-width:100%;display:block;margin:6px 0"></<?= str_ends_with((string) $edit[$n], '.mp4') ? 'video' : 'audio' ?>><span class="check"><input type="checkbox" name="remove_<?= $n ?>" value="1" style="width:auto"> Remove this audio file</span><?php endif; ?>
+        <input type="file" name="<?= $n ?>" accept="audio/mpeg,audio/mp4,video/mp4,audio/ogg,audio/wav,.mp3,.m4a,.mp4,.ogg,.wav"></label>
     <?php elseif ($f['type'] === 'image' || $f['type'] === 'doc'): ?>
       <label><?= $label . $hint ?>
         <?php $mf = $f['map']['filename'] ?? 'filename'; $mo = $f['map']['original_name'] ?? 'original_name'; if (!empty($edit[$f['type'] === 'image' ? $n : $mf])): ?><span class="hint">Current: <?= e($f['type'] === 'image' ? $edit[$n] : ($edit[$mo] ?? $edit[$mf])) ?> (upload to replace)</span><?php endif; ?>

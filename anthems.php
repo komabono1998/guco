@@ -28,7 +28,7 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   </div>
 
-  <?php foreach ($anthems as $i => $a): $vs = $verses((string) $a['lyrics']); $src = $a['audio'] ? url('uploads/' . rawurlencode($a['audio'])) : ''; ?>
+  <?php foreach ($anthems as $i => $a): $vs = $verses((string) $a['lyrics']); $src = $a['audio'] ? url('uploads/' . rawurlencode($a['audio'])) : ''; $isVideo = $a['audio'] && str_ends_with((string) $a['audio'], '.mp4'); ?>
     <article class="an-panel<?= $i === $active ? ' on' : '' ?>" id="an-p-<?= e($a['slug']) ?>" role="tabpanel" aria-labelledby="an-t-<?= e($a['slug']) ?>" style="--c:<?= $tones[$i % 5] ?>">
       <div class="an-side">
         <span class="an-kicker"><?= e($a['kicker']) ?><?= $a['body'] ? ' &middot; ' . e($a['body']) : '' ?></span>
@@ -46,7 +46,7 @@ require __DIR__ . '/includes/header.php';
               <div class="an-bar"><input type="range" min="0" max="1000" value="0" aria-label="Seek" class="an-seek"></div>
               <div class="an-time"><span class="an-cur">0:00</span><span class="an-dur">--:--</span></div>
             </div>
-            <audio preload="none" src="<?= e($src) ?>"></audio>
+            <?php if ($isVideo): ?><video class="an-media" preload="metadata" playsinline src="<?= e($src) ?>"></video><?php else: ?><audio preload="none" src="<?= e($src) ?>"></audio><?php endif; ?>
           </div>
         <?php else: ?>
           <div class="an-soon"><?= icon('play', 22) ?><span>The recording will be added soon.</span></div>
@@ -80,7 +80,7 @@ require __DIR__ . '/includes/header.php';
   var box = document.getElementById('an'); if (!box) return;
   var tabs = [].slice.call(box.querySelectorAll('.an-tab')), panels = [].slice.call(box.querySelectorAll('.an-panel'));
   function fmt(s) { s = Math.max(0, Math.floor(s || 0)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
-  function stopAll(except) { box.querySelectorAll('audio').forEach(function (a) { if (a !== except) a.pause(); }); }
+  function stopAll(except) { box.querySelectorAll('audio, video').forEach(function (a) { if (a !== except) a.pause(); }); }
   function show(i) {
     tabs.forEach(function (t, k) { t.classList.toggle('on', k === i); t.setAttribute('aria-selected', k === i ? 'true' : 'false'); });
     panels.forEach(function (p, k) { p.classList.toggle('on', k === i); });
@@ -92,7 +92,7 @@ require __DIR__ . '/includes/header.php';
     t.addEventListener('keydown', function (e) { var d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (d) { e.preventDefault(); var n = (k + d + tabs.length) % tabs.length; show(n); tabs[n].focus(); } });
   });
   [].forEach.call(box.querySelectorAll('.an-player'), function (pl) {
-    var a = pl.querySelector('audio'), b = pl.querySelector('.an-play'), seek = pl.querySelector('.an-seek'), cur = pl.querySelector('.an-cur'), dur = pl.querySelector('.an-dur');
+    var a = pl.querySelector('audio, video'), b = pl.querySelector('.an-play'), seek = pl.querySelector('.an-seek'), cur = pl.querySelector('.an-cur'), dur = pl.querySelector('.an-dur');
     var playIcon = b.innerHTML, pauseIcon = '<svg class="icon" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
     b.addEventListener('click', function () { if (a.paused) { stopAll(a); a.play(); } else { a.pause(); } });
     a.addEventListener('play', function () { b.innerHTML = pauseIcon; pl.classList.add('playing'); });
