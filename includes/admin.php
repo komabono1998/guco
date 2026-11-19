@@ -41,6 +41,63 @@ const ADMIN_GROUPS = [
     ],
 ];
 
+/** Friendly details for each category: [icon, colour class, one-line purpose]. */
+const ADMIN_GROUP_META = [
+    'Overview' => ['grid', 'c-green', 'Your numbers at a glance'],
+    'Website content' => ['edit', 'c-blue', 'Everything visitors read and see'],
+    'Organisation' => ['users', 'c-teal', 'Leaders, chapters and projects'],
+    'Membership' => ['id-card', 'c-gold', 'Members, payments and records'],
+    'Giving and careers' => ['heart', 'c-rose', 'Donations, jobs and mentorship'],
+    'Inbox' => ['inbox', 'c-violet', 'Messages and subscribers'],
+    'Site' => ['sliders', 'c-slate', 'Look, settings and maintenance'],
+    'System' => ['shield', 'c-red', 'Staff, security and backups'],
+];
+
+/** What each admin page is for, shown on the dashboard hub. */
+const ADMIN_DESC = [
+    'index.php' => 'Overview of the whole site',
+    'reports.php' => 'Membership, payment and activity reports',
+    'visitors.php' => 'Visitors, countries and most-read pages',
+    'content.php' => 'Edit the wording on public pages',
+    'pages.php' => 'Create and edit extra pages',
+    'menu.php' => 'Change the website navigation menu',
+    'news.php' => 'Write and publish news stories',
+    'newsletters.php' => 'Create, send and archive newsletters',
+    'events.php' => 'Add events, flyers and registrations',
+    'resources.php' => 'Upload reports and official documents',
+    'gallery.php' => 'Manage photo albums',
+    'campus.php' => 'Places shown in Explore your campus',
+    'partners.php' => 'Partner and sponsor logos',
+    'anthems.php' => 'Anthem audio, video and lyrics',
+    'leaders.php' => 'Leadership profiles and photos',
+    'chapters.php' => 'Alumni chapters and contacts',
+    'chapter_members.php' => 'Approve chapter join requests',
+    'projects.php' => 'Review and track alumni projects',
+    'programmes.php' => 'Programme impact reports',
+    'awards.php' => 'Awards and recognition',
+    'members.php' => 'Applications and member accounts',
+    'payments.php' => 'Verify subscription payments',
+    'members_import.php' => 'Import and export member lists',
+    'legacy_members.php' => 'The register of existing members',
+    'member_reports.php' => 'Filter and export the members database',
+    'donations.php' => 'Donations received and pending',
+    'campaigns.php' => 'Fundraising campaigns',
+    'jobs.php' => 'Careers, scholarships and grants',
+    'mentorship.php' => 'Mentors and mentee requests',
+    'hall_of_fame.php' => 'Alumni Hall of Fame entries',
+    'checkin.php' => 'Check guests in at events',
+    'messages.php' => 'Contact form enquiries',
+    'subscribers.php' => 'Newsletter subscribers',
+    'branding.php' => 'Logo, colours and layout',
+    'settings.php' => 'Site name, contacts and security options',
+    'maintenance.php' => 'Take the site offline with a message',
+    'users.php' => 'Staff accounts and roles',
+    'mail_log.php' => 'Sent emails and email test',
+    'audit.php' => 'Who did what, and when',
+    'backup.php' => 'Download a backup of the data',
+    'help.php' => 'Guides for using the admin area',
+];
+
 /** Counts of items waiting for action, keyed for the sidebar badges (only what the user may see). */
 function admin_badges(): array
 {
@@ -166,11 +223,17 @@ function admin_header(string $title, string $subtitle = ''): void
         $visible = array_filter($items, fn($i) => $i[2] === null || can($i[2]));
         if (!$visible) {
             continue;
-        } ?>
-      <h2><?= e($group) ?></h2>
-      <?php foreach ($visible as [$label, $file, $perm, $ic, $bk]): $count = $bk ? ($badges[$bk] ?? 0) : 0; ?>
-        <a href="<?= e(url('admin/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?> title="<?= e($label) ?>"><?= icon($ic, 18) ?><span class="lbl"><?= e($label) ?></span><?= $count ? '<span class="cnt">' . (int) $count . '</span>' : '' ?></a>
-      <?php endforeach; ?>
+        }
+        $gm = ADMIN_GROUP_META[$group] ?? ['grid', 'c-slate', ''];
+        $hasCurrent = in_array($current, array_column($visible, 1), true);
+        $groupCount = 0;
+        foreach ($visible as $vi) { $groupCount += $vi[4] ? ($badges[$vi[4]] ?? 0) : 0; } ?>
+      <details class="adm-grp <?= e($gm[1]) ?>" data-grp="<?= e($group) ?>"<?= $hasCurrent || $group === 'Overview' ? ' open data-keep="1"' : '' ?>>
+        <summary><span class="gi"><?= icon($gm[0], 16) ?></span><span class="gname"><?= e($group) ?></span><?= $groupCount ? '<span class="cnt">' . (int) $groupCount . '</span>' : '' ?><span class="chev"><?= icon('chevron-down', 14) ?></span></summary>
+        <?php foreach ($visible as [$label, $file, $perm, $ic, $bk]): $count = $bk ? ($badges[$bk] ?? 0) : 0; ?>
+          <a href="<?= e(url('admin/' . $file)) ?>"<?= $current === $file ? ' aria-current="page"' : '' ?> title="<?= e($label) ?>"><?= icon($ic, 18) ?><span class="lbl"><?= e($label) ?></span><?= $count ? '<span class="cnt">' . (int) $count . '</span>' : '' ?></a>
+        <?php endforeach; ?>
+      </details>
     <?php endforeach; ?>
     <div class="adm-side-foot"><a href="<?= url() ?>" target="_blank" rel="noopener"><?= icon('globe', 18) ?><span class="lbl">View website</span></a></div>
   </aside>
@@ -179,7 +242,7 @@ function admin_header(string $title, string $subtitle = ''): void
     <?php if ($flash): ?><div class="flash <?= e($flash[1]) ?>" role="status"><?= e($flash[0]) ?></div><?php endif; ?>
     <div class="adm-title">
       <nav class="crumbs" aria-label="Breadcrumb"><a href="<?= url('admin/') ?>">Admin</a><?php if ($crumbGroup && $crumbGroup !== 'Overview'): ?> <span>/</span> <?= e($crumbGroup) ?><?php endif; ?><?php if ($current !== 'index.php'): ?> <span>/</span> <?= e($crumbLabel ?: $title) ?><?php endif; ?></nav>
-      <h1><?= e($title) ?></h1>
+      <h1><?= e($title) ?><?php if ($current !== 'index.php'): ?><button type="button" class="pin-btn" id="pinBtn" data-file="<?= e($current) ?>" data-label="<?= e($title) ?>" aria-pressed="false" title="Pin this page to your dashboard" aria-label="Pin this page to your dashboard"><?= icon('star', 18) ?></button><?php endif; ?></h1>
       <?php if ($subtitle): ?><p class="sub"><?= e($subtitle) ?></p><?php endif; ?>
     </div>
 <?php
@@ -198,6 +261,73 @@ function admToggleSide() {
   var c = document.documentElement.classList.toggle('side-collapsed');
   try { localStorage.setItem('adm-collapsed', c ? '1' : '0'); } catch (e) {}
 }
+(function () {
+  // Sidebar categories: remember which ones the person opened.
+  var key = 'adm-groups', open = {};
+  try { open = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+  document.querySelectorAll('.adm-grp').forEach(function (d) {
+    var g = d.getAttribute('data-grp');
+    if (!d.hasAttribute('data-keep') && open[g]) d.setAttribute('open', '');
+    d.addEventListener('toggle', function () {
+      open[g] = d.open;
+      try { localStorage.setItem(key, JSON.stringify(open)); } catch (e) {}
+    });
+  });
+  // Pinned pages (kept in this browser only).
+  var pins = [];
+  try { pins = JSON.parse(localStorage.getItem('adm-pins') || '[]'); } catch (e) {}
+  function savePins() { try { localStorage.setItem('adm-pins', JSON.stringify(pins)); } catch (e) {} }
+  var btn = document.getElementById('pinBtn');
+  if (btn) {
+    var f = btn.getAttribute('data-file');
+    var sync = function () { var on = pins.some(function (p) { return p.f === f; }); btn.setAttribute('aria-pressed', on ? 'true' : 'false'); btn.classList.toggle('on', on); };
+    sync();
+    btn.addEventListener('click', function () {
+      var i = pins.findIndex(function (p) { return p.f === f; });
+      if (i >= 0) pins.splice(i, 1); else pins.push({ f: f, l: btn.getAttribute('data-label') });
+      savePins(); sync();
+    });
+  }
+  var list = document.getElementById('pinList');
+  if (list) {
+    var render = function () {
+      list.innerHTML = '';
+      pins.forEach(function (p, i) {
+        var a = document.createElement('a'); a.href = p.f; a.textContent = p.l;
+        var x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Unpin ' + p.l); x.textContent = '×';
+        x.addEventListener('click', function (e) { e.preventDefault(); pins.splice(i, 1); savePins(); render(); });
+        var w = document.createElement('span'); w.className = 'pin'; w.appendChild(a); w.appendChild(x); list.appendChild(w);
+      });
+      document.getElementById('pinned').hidden = !pins.length;
+      document.getElementById('pinHint').hidden = !!pins.length;
+    };
+    render();
+  }
+  // Dashboard hub: category chips and search.
+  var grid = document.getElementById('hubGrid');
+  if (grid) {
+    var cur = 'all', find = document.getElementById('hubFind');
+    var apply = function () {
+      var q = find.value.trim().toLowerCase(), shown = 0;
+      grid.querySelectorAll('.hub-card').forEach(function (c) {
+        var inGroup = cur === 'all' || c.getAttribute('data-g') === cur, any = 0;
+        c.querySelectorAll('li').forEach(function (li) {
+          var hit = !q || li.getAttribute('data-t').indexOf(q) !== -1;
+          li.hidden = !hit; if (hit) any++;
+        });
+        c.hidden = !(inGroup && any); if (!c.hidden) shown++;
+      });
+      document.getElementById('hubNone').hidden = shown > 0;
+    };
+    document.getElementById('hubChips').addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b) return;
+      cur = b.getAttribute('data-g');
+      this.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      apply();
+    });
+    find.addEventListener('input', apply);
+  }
+})();
 document.querySelectorAll('.adm-menu').forEach(function (d) {
   document.addEventListener('click', function (ev) { if (!d.contains(ev.target)) d.removeAttribute('open'); });
 });

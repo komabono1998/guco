@@ -182,6 +182,7 @@ $quick = [
 ];
 $hour = (int) date('G');
 $greet = $hour < 12 ? 'Good morning' : ($hour < 17 ? 'Good afternoon' : 'Good evening');
+$badges_all = admin_badges();
 admin_header('Dashboard');
 ?>
 <section class="dash-hero">
@@ -255,15 +256,47 @@ admin_header('Dashboard');
     <?php endif; ?>
   </section>
 
-  <section class="wid w7">
-    <h3>Quick actions</h3>
+  <section class="wid w7" id="quick">
+    <h3>Quick links <small>your shortcuts</small></h3>
     <div class="quick-grid">
-      <?php foreach ($quick as [$perm, $href, $label, $ic]): if (!can($perm)) continue; ?>
-        <a href="<?= e($href) ?>"><?= icon($ic, 22) ?><?= e($label) ?></a>
+      <?php $qi = 0; foreach ($quick as [$perm, $href, $label, $ic]): if (!can($perm)) continue; $qi++; ?>
+        <a class="q q<?= $qi % 6 ?>" href="<?= e($href) ?>"><span class="qi"><?= icon($ic, 20) ?></span><span><?= e($label) ?></span></a>
       <?php endforeach; ?>
     </div>
+    <div class="pinned" id="pinned" hidden><h4><?= icon('star', 14) ?> Pinned by you</h4><div class="pin-list" id="pinList"></div></div>
+    <p class="meta pin-hint" id="pinHint">Tip: open any admin page and press the star next to its title to pin it here.</p>
   </section>
 </div>
+
+<section class="hub" id="hub">
+  <div class="hub-head">
+    <div><h2>All tools, by category</h2><p class="meta">Everything you are allowed to use, grouped by job. Pick a category or type to find a tool.</p></div>
+    <label class="hub-search"><?= icon('search', 18) ?><input type="search" id="hubFind" placeholder="Find a tool, e.g. payments, news, backup" aria-label="Find a tool"></label>
+  </div>
+  <div class="hub-chips" id="hubChips" role="tablist" aria-label="Categories">
+    <button type="button" class="on" data-g="all">All</button>
+    <?php foreach (ADMIN_GROUPS as $g => $its): if (!array_filter($its, fn($i) => $i[2] === null || can($i[2]))) continue; ?>
+      <button type="button" data-g="<?= e($g) ?>"><?= e($g) ?></button>
+    <?php endforeach; ?>
+  </div>
+  <div class="hub-grid" id="hubGrid">
+    <?php foreach (ADMIN_GROUPS as $g => $its):
+        $vis = array_filter($its, fn($i) => $i[2] === null || can($i[2]));
+        if (!$vis) continue;
+        $gm = ADMIN_GROUP_META[$g] ?? ['grid', 'c-slate', ''];
+        $gc = 0; foreach ($vis as $vi) { $gc += $vi[4] ? ($badges_all[$vi[4]] ?? 0) : 0; } ?>
+    <article class="hub-card <?= e($gm[1]) ?>" data-g="<?= e($g) ?>">
+      <header><span class="hi"><?= icon($gm[0], 22) ?></span><div><h3><?= e($g) ?><?= $gc ? ' <span class="cnt">' . $gc . '</span>' : '' ?></h3><small><?= e($gm[2]) ?></small></div></header>
+      <ul>
+        <?php foreach ($vis as [$label, $file, $perm, $ic, $bk]): $c = $bk ? ($badges_all[$bk] ?? 0) : 0; ?>
+        <li data-t="<?= e(strtolower($label . ' ' . (ADMIN_DESC[$file] ?? ''))) ?>"><a href="<?= e($file) ?>"><?= icon($ic, 18) ?><span class="ht"><strong><?= e($label) ?></strong><small><?= e(ADMIN_DESC[$file] ?? '') ?></small></span><?= $c ? '<span class="cnt">' . (int) $c . '</span>' : '' ?></a></li>
+        <?php endforeach; ?>
+      </ul>
+    </article>
+    <?php endforeach; ?>
+  </div>
+  <p class="hub-none" id="hubNone" hidden>No tool matches that. Try another word.</p>
+</section>
 
 <div class="dgrid">
   <?php if ($regSeries): ?>
