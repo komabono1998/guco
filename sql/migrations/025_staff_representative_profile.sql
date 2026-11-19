@@ -1,0 +1,7 @@
+-- 025: the Staff Representative of the Executive Committee, with his biography (photograph to follow).
+-- Only fills the position while it is still empty, so later edits in the admin are never overwritten.
+
+UPDATE leaders SET
+  name = 'Mr. Okello Peter',
+  bio = 'Mr. Okello Peter is a Lecturer in the Faculty of Science, Department of Biology at Gulu University, and the Staff Representative to the GUCO Executive Committee. He is a distinguished member of the university community whose association with the institution dates back to its formative years.\n\nAs a pioneer student of Gulu University, Mr. Okello Peter holds a unique place in the university’s history. During the 2002/2003 academic year, he served as the first Guild Speaker of the Gulu University Students’ Guild, contributing to the establishment of student leadership and governance structures during the university’s early years.\n\nHis journey from pioneer student leadership to academia reflects a longstanding commitment to Gulu University and its institutional development. Through his current role as a lecturer and Staff Representative to the GUCO Executive Committee, he brings institutional experience, historical perspective and an understanding of the university community to the committee.\n\nMr. Okello Peter continues to contribute to the university’s academic and institutional growth, while representing staff interests and supporting the objectives of the Gulu University Convocation.'
+WHERE organ = 'executive' AND title = 'Staff Representative' AND (name IS NULL OR name = '');

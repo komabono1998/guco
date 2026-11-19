@@ -37,7 +37,8 @@ $chaptersHome = q("SELECT c.id, c.name, c.focus, (SELECT COUNT(*) FROM chapter_m
 $projectsHome = q("SELECT p.id, p.title, p.theme, p.location, p.summary, p.budget, u.full_name,
     (SELECT COALESCE(SUM(x.amount), 0) FROM project_updates x WHERE x.project_id = p.id AND x.kind = 'mobilisation' AND x.verified = 1) AS raised
     FROM projects p JOIN users u ON u.id = p.user_id WHERE p.is_public = 1 AND p.status IN ('approved','in_progress','completed') ORDER BY p.updated_at DESC LIMIT 3")->fetchAll();
-$heroImg = c_image('home.hero_image') ?: dinner_src(3);
+$heroCustom = c_image('home.hero_image');
+$heroImg = $heroCustom ?: asset('assets/img/hero-graduation.webp');
 $heroLink = function (string $key): string {
     $u = trim(c($key));
     return preg_match('#^https?://#i', $u) ? $u : url(ltrim($u, '/'));
@@ -45,7 +46,7 @@ $heroLink = function (string $key): string {
 $progPhotos = [7, 11, 3, 4];
 $progIcons = ['users', 'graduation', 'heart', 'award'];
 ?>
-<section class="hero2">
+<section class="hero2<?= $heroCustom ? '' : ' hero-frame' ?>">
   <div class="hero2-text">
     <p class="eyebrow"><?= ct('home.hero_tagline') ?></p>
     <h1><?= ct('home.hero_title') ?></h1>
@@ -60,7 +61,7 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
   </div>
   <div class="hero2-img">
     <a class="hero2-plus" href="<?= url('programmes.php') ?>" aria-label="Explore our programmes">+</a>
-    <img src="<?= e($heroImg) ?>" alt="Guests at a GUCO event" width="1200" height="800" fetchpriority="high" decoding="async">
+    <img src="<?= e($heroImg) ?>" alt="<?= $heroCustom ? 'GUCO event' : 'A graduate receiving a GUCO Award of Excellence on stage at the 22nd graduation of Gulu University' ?>" width="1600" height="1066" fetchpriority="high" decoding="async">
     <?php if (count($live) >= 3): ?>
       <div class="hero2-card">
         <?php foreach (array_slice($live, 0, 3) as [$ic, $n, $label]): ?>
@@ -206,6 +207,44 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
   })();
   </script>
 </section>
+<?php endif; ?>
+
+<?php if ($on('chair')):
+    $chair = q("SELECT id, name, title FROM leaders WHERE organ = 'executive' AND title = 'Chairperson' AND is_public = 1")->fetch() ?: [];
+    $chairName = trim((string) ($chair['name'] ?? ''));
+    $chairImg = c_image('home.chair_image') ?: asset('assets/img/chair-message.webp');
+?>
+<section class="home-section cm" id="chair" aria-labelledby="cmTitle">
+  <div class="cm-photo">
+    <span class="cm-orb o1" aria-hidden="true"></span><span class="cm-orb o2" aria-hidden="true"></span>
+    <div class="cm-arch"><img src="<?= e($chairImg) ?>" alt="<?= e($chairName !== '' ? $chairName . ', Chairperson of GUCO' : 'The Chairperson of GUCO') ?>" loading="lazy"></div>
+    <div class="cm-badge">
+      <?php if ($chairName !== ''): ?><b><?= e($chairName) ?></b><?php endif; ?>
+      <span>Chairperson, Gulu University Convocation</span>
+      <?php if (!empty($chair['id']) && $chairName !== ''): ?><a href="<?= e(url('leader.php?id=' . (int) $chair['id'])) ?>">View profile <?= icon('arrow-right', 14) ?></a><?php endif; ?>
+    </div>
+  </div>
+  <div class="cm-body">
+    <span class="eyebrow"><?= ct('home.chair_eyebrow') ?></span>
+    <h2 id="cmTitle"><?= ct('home.chair_title') ?></h2>
+    <div class="cm-text" id="cmText"><?= cr('home.chair_text') ?></div>
+    <button type="button" class="cm-more" id="cmMore" aria-expanded="true" aria-controls="cmText" hidden>Read the full message</button>
+    <figure class="cm-sign">
+      <blockquote><?= ct('home.chair_quote') ?></blockquote>
+      <?php if ($chairName !== ''): ?><figcaption><b><?= e($chairName) ?></b><span>Chairperson</span></figcaption><?php endif; ?>
+    </figure>
+  </div>
+</section>
+<script>
+(function () {
+  var t = document.getElementById('cmText'), b = document.getElementById('cmMore'); if (!t || !b) return;
+  t.classList.add('clamp'); b.hidden = false; b.setAttribute('aria-expanded', 'false');
+  b.addEventListener('click', function () {
+    var open = t.classList.toggle('clamp') === false;
+    b.setAttribute('aria-expanded', open ? 'true' : 'false'); b.textContent = open ? 'Show less' : 'Read the full message';
+  });
+})();
+</script>
 <?php endif; ?>
 
 <?php if ($live):

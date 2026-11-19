@@ -7,6 +7,19 @@
  * list (one item per line; "A | B" pairs where noted) and image.
  */
 
+/** The Chairperson's welcome message shown on the home page (editable in Admin > Page content). */
+const CHAIR_MESSAGE_DEFAULT = <<<'TXT'
+Gulu University has shaped every one of us. From its first lecture halls, it gave us knowledge, discipline, friendships and a sense of purpose. Many of us arrived as young people from villages, towns and Cities from across Uganda and beyond. We left as professionals in our different fields. Whatever we have become, part of it was written here.
+
+To all alumni and staff, welcome home. GUCO is your family, your voice and your platform to give back to the institution that gave so much to you.
+
+**Our role.** The Convocation is not a bystander. We help to build this university: through our studies, our service, our teaching and our work in communities. We carry its name into every office, hospital, classroom and field. Now we step forward to help shape its future. We will stand with the university to plan boldly for tomorrow, and we will not trade away the quality of education, research and service it delivers today. Growth that weakens standards is not growth. We want a Gulu University that is bigger, stronger and better, all at once.
+
+**Our promise to each other.** Every graduate is important. GUCO is committed to the welfare of our alumni: to reconnecting those who have drifted apart, supporting one another in times of need and celebrating achievements together. Gulu University has produced hundreds of thousands of graduates. We intend to find them, register them and account for them, so that no one is forgotten and every talent is put to work for our communities.
+
+**Our call.** Reconnect with us. Update your details. Bring a classmate. Share your story. Together, we will rebuild, and through the university we will drive real transformation in our communities.
+TXT;
+
 function content_registry(): array
 {
     static $r = null;
@@ -37,6 +50,11 @@ function content_registry(): array
             'home.chapters_title' => ['Chapters section: heading', 'text', 'Find Your Chapter'],
             'home.projects_title' => ['Projects section: heading', 'text', 'Member-Led Community Projects'],
             'home.stats' => ['Hero statistics (shown under the headline)', 'list', "2023 | Constitution in force\n4 | Membership categories\n9 | Executive Committee offices\n4 | Governing organs", 'One per line: Value | Label. Use only figures you can stand behind.'],
+            'home.chair_eyebrow' => ['Chairperson message: small heading', 'text', 'A message from the Chairperson'],
+            'home.chair_title' => ['Chairperson message: heading', 'text', 'Welcome to the Gulu University Convocation (GUCO)'],
+            'home.chair_text' => ['Chairperson message: text', 'rich', CHAIR_MESSAGE_DEFAULT, 'Separate paragraphs with a blank line. Put **bold** around a lead-in such as Our role.'],
+            'home.chair_quote' => ['Chairperson message: closing line', 'text', 'Community Transformation Actualized.'],
+            'home.chair_image' => ['Chairperson message: photo (leave empty to use the default photo)', 'image', ''],
             'home.who_title' => ['Who we are: heading', 'text', 'Who We Are'],
             'home.who_text' => ['Who we are: introduction', 'rich', 'Gulu University Convocation (GUCO) is the alumni body of Gulu University, bringing graduates and the wider University community together to support the University and the communities it serves.'],
             'home.programmes_title' => ['Programmes section heading', 'text', 'Our Programme Areas'],
