@@ -174,7 +174,18 @@ require __DIR__ . '/includes/header.php';
 <?php if ($claim): ?>
   <div class="notice"><strong>Existing GUCO member: <?= e(legacy_display_name($claim)) ?> (<?= e($claim['guco_no']) ?>).</strong> Check and complete the details below. Your GUCO number stays the same, and the Secretariat confirms your membership after you submit. <a href="<?= url('claim.php?cancel=1') ?>">Not you?</a></div>
 <?php else: ?>
-<p class="meta" style="margin-bottom:16px">Already registered? <a href="<?= url('member/login.php') ?>">Log in to your portal</a>. Already hold a GUCO number? <a href="<?= url('claim.php') ?>">Find your record</a>.</p>
+<div class="reg-existing">
+  <a class="re-card" href="<?= url('claim.php') ?>">
+    <span class="re-ic"><?= icon('id-card', 26) ?></span>
+    <span class="re-tx"><b>Already hold a GUCO number?</b><small>Find your record by number or name, confirm your details and renew.</small></span>
+    <span class="re-go">Find your record <?= icon('arrow-right', 16) ?></span>
+  </a>
+  <a class="re-card alt" href="<?= url('member/login.php') ?>">
+    <span class="re-ic"><?= icon('user', 26) ?></span>
+    <span class="re-tx"><b>Already registered?</b><small>Log in to your Member Portal to track your membership.</small></span>
+    <span class="re-go">Log in to your portal <?= icon('arrow-right', 16) ?></span>
+  </a>
+</div>
 <?php endif; ?>
 <ol class="steps">
   <li><strong>Apply</strong> Fill in this form. Upload your proof of payment now, or choose to pay later.</li>

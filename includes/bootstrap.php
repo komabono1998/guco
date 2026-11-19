@@ -163,7 +163,7 @@ function q(string $sql, array $args = []): PDOStatement
 function logo_url(): string
 {
     $l = setting('logo');
-    return $l !== '' ? url('uploads/' . rawurlencode($l)) : url('assets/img/logo-sm.webp');
+    return $l !== '' ? url('uploads/' . rawurlencode($l)) : asset('assets/img/logo-sm.webp');
 }
 
 function setting(string $key, string $default = ''): string

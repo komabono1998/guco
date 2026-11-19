@@ -51,7 +51,7 @@ foreach (['color_primary' => ['--green', '--green-2'], 'color_accent' => ['--gol
 <?php if ($welcomeOn): ?>
 <div class="welcome" id="welcome" role="dialog" aria-modal="true" aria-label="Welcome to Gulu University Convocation">
   <div class="welcome-card">
-    <div class="welcome-logo"><span class="w-ring" aria-hidden="true"></span><span class="w-ring r2" aria-hidden="true"></span><img src="<?= e(url('assets/img/logo.webp')) ?>" alt="Gulu University Convocation official logo" width="1000" height="1000"></div>
+    <div class="welcome-logo"><span class="w-ring" aria-hidden="true"></span><span class="w-ring r2" aria-hidden="true"></span><img src="<?= e(asset('assets/img/logo.webp')) ?>" alt="Gulu University Convocation official logo" width="1000" height="1000"></div>
     <p class="welcome-name">Welcome to <?= e($siteName) ?></p>
     <p class="welcome-tag"><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></p>
     <button type="button" class="welcome-skip" id="welcomeSkip">Enter the website</button>

@@ -29,7 +29,8 @@ function leader_photo(array $l, string $size = ''): string
 {
     $cls = 'avatar' . ($size ? " $size" : '');
     if (!empty($l['photo'])) {
-        return '<img class="' . $cls . '" src="' . e(url('uploads/' . rawurlencode($l['photo']))) . '" alt="' . e(trim($l['name']) !== '' ? $l['name'] : $l['title']) . '">';
+        $src = str_starts_with($l['photo'], 'assets/') ? url($l['photo']) : url('uploads/' . rawurlencode($l['photo']));
+        return '<img class="' . $cls . '" src="' . e($src) . '" alt="' . e(trim($l['name']) !== '' ? $l['name'] : $l['title']) . '">';
     }
     $initials = '';
     foreach (preg_split('/\s+/', trim($l['name'])) as $w) {
