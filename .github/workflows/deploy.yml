@@ -13,6 +13,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Check PHP syntax
         run: find . -name '*.php' -not -path './.git/*' -print0 | xargs -0 -n1 php -l > /dev/null
+      - name: Adapt paths for the live domain root
+        # Local copy lives at /guco/; the live site is at the domain root.
+        run: sed -i 's#/guco/#/#g' .htaccess
       - name: Upload changed files
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
