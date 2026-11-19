@@ -63,3 +63,8 @@ body.authpage.member { background: #fff; }
   .mem-form { padding: 36px 24px; order: 1; max-width: none; }
   .feat-grid { grid-template-columns: 1fr; }
 }
+
+@media (max-width: 760px) {
+  input, select, textarea { font-size: 16px; }
+  input:not([type=checkbox]):not([type=radio]):not([type=hidden]) { min-height: 48px; }
+}

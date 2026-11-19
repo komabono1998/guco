@@ -91,7 +91,7 @@ $maxHour = max(1, ...$hours);
 .vz-kpi span { color: var(--adm-muted); font-size: .85rem; }
 .vz-kpi i { font-style: normal; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #22c55e; margin-right: 6px; box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); animation: vzp 1.8s infinite; }
 @keyframes vzp { 70% { box-shadow: 0 0 0 9px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
-.vz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.vz-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr)); gap: 16px; }
 .vz-card { background: var(--adm-card); border: 1px solid var(--adm-line); border-radius: var(--adm-r); padding: 18px; box-shadow: var(--adm-shadow); min-width: 0; }
 .vz-card h2 { margin: 0 0 12px; font-size: 1.02rem; color: var(--adm-ink); display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
 .vz-card h2 small { font-weight: 500; color: var(--adm-muted); font-size: .78rem; }

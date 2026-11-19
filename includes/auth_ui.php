@@ -88,8 +88,8 @@ function auth_page_open(string $variant, string $title): void
 <meta name="robots" content="noindex">
 <title><?= e($title) ?> | <?= e(config('short_name')) ?></title>
 <link rel="icon" href="<?= e(logo_url()) ?>">
-<link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
-<link rel="stylesheet" href="<?= url('assets/css/auth.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/auth.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
 </head>
 <body class="authpage <?= e($variant) ?>">

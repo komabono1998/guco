@@ -48,8 +48,8 @@ function portal_header(string $title): void
 <meta name="robots" content="noindex">
 <title><?= e($title) ?> | Member Portal | <?= e(config('short_name')) ?></title>
 <link rel="icon" href="<?= e(logo_url()) ?>">
-<link rel="stylesheet" href="<?= url('assets/css/style.css') ?>">
-<link rel="stylesheet" href="<?= url('assets/css/portal.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/style.css') ?>">
+<link rel="stylesheet" href="<?= asset('assets/css/portal.css') ?>">
 <?php if ($brandCss): ?><style>:root{<?= $brandCss ?>}</style><?php endif; ?>
 </head>
 <body class="portal">

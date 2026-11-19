@@ -103,7 +103,7 @@ body.admin .notice { border-radius: 10px; }
 .dash-hero .prog .bar { height: 8px; border-radius: 99px; background: rgba(255, 255, 255, .22); overflow: hidden; margin: 6px 0 4px; }
 .dash-hero .prog .bar i { display: block; height: 100%; background: var(--gold); }
 .dash-hero .prog small { opacity: .8; }
-.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 20px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 14px; margin-bottom: 20px; }
 .kpi { background: #fff; border: 1px solid var(--adm-line); border-radius: var(--adm-r); padding: 16px 18px; display: flex; gap: 14px; align-items: flex-start; text-decoration: none; color: inherit; box-shadow: var(--adm-shadow); transition: .15s; }
 a.kpi:hover { border-color: var(--green); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(16, 24, 40, .08); }
 .kpi .ic { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: #e4f1e8; color: var(--green); flex: none; }
@@ -179,10 +179,10 @@ a.kpi:hover { border-color: var(--green); transform: translateY(-1px); box-shado
 .checklist li a { color: var(--adm-ink); }
 
 /* Reports, help, search */
-.report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+.report-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 16px; }
 .report-grid .wid table { font-size: .86rem; }
 .report-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.help-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.help-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)); gap: 16px; }
 .help-grid2 .wid ul { margin: 0; padding-left: 1.1em; }
 .help-grid2 .wid li { margin: .5em 0; }
 .search-group { margin-bottom: 18px; }
@@ -214,7 +214,7 @@ body.admin .wid > h3 { color: var(--adm-ink); }
 body.admin .wid > h3 a { color: var(--green); }
 
 /* Dashboard countdowns */
-.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.cd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 14px; }
 .cd-card { background: linear-gradient(135deg, #0f1b2d, #17406a); color: #fff; border-radius: 14px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; }
 .cd-card .cd-top { display: flex; flex-direction: column; gap: 3px; }
 .cd-card strong, .cd-card strong a { color: #fff; text-decoration: none; font-size: 1rem; }
@@ -228,3 +228,40 @@ body.admin .link-btn { background: transparent; color: #b8c7dc; padding: 0; font
 body.admin .link-btn:hover { color: #fff; }
 .cd-add { margin-top: 14px; border: 1px dashed var(--adm-line); border-radius: 10px; padding: 10px 14px; background: #fafcff; }
 .cd-add summary { cursor: pointer; font-weight: 600; color: var(--green); }
+
+/* ---------- Phones ---------- */
+@media (max-width: 640px) {
+  .adm-top { padding: 0 10px; gap: 8px; }
+  .adm-brand span { display: none; }
+  .adm-actions { gap: 4px; }
+  .adm-new > summary { font-size: 0; padding: 0; width: 42px; height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 0; }
+  .adm-new > summary .icon, .adm-new > summary svg { width: 20px; height: 20px; }
+  .adm-icon-btn { width: 42px; height: 42px; }
+  .adm-user > summary { padding: 4px; }
+  /* Dropdowns span the screen instead of hanging off the edge */
+  .adm-menu { position: static; }
+  .adm-drop, .adm-drop.right { position: fixed; left: 10px; right: 10px; top: 64px; min-width: 0; max-height: calc(100vh - 80px); overflow-y: auto; }
+  .adm-drop a { padding: 13px 12px; }
+  body.admin input, body.admin select, body.admin textarea { font-size: 16px; }
+  body.admin .btn, body.admin button { min-height: 44px; }
+  .adm-side a { padding-top: 12px; padding-bottom: 12px; }
+  .adm-main { padding: 14px 12px 50px; }
+  body.admin h1 { overflow-wrap: anywhere; }
+  .table-wrap, body.admin .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  body.admin table { max-width: 100%; }
+}
+@media (max-width: 640px) {
+  .wid, .report-grid > *, .dgrid > * { min-width: 0; max-width: 100%; }
+  .wid { padding: 14px; overflow-x: auto; }
+  .report-grid { grid-template-columns: minmax(0, 1fr) !important; }
+}
+@media (max-width: 420px) {
+  .adm-brand { display: none; }
+  .adm-user > summary .caret, .adm-user > summary::after { display: none; }
+}
+@media (max-width: 340px) {
+  .adm-top { padding: 0 6px; gap: 4px; }
+  .adm-new > summary, .adm-icon-btn { width: 38px; height: 38px; }
+  .adm-actions { gap: 2px; }
+  .help-grid2, .report-grid, .dgrid { grid-template-columns: minmax(0, 1fr) !important; }
+}

@@ -32,7 +32,7 @@ h1 { margin: 26px 0 10px; font-size: clamp(1.7rem, 5vw, 2.8rem); line-height: 1.
 .back b { font-size: 1.15rem; }
 .back span { font-size: .92rem; color: rgba(255, 255, 255, .85); font-variant-numeric: tabular-nums; }
 h2 { margin: 34px 0 14px; font-size: 1.1rem; letter-spacing: .04em; }
-.channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; text-align: left; }
+.channels { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 12px; text-align: left; }
 .ch { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); color: #fff; text-decoration: none; transition: transform .2s, background .2s, border-color .2s; }
 a.ch:hover { transform: translateY(-3px); background: rgba(255, 255, 255, .18); border-color: var(--gold); }
 .ch i { flex: none; width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: rgba(242, 184, 7, .18); color: var(--gold); font-style: normal; font-weight: 800; }
