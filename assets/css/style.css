@@ -281,4 +281,20 @@ input[type=color] { padding: 2px; height: 42px; width: 84px; }
 /* ID card: details sit in two columns so nothing is cut off */
 .idcard-info { grid-template-columns: 1fr 1fr; column-gap: 14px; }
 .idcard-info > .idname, .idcard-info > div:nth-child(2), .idcard-info > .idrow:nth-child(3) { grid-column: 1 / -1; }
-.idcard { overflow: visible; }
+.idcard { overflow: hidden; }
+/* ID card: white version with green and gold accents */
+.idcard { background: #fff; color: #1a2b20; border: 1px solid #d9e2dc; border-top: 8px solid var(--green); border-bottom: 8px solid var(--gold); box-shadow: 0 8px 24px rgba(16, 24, 40, .14); }
+.idcard::before { content: ""; position: absolute; right: -60px; top: 40%; width: 260px; height: 260px; background: url("../img/logo-sm.webp") center / contain no-repeat; opacity: .06; pointer-events: none; }
+.idcard > * { position: relative; }
+.idcard-head { border-bottom: 2px solid #e4ebe6; }
+.idcard-head img { background: #fff; box-shadow: 0 0 0 2px #e4ebe6; }
+.idcard-head strong { color: var(--green); }
+.idcard-head small { color: #a37a00; }
+.idphoto { background: #eef5f0; color: var(--green); border: 2px solid var(--gold); }
+.idname { color: var(--green); }
+.idrow span { opacity: 1; color: #6b7c71; }
+.idrow b { color: #1a2b20; }
+.idqr #qrcode { border: 1px solid #d9e2dc; }
+.idqr small { opacity: 1; color: #6b7c71; }
+.idcard.expired { filter: grayscale(.5); }
+.idstamp { color: rgba(180, 35, 35, .5); border-color: rgba(180, 35, 35, .5); }
