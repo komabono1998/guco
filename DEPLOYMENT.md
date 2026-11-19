@@ -42,3 +42,15 @@ Keep `dev_mode` off in production.
 
 ## 7. Go-live test
 Sign in as admin (with the emailed code), open every Admin menu, submit the contact form, register a test member, check the emails arrive, then delete the test data.
+
+## 8. Deploying from GitHub (cPanel)
+Pushing to `main` runs `.github/workflows/deploy.yml`, which lint-checks PHP and uploads changed files over FTPS. It never touches `config.local.php`, `uploads/` or `storage/` on the server.
+
+One-time setup:
+1. In cPanel create an FTP account whose home is the site folder (e.g. `public_html`), note the FTP host name.
+2. In GitHub: repo > Settings > Secrets and variables > Actions > New repository secret, add:
+   `FTP_SERVER` (host), `FTP_USERNAME`, `FTP_PASSWORD`, `FTP_DIR` (e.g. `/public_html/` or `/`).
+3. On the server, once: create the database (cPanel MySQL), upload `config.local.php` by File Manager with the live settings (section 3), import `sql/schema.sql` in phpMyAdmin.
+4. Run migrations after each release that adds files under `sql/migrations/`: cPanel Terminal (`php tools/migrate.php`) or a cron job run once. The FTP upload does not run them.
+5. If the site is in the domain root, set `base_url` to `''` in `config.php` and update `.htaccess` (ErrorDocument paths, `RewriteBase /`).
+6. Re-run the workflow from the Actions tab if a deploy fails; use FTP-over-TLS (`ftps`). Change `protocol` to `ftp` only if the host has no TLS.
