@@ -298,3 +298,15 @@ input[type=color] { padding: 2px; height: 42px; width: 84px; }
 .idqr small { opacity: 1; color: #6b7c71; }
 .idcard.expired { filter: grayscale(.5); }
 .idstamp { color: rgba(180, 35, 35, .5); border-color: rgba(180, 35, 35, .5); }
+/* ID card photo: bigger, face-first crop, frame and rounded corners stay intact */
+.idphoto { width: 124px; height: 156px; box-sizing: border-box; object-fit: cover; object-position: 50% 18%; border-radius: 12px; border: 3px solid var(--gold); overflow: hidden; background: #eef5f0; }
+.idphoto.initials { font-size: 2.4rem; }
+.idcard-body { gap: 18px; }
+@media (max-width: 480px) { .idphoto { width: 96px; height: 120px; border-width: 2px; } .idcard-body { gap: 12px; } }
+@media (max-width: 480px) {
+  .idcard-body { flex-wrap: wrap; align-items: flex-start; }
+  .idphoto { width: 92px; height: 116px; }
+  .idcard-info { flex: 1 1 120px; }
+  .idqr { order: 3; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: left; }
+  .idqr small { margin-top: 0; }
+}
