@@ -73,27 +73,91 @@ function card_state(array $m): array
  */
 function save_private_file(array $file, string $kind): ?array
 {
-    if (($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK) {
+    $GLOBALS['upload_problem'] = null;
+    $err = $file['error'] ?? UPLOAD_ERR_NO_FILE;
+    if ($err !== UPLOAD_ERR_OK) {
+        $GLOBALS['upload_problem'] = in_array($err, [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)
+            ? 'The file is larger than this server accepts. Choose a smaller picture.'
+            : 'The file did not upload completely. Please try again.';
         return null;
     }
     $types = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
     if ($kind === 'proof') {
         $types['application/pdf'] = 'pdf';
     }
-    $max = $kind === 'photo' ? 3 * 1024 * 1024 : 5 * 1024 * 1024;
+    // Photos are shrunk after upload, so phone camera pictures are welcome.
+    $max = $kind === 'photo' ? 12 * 1024 * 1024 : 5 * 1024 * 1024;
     $mime = (new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
-    if (!isset($types[$mime]) || $file['size'] > $max) {
+    if (!isset($types[$mime])) {
+        $GLOBALS['upload_problem'] = $kind === 'photo' ? 'The photo must be a JPG, PNG or WebP picture.' : 'The file must be a JPG, PNG, WebP or PDF.';
+        return null;
+    }
+    if ($file['size'] > $max) {
+        $GLOBALS['upload_problem'] = 'The file is too large (limit ' . ($max / 1048576) . 'MB).';
         return null;
     }
     $dir = dirname(config('storage_dir')) . '/members';
-    if (!is_dir($dir)) {
-        mkdir($dir, 0755, true);
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
+        $GLOBALS['upload_problem'] = 'The server could not create the folder for member files. Please tell the site administrator.';
+        error_log('GUCO: cannot create ' . $dir);
+        return null;
     }
-    $name = $kind . '-' . bin2hex(random_bytes(10)) . '.' . $types[$mime];
-    if (!move_uploaded_file($file['tmp_name'], "$dir/$name")) {
+    $ext = $types[$mime];
+    $shrunk = null;
+    if ($kind === 'photo' && function_exists('imagecreatefromstring')) {
+        $shrunk = shrink_photo($file['tmp_name'], $mime);
+        if ($shrunk !== null) {
+            $ext = 'jpg';
+        }
+    }
+    $name = $kind . '-' . bin2hex(random_bytes(10)) . '.' . $ext;
+    $ok = $shrunk !== null ? (@file_put_contents("$dir/$name", $shrunk) !== false) : @move_uploaded_file($file['tmp_name'], "$dir/$name");
+    if (!$ok) {
+        $GLOBALS['upload_problem'] = 'The server could not save the file (folder not writable). Please tell the site administrator.';
+        error_log('GUCO: cannot write ' . "$dir/$name");
         return null;
     }
     return ['name' => $name, 'original' => mb_substr(basename($file['name']), 0, 190)];
+}
+
+/** Why the last save_private_file() call failed, for showing to the person. */
+function upload_problem(string $fallback = 'The file could not be saved.'): string
+{
+    return $GLOBALS['upload_problem'] ?? $fallback;
+}
+
+/** Returns the picture as a JPEG no larger than 800px, turned upright; null if it cannot be processed. */
+function shrink_photo(string $path, string $mime): ?string
+{
+    try {
+        $data = @file_get_contents($path);
+        $im = $data ? @imagecreatefromstring($data) : false;
+        if (!$im) {
+            return null;
+        }
+        if ($mime === 'image/jpeg' && function_exists('exif_read_data')) {
+            $exif = @exif_read_data($path);
+            $rot = [3 => 180, 6 => -90, 8 => 90][$exif['Orientation'] ?? 1] ?? 0;
+            if ($rot) {
+                $im = imagerotate($im, $rot, 0) ?: $im;
+            }
+        }
+        $w = imagesx($im);
+        $h = imagesy($im);
+        $scale = min(1, 800 / max($w, $h));
+        if ($scale < 1) {
+            $im = imagescale($im, max(1, (int) round($w * $scale)), max(1, (int) round($h * $scale))) ?: $im;
+        }
+        $flat = imagecreatetruecolor(imagesx($im), imagesy($im));
+        imagefill($flat, 0, 0, imagecolorallocate($flat, 255, 255, 255));
+        imagecopy($flat, $im, 0, 0, 0, 0, imagesx($im), imagesy($im));
+        ob_start();
+        imagejpeg($flat, null, 85);
+        $out = ob_get_clean();
+        return $out !== '' && $out !== false ? $out : null;
+    } catch (Throwable $e) {
+        return null;
+    }
 }
 
 function member_file_url(string $type, int $id): string

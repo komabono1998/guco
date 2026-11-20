@@ -30,7 +30,5 @@ jobs:
             **/.git*/**
             .github/**
             config.local.php
-            uploads/**
-            storage/**
             DEPLOYMENT.md
             README.md

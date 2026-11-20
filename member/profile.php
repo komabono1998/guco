@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
         $photo = save_private_file($_FILES['photo'], 'photo');
         if (!$photo) {
-            flash('Your photo must be a JPG, PNG or WebP image under 3MB.', 'error');
+            flash('Your photo could not be saved. ' . upload_problem(), 'error');
             redirect('member/profile.php');
         }
     }
@@ -82,7 +82,7 @@ portal_header('My profile');
       <label>Country <input name="country" value="<?= $v('country') ?>"></label>
     </div>
     <div style="display:flex;gap:14px;align-items:center"><?= member_avatar($p + ['user_id' => $me['id'], 'full_name' => $me['full_name']], 'avatar') ?>
-      <label style="flex:1">Card photo <span class="hint">(JPG, PNG or WebP, up to 3MB)</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label></div>
+      <label style="flex:1">Card photo <span class="hint">(JPG, PNG or WebP; large pictures are resized automatically)</span><input type="file" name="photo" accept="image/jpeg,image/png,image/webp"></label></div>
   </fieldset>
   <?php if (($p['member_type'] ?? 'alumni') === 'staff'): ?>
   <fieldset><legend>Gulu University staff details</legend>

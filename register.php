@@ -84,7 +84,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     if (!$error && ($_FILES['photo']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
         $photo = save_private_file($_FILES['photo'], 'photo');
-        $error = $photo ? null : 'Your photo must be a JPG, PNG or WebP image under 3MB.';
+        $error = $photo ? null : 'Your photo could not be saved. ' . upload_problem();
     }
 
     if ($error) {
