@@ -567,27 +567,93 @@ $csYear = date('Y');
 <?php endif; ?>
 
 <?php if ($on('events') && $events): ?>
-<section class="home-section">
+<?php
+$ueTone = ['Dinner' => 'gold', 'AGM' => 'green', 'Sports' => 'teal', 'Networking' => 'blue', 'Awards' => 'rose', 'Community Service' => 'violet', 'Chapter Event' => 'slate', 'Other' => 'green'];
+$ueIcon = ['Dinner' => 'users', 'AGM' => 'file', 'Sports' => 'target', 'Networking' => 'link', 'Awards' => 'award', 'Community Service' => 'heart', 'Chapter Event' => 'map-pin', 'Other' => 'calendar'];
+$ueCats = array_values(array_unique(array_column($events, 'category')));
+$ueCard = function (array $ev, bool $big) use ($ueTone, $ueIcon) {
+    $tone = $ueTone[$ev['category']] ?? 'green';
+    $ic = $ueIcon[$ev['category']] ?? 'calendar';
+    $fl = event_flyer_url($ev);
+    $href = url('event_view.php?id=' . (int) $ev['id']);
+    $open = $ev['registration_open'] && $ev['status'] === 'scheduled';
+    $dated = !empty($ev['starts_at']);
+    ob_start(); ?>
+    <article class="ue-card tone-<?= e($tone) ?><?= $big ? ' ue-big' : '' ?>" data-cat="<?= e($ev['category']) ?>">
+      <div class="ue-media">
+        <?= $fl ? '<img src="' . e($fl) . '" alt="" loading="lazy">' : '<span class="ue-art" aria-hidden="true">' . icon($ic, $big ? 96 : 64) . '</span>' ?>
+        <div class="ue-date<?= $dated ? '' : ' tba' ?>"><?php if ($dated): ?><b><?= e(fmt_date($ev['starts_at'], 'j')) ?></b><span><?= e(fmt_date($ev['starts_at'], 'M')) ?></span><small><?= e(fmt_date($ev['starts_at'], 'Y')) ?></small><?php else: ?><b>TBA</b><span>soon</span><?php endif; ?></div>
+        <span class="ue-cat"><?= icon($ic, 14) ?> <?= e($ev['category']) ?></span>
+      </div>
+      <div class="ue-body">
+        <div class="ue-pills">
+          <?php if ($open): ?><span class="ue-pill live"><i></i>Registration open</span><?php endif; ?>
+          <?php if (!$dated): ?><span class="ue-pill soon">Save the date</span><?php endif; ?>
+          <?= event_status_badge($ev) ?>
+        </div>
+        <h3><a class="ue-link" href="<?= e($href) ?>"><?= e($ev['title']) ?></a></h3>
+        <ul class="ue-meta">
+          <li><?= icon('clock', 16) ?><span><?= e(event_when($ev, 'D j M Y, g:ia')) ?></span></li>
+          <?php if ($ev['location']): ?><li><?= icon('map-pin', 16) ?><span><?= e($ev['location']) ?></span></li><?php endif; ?>
+        </ul>
+        <?= event_countdown($ev, $big ? '' : 'small') ?>
+        <div class="ue-actions">
+          <a class="ue-go" href="<?= e($href) ?>"><?= $open ? 'Register now' : 'View details' ?> <span aria-hidden="true">&rarr;</span></a>
+          <?php if ($dated): ?><a class="ue-ic" href="<?= e(url('event_ics.php?id=' . (int) $ev['id'])) ?>" title="Add to my calendar" aria-label="Add <?= e($ev['title']) ?> to my calendar"><?= icon('calendar', 18) ?></a><?php endif; ?>
+          <button type="button" class="ue-ic ue-share" data-url="<?= e(absolute_url('event_view.php?id=' . (int) $ev['id'])) ?>" data-title="<?= e($ev['title']) ?>" title="Share this event" aria-label="Share <?= e($ev['title']) ?>"><?= icon('link', 18) ?></button>
+        </div>
+      </div>
+    </article>
+    <?php return ob_get_clean();
+};
+?>
+<section class="home-section ue" id="events">
   <div class="sec-head"><div><span class="eyebrow">Mark your calendar</span><h2><?= ct('home.events_heading') ?></h2></div><a href="<?= url('events.php') ?>">View all events &rarr;</a></div>
-  <div class="prog-grid">
-    <?php foreach ($events as $ev): $fl = event_flyer_url($ev); ?>
-      <a class="ev-card" href="<?= url('event_view.php?id=' . (int) $ev['id']) ?>">
-        <div class="ev-media">
-          <?= $fl ? '<img src="' . e($fl) . '" alt="" loading="lazy">' : '<div class="ph">' . icon('calendar', 44) . '</div>' ?>
-          <?php if ($ev['starts_at']): ?><div class="ev-date"><b><?= e(fmt_date($ev['starts_at'], 'j')) ?></b><span><?= e(fmt_date($ev['starts_at'], 'M')) ?></span></div>
-          <?php else: ?><div class="ev-date"><b>TBA</b><span>soon</span></div><?php endif; ?>
-        </div>
-        <div class="ev-body">
-          <span><span class="badge"><?= e($ev['category']) ?></span> <?= event_status_badge($ev) ?></span>
-          <h3><?= e($ev['title']) ?></h3>
-          <p class="meta"><?= e(event_when($ev, 'D j M, g:ia')) ?><?= $ev['location'] ? ' &middot; ' . e($ev['location']) : '' ?></p>
-          <?= event_countdown($ev, 'small') ?>
-          <span class="btn"><?= $ev['registration_open'] && $ev['status'] === 'scheduled' ? 'Register now' : 'View details' ?></span>
-        </div>
-      </a>
-    <?php endforeach; ?>
+  <?php if (count($ueCats) > 1): ?>
+  <div class="ue-chips" role="group" aria-label="Filter events by type">
+    <button type="button" class="on" data-c="">All events</button>
+    <?php foreach ($ueCats as $c): ?><button type="button" data-c="<?= e($c) ?>"><?= icon($ueIcon[$c] ?? 'calendar', 14) ?> <?= e($c) ?></button><?php endforeach; ?>
   </div>
+  <?php endif; ?>
+  <div class="ue-grid<?= count($events) === 1 ? ' one' : '' ?>" id="ueGrid">
+    <?php foreach ($events as $i => $ev) { echo $ueCard($ev, $i === 0); } ?>
+  </div>
+  <p class="ue-empty" id="ueEmpty" hidden>No events of that type right now. Try another type.</p>
 </section>
+<script>
+(function () {
+  var sec = document.getElementById('events'); if (!sec) return;
+  var grid = document.getElementById('ueGrid'), cards = grid.querySelectorAll('.ue-card');
+  sec.querySelectorAll('.ue-chips button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var c = b.getAttribute('data-c'), shown = 0;
+      sec.querySelectorAll('.ue-chips button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      cards.forEach(function (card) { var hit = !c || card.getAttribute('data-cat') === c; card.hidden = !hit; if (hit) shown++; });
+      grid.classList.toggle('filtered', !!c);
+      document.getElementById('ueEmpty').hidden = shown > 0;
+    });
+  });
+  sec.querySelectorAll('.ue-share').forEach(function (b) {
+    b.addEventListener('click', function (e) {
+      e.preventDefault();
+      var url = b.getAttribute('data-url'), title = b.getAttribute('data-title');
+      var done = function () { b.classList.add('ok'); b.setAttribute('title', 'Link copied'); setTimeout(function () { b.classList.remove('ok'); b.setAttribute('title', 'Share this event'); }, 1800); };
+      if (navigator.share) { navigator.share({ title: title, url: url }).catch(function () {}); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url).then(done, function () { window.prompt('Copy this link', url); }); }
+      else { window.prompt('Copy this link', url); }
+    });
+  });
+  // Soft spotlight that follows the pointer over each card (desktop only).
+  if (window.matchMedia && matchMedia('(hover: hover)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    cards.forEach(function (card) {
+      card.addEventListener('pointermove', function (e) {
+        var r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', (e.clientX - r.left) + 'px'); card.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      });
+    });
+  }
+})();
+</script>
 <?php endif; ?>
 
 <?php if ($on('chapters') && $chaptersHome): ?>
