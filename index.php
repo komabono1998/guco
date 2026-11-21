@@ -389,23 +389,138 @@ $poN = max(1, count($areas));
 <?php endif; ?>
 
 <?php if ($on('card')): ?>
-<section class="home-section cardshow">
+<?php
+// A decorative sample QR code (not a real code): three finder squares and a fixed pseudo-random pattern.
+$mockQr = (function () {
+    $n = 25; $cells = []; $seed = 20241119;
+    $finder = fn($x, $y) => ($x < 7 && $y < 7) || ($x >= $n - 7 && $y < 7) || ($x < 7 && $y >= $n - 7);
+    $path = '';
+    for ($y = 0; $y < $n; $y++) {
+        for ($x = 0; $x < $n; $x++) {
+            if ($finder($x, $y)) {
+                $ox = $x >= $n - 7 ? $x - ($n - 7) : $x; $oy = $y >= $n - 7 ? $y - ($n - 7) : $y;
+                $on = ($ox === 0 || $ox === 6 || $oy === 0 || $oy === 6) || ($ox >= 2 && $ox <= 4 && $oy >= 2 && $oy <= 4);
+            } else {
+                $seed = ($seed * 1103515245 + 12345) & 0x7fffffff;
+                $on = (($seed >> 16) & 3) !== 0;
+                if (($x === 7 || $y === 7 || $x === $n - 8 || $y === $n - 8) && ($x < 8 || $y < 8 || $x >= $n - 8 || $y >= $n - 8)) { $on = false; }
+            }
+            if ($on) { $path .= 'M' . $x . ' ' . $y . 'h1v1h-1z'; }
+        }
+    }
+    return '<svg viewBox="0 0 ' . $n . ' ' . $n . '" aria-hidden="true" focusable="false" shape-rendering="crispEdges"><path d="' . $path . '" fill="currentColor"/></svg>';
+})();
+$csYear = date('Y');
+?>
+<section class="home-section cardshow cs2" id="cardShow">
   <div class="cs-text">
     <span class="eyebrow">Membership</span>
     <h2><?= ct('home.card_title') ?></h2>
     <?= cr('home.card_text') ?>
-    <p><a class="btn" href="<?= url('register.php') ?>">Apply for your card</a> <a class="btn outline" href="<?= url('verify.php') ?>">Verify a card</a></p>
+    <ol class="cs-steps" aria-label="How to get your card">
+      <li><b>1</b><span>Apply online</span></li>
+      <li><b>2</b><span>Get approved</span></li>
+      <li><b>3</b><span>Show &amp; verify</span></li>
+    </ol>
+    <p class="cs-cta"><a class="btn" href="<?= url('register.php') ?>">Apply for your card</a> <a class="btn outline" href="<?= url('verify.php') ?>">Verify a card</a></p>
   </div>
-  <div class="cs-card" aria-hidden="true">
-    <div class="mc">
-      <div class="mc-h"><img src="<?= e(logo_url()) ?>" alt="" width="40" height="40"><div><b><?= e(setting('site_name', 'Gulu University Convocation')) ?></b><small><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></small></div></div>
-      <div class="mc-b"><span class="mc-photo"><?= icon('user', 40) ?></span>
-        <div class="mc-i"><div class="mc-n">Your Name Here</div><div>Ordinary / Full Member</div><small>MEMBERSHIP ID</small><b>GUCO/ORD/<?= date('Y') ?>/000123</b><small>VALID UNTIL</small><b>Lifetime or subscription date</b></div>
-        <span class="mc-qr"><?= icon('grid', 56) ?></span></div>
+
+  <div class="cs-stage">
+    <div class="cs-flip" id="csFlip" data-year="<?= e($csYear) ?>">
+      <div class="cs-tilt" id="csTilt">
+        <div class="cs-inner" id="csInner">
+          <div class="cs-face cs-front" role="group" aria-label="Sample membership card, front">
+            <div class="cs-head"><img src="<?= e(logo_url()) ?>" alt="" width="42" height="42"><div><b><?= e(setting('site_name', 'Gulu University Convocation')) ?></b><small><?= e(setting('site_tagline', 'Community Transformation Actualized')) ?></small></div></div>
+            <div class="cs-body">
+              <span class="cs-photo" id="csPhotoBox"><?= icon('user', 38) ?></span>
+              <div class="cs-info">
+                <div class="cs-name" id="csName">Your Name Here</div>
+                <div class="cs-cat" id="csCat">Ordinary / Full Member</div>
+                <div class="cs-row cs-wide"><span>Membership ID</span><b class="cs-mono" id="csId">GUCO/ORD/<?= e($csYear) ?>/000123</b></div>
+                <div class="cs-row"><span>Member since</span><b><?= e(date('M Y')) ?></b></div>
+                <div class="cs-row"><span>Valid until</span><b id="csUntil">Renew yearly</b></div>
+              </div>
+              <div class="cs-qr"><?= $mockQr ?><small>Scan to verify</small></div>
+            </div>
+            <span class="cs-sample" aria-hidden="true">SAMPLE</span>
+          </div>
+          <div class="cs-face cs-back" role="group" aria-label="Sample membership card, back">
+            <div class="cs-back-in">
+              <div class="cs-bigqr"><?= $mockQr ?></div>
+              <div class="cs-back-t">
+                <h3>Verified online</h3>
+                <p>Anyone can scan the code or type the Membership ID on the verification page to confirm a card is genuine.</p>
+                <ul>
+                  <li>Show it at events and meetings</li>
+                  <li>Renew from your Member Portal</li>
+                  <li>Updated automatically when you renew</li>
+                </ul>
+              </div>
+            </div>
+            <small class="cs-back-foot"><?= e(config('short_name')) ?> &middot; Gulu University Convocation</small>
+          </div>
+        </div>
+      </div>
+      <span class="cs-badge"><?= icon('shield', 16) ?> Verified online</span>
     </div>
-    <div class="mc-badge"><?= icon('shield', 18) ?> Verified online</div>
+
+    <div class="cs-tools">
+      <div class="cs-cats" role="group" aria-label="Choose a membership category">
+        <button type="button" data-c="founder" data-l="Founder Member" data-u="Lifetime" data-code="FDR">Founder</button>
+        <button type="button" class="on" data-c="ordinary" data-l="Ordinary / Full Member" data-u="Renew yearly" data-code="ORD" aria-pressed="true">Ordinary</button>
+        <button type="button" data-c="honorary" data-l="Honorary Member" data-u="Lifetime" data-code="HON">Honorary</button>
+        <button type="button" data-c="life" data-l="Life Member" data-u="Lifetime" data-code="LIF">Life</button>
+      </div>
+      <div class="cs-fields">
+        <label class="cs-field"><span>Preview with your name</span><input type="text" id="csInput" maxlength="34" placeholder="Type your name" autocomplete="off"></label>
+        <label class="cs-btn cs-file"><?= icon('camera', 16) ?> Add photo<input type="file" id="csFile" accept="image/jpeg,image/png,image/webp" hidden></label>
+        <button type="button" class="cs-btn" id="csFlipBtn"><?= icon('arrow-right', 16) ?> Flip card</button>
+      </div>
+      <p class="cs-note">A sample only: what you type or choose stays in your browser. Your real card is issued when your membership is approved.</p>
+    </div>
   </div>
 </section>
+<script>
+(function () {
+  var root = document.getElementById('cardShow'); if (!root) return;
+  var flip = document.getElementById('csFlip'), inner = document.getElementById('csInner'), tilt = document.getElementById('csTilt');
+  var year = flip.getAttribute('data-year'), flipped = false;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function setFlip(v) { flipped = v; inner.classList.toggle('is-flipped', v); document.getElementById('csFlipBtn').setAttribute('aria-pressed', v ? 'true' : 'false'); }
+  document.getElementById('csFlipBtn').addEventListener('click', function () { setFlip(!flipped); });
+  inner.addEventListener('click', function () { setFlip(!flipped); });
+  inner.setAttribute('tabindex', '0'); inner.setAttribute('role', 'button'); inner.setAttribute('aria-label', 'Sample card. Press to flip it over.');
+  inner.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setFlip(!flipped); } });
+  // Gentle 3D tilt that follows the pointer (not on touch screens or with reduced motion).
+  if (!reduce && window.matchMedia && matchMedia('(hover: hover)').matches) {
+    flip.addEventListener('pointermove', function (e) {
+      var r = flip.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - .5, y = (e.clientY - r.top) / r.height - .5;
+      tilt.style.transform = 'rotateY(' + (x * 12).toFixed(2) + 'deg) rotateX(' + (-y * 10).toFixed(2) + 'deg)';
+    });
+    flip.addEventListener('pointerleave', function () { tilt.style.transform = ''; });
+  }
+  // Live preview.
+  var nameEl = document.getElementById('csName'), input = document.getElementById('csInput');
+  input.addEventListener('input', function () { nameEl.textContent = input.value.trim() || 'Your Name Here'; });
+  var cat = document.getElementById('csCat'), idEl = document.getElementById('csId'), until = document.getElementById('csUntil');
+  root.querySelectorAll('.cs-cats button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      root.querySelectorAll('.cs-cats button').forEach(function (x) { x.classList.remove('on'); x.removeAttribute('aria-pressed'); });
+      b.classList.add('on'); b.setAttribute('aria-pressed', 'true');
+      cat.textContent = b.getAttribute('data-l'); until.textContent = b.getAttribute('data-u');
+      idEl.textContent = 'GUCO/' + b.getAttribute('data-code') + '/' + year + '/000123';
+      setFlip(false);
+    });
+  });
+  var file = document.getElementById('csFile'), box = document.getElementById('csPhotoBox'), url = null;
+  file.addEventListener('change', function () {
+    var f = file.files && file.files[0]; if (!f || !/^image\//.test(f.type)) return;
+    if (url) URL.revokeObjectURL(url);
+    url = URL.createObjectURL(f);
+    box.innerHTML = ''; var img = document.createElement('img'); img.src = url; img.alt = 'Your photo (preview only)'; box.appendChild(img);
+  });
+})();
+</script>
 <?php endif; ?>
 
 <?php if ($on('campus') && ($spots || $campusVideo || $campusLink)): ?>

@@ -1129,3 +1129,112 @@ body.site .ft { padding-bottom: env(safe-area-inset-bottom); }
   body.site .topbar .tb-clock { font-size: .72rem; }
   body.site .topbar .tb-clock #tb-time { font-size: .9rem; }
 }
+
+/* ---------- Home: Your GUCO Membership Card (interactive sample) ---------- */
+body.site .cardshow.cs2 { grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); gap: clamp(28px, 4vw, 56px); align-items: center; padding: clamp(24px, 4vw, 48px); background: radial-gradient(circle at 92% 8%, rgba(242, 184, 7, .16), transparent 42%), linear-gradient(125deg, #eff7f1, #fff 62%); overflow: hidden; }
+body.site .cs2 .cs-text { min-width: 0; }
+body.site .cs2 .cs-text h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); line-height: 1.1; }
+body.site .cs2 .cs-text ul { margin: 10px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+body.site .cs2 .cs-text ul li { position: relative; padding-left: 30px; }
+body.site .cs2 .cs-text ul li::before { content: ""; position: absolute; left: 0; top: .2em; width: 20px; height: 20px; border-radius: 50%; background: #e3f1e8 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2314532d' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12 5 5 9-10'/%3E%3C/svg%3E") center / 12px no-repeat; }
+.cs-steps { list-style: none; display: flex; gap: 10px; margin: 20px 0 6px; padding: 0; flex-wrap: wrap; counter-reset: none; }
+.cs-steps li { display: inline-flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #d9e6dd; border-radius: 99px; padding: 6px 14px 6px 6px; font-weight: 600; font-size: .86rem; color: var(--green); box-shadow: 0 2px 8px rgba(20, 83, 45, .06); }
+.cs-steps li b { width: 24px; height: 24px; border-radius: 50%; background: var(--green); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: .78rem; }
+.cs-steps li:nth-child(2) b { background: #0f766e; } .cs-steps li:nth-child(3) b { background: #b7791f; }
+body.site .cs2 .cs-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 22px; }
+
+/* The card */
+.cs-stage { min-width: 0; display: grid; gap: 18px; justify-items: center; }
+.cs-flip { position: relative; width: min(100%, 470px); perspective: 1400px; padding: 6px 0 18px; }
+.cs-tilt { transition: transform .25s ease-out; transform-style: preserve-3d; }
+.cs-inner { display: grid; transform-style: preserve-3d; transition: transform .75s cubic-bezier(.2, .8, .2, 1); cursor: pointer; border-radius: 20px; outline-offset: 6px; animation: cs-float 6s ease-in-out infinite; }
+.cs-inner.is-flipped { transform: rotateY(180deg); animation: none; }
+@keyframes cs-float { 0%, 100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-8px) rotate(.6deg); } }
+.cs-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 20px; padding: 18px 22px 20px; position: relative; overflow: hidden; box-shadow: 0 28px 54px rgba(15, 61, 34, .26), 0 2px 6px rgba(15, 61, 34, .1); }
+.cs-front { background: #fff; color: #1a2b20; border: 1px solid #d9e2dc; border-top: 8px solid var(--green); border-bottom: 8px solid var(--gold); display: flex; flex-direction: column; gap: 10px; }
+.cs-front::before { content: ""; position: absolute; right: -50px; top: 38%; width: 240px; height: 240px; background: url("../img/logo-sm.webp") center / contain no-repeat; opacity: .06; pointer-events: none; }
+.cs-front > * { position: relative; }
+.cs-head { display: flex; gap: 12px; align-items: center; padding-bottom: 10px; border-bottom: 2px solid #e4ebe6; }
+.cs-head img { border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px #e4ebe6; flex: none; }
+.cs-head b { display: block; color: var(--green); line-height: 1.15; font-size: .98rem; }
+.cs-head small { color: #a37a00; font-weight: 700; letter-spacing: .05em; font-size: .62rem; text-transform: uppercase; display: block; margin-top: 2px; }
+.cs-body { display: flex; gap: 16px; align-items: center; }
+.cs-photo { width: 92px; height: 116px; flex: none; box-sizing: border-box; border: 3px solid var(--gold); border-radius: 12px; background: #eef5f0; color: #8bb09a; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.cs-photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; display: block; }
+.cs-info { flex: 1; min-width: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 3px 12px; font-size: .78rem; }
+.cs-name { grid-column: 1 / -1; color: var(--green); font-weight: 800; font-size: 1.2rem; line-height: 1.15; overflow-wrap: anywhere; }
+.cs-cat { grid-column: 1 / -1; font-size: .8rem; margin-bottom: 2px; }
+.cs-row { display: flex; flex-direction: column; margin-top: 3px; min-width: 0; }
+.cs-row.cs-wide { grid-column: 1 / -1; }
+.cs-row span { font-size: .6rem; text-transform: uppercase; letter-spacing: .06em; color: #6b7c71; }
+.cs-row b { color: #1a2b20; font-size: .78rem; overflow-wrap: anywhere; }
+.cs-mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; letter-spacing: .01em; }
+.cs-qr { flex: none; text-align: center; color: #14281c; }
+.cs-qr svg { width: 74px; height: 74px; display: block; padding: 5px; background: #fff; border: 1px solid #d9e2dc; border-radius: 8px; box-sizing: content-box; }
+.cs-qr small { display: block; font-size: .58rem; color: #6b7c71; margin-top: 3px; }
+.cs-sample { position: absolute; right: 16px; top: 12px; font-size: .6rem; font-weight: 800; letter-spacing: .16em; color: #b42323; border: 1.5px solid rgba(180, 35, 35, .5); border-radius: 6px; padding: 2px 7px; transform: rotate(6deg); opacity: .75; }
+.cs-back { background: linear-gradient(135deg, #0f3d22, var(--green) 70%, #2f8a57); color: #fff; transform: rotateY(180deg); border-bottom: 8px solid var(--gold); display: flex; flex-direction: column; justify-content: space-between; gap: 10px; }
+.cs-back-in { display: flex; gap: 18px; align-items: center; flex: 1; }
+.cs-bigqr { flex: none; width: 128px; height: 128px; background: #fff; border-radius: 12px; padding: 8px; box-sizing: border-box; color: #14281c; }
+.cs-bigqr svg { width: 100%; height: 100%; display: block; }
+.cs-back-t h3 { margin: 0 0 4px; color: var(--gold); font-size: 1.1rem; }
+.cs-back-t p { margin: 0 0 8px; font-size: .78rem; line-height: 1.45; color: rgba(255, 255, 255, .92); }
+.cs-back-t ul { margin: 0; padding: 0 0 0 16px; font-size: .76rem; line-height: 1.5; color: rgba(255, 255, 255, .92); }
+.cs-back-foot { opacity: .75; letter-spacing: .06em; font-size: .66rem; text-transform: uppercase; }
+.cs-badge { position: absolute; right: 6%; bottom: 0; background: #fff; border-radius: 99px; padding: 6px 13px; font-weight: 700; font-size: .78rem; color: var(--green); box-shadow: 0 6px 18px rgba(16, 24, 40, .16); display: inline-flex; gap: 6px; align-items: center; pointer-events: none; }
+
+/* Controls */
+.cs-tools { width: min(100%, 470px); display: grid; gap: 12px; }
+.cs-cats { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.cs-cats button { background: #fff; border: 1.5px solid #cfe0d4; color: var(--green); border-radius: 99px; padding: 8px 16px; font-weight: 700; font-size: .84rem; cursor: pointer; min-height: 40px; transition: .15s; }
+.cs-cats button:hover { border-color: var(--green); transform: translateY(-1px); }
+.cs-cats button.on { background: var(--green); border-color: var(--green); color: #fff; box-shadow: 0 6px 14px rgba(20, 83, 45, .25); }
+.cs-fields { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: end; }
+.cs-field { display: grid; gap: 4px; font-size: .74rem; font-weight: 600; color: #4a5d51; min-width: 0; }
+body.site .cs-field input { min-height: 42px; padding: 9px 12px; }
+.cs-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: #fff; color: var(--green); border: 1.5px solid #cfe0d4; border-radius: 12px; padding: 0 14px; min-height: 42px; font-weight: 700; font-size: .84rem; cursor: pointer; white-space: nowrap; }
+.cs-btn:hover { border-color: var(--green); background: #f1f8f3; }
+.cs-note { margin: 0; text-align: center; font-size: .76rem; color: #6b7c71; }
+
+@media (max-width: 860px) {
+  body.site .cardshow.cs2 { grid-template-columns: minmax(0, 1fr); padding: 22px 16px 26px; border-radius: 22px; }
+  body.site .cs2 .cs-cta .btn { flex: 1 1 150px; text-align: center; }
+  .cs-fields { grid-template-columns: 1fr 1fr; }
+  .cs-field { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .cs-face { padding: 14px 14px 16px; }
+  .cs-body { flex-wrap: wrap; align-items: flex-start; gap: 12px; }
+  .cs-photo { width: 84px; height: 106px; }
+  .cs-info { flex: 1 1 130px; }
+  .cs-name { font-size: 1.05rem; }
+  .cs-qr { order: 3; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; }
+  .cs-qr small { margin-top: 0; font-size: .7rem; }
+  .cs-back-in { flex-direction: column; text-align: center; }
+  .cs-back-t ul { display: inline-block; text-align: left; }
+  .cs-bigqr { width: 112px; height: 112px; }
+  .cs-sample { right: 10px; top: 8px; }
+  .cs-badge { right: 50%; transform: translateX(50%); }
+  .cs-cats button { padding: 8px 14px; }
+}
+@media (prefers-reduced-motion: reduce) { .cs-inner { animation: none; transition: none; } .cs-tilt { transition: none; } }
+@media print { .cs-tools { display: none; } }
+/* Card controls must win over the generic site button style */
+body.site .cs2 .cs-cats button { background: #fff; color: var(--green); border: 1.5px solid #cfe0d4; border-radius: 99px; padding: 8px 16px; min-height: 42px; font-weight: 700; font-size: .84rem; box-shadow: none; transform: none; }
+body.site .cs2 .cs-cats button:hover { border-color: var(--green); background: #f1f8f3; }
+body.site .cs2 .cs-cats button.on { background: var(--green); color: #fff; border-color: var(--green); box-shadow: 0 6px 14px rgba(20, 83, 45, .25); }
+body.site .cs2 button.cs-btn, body.site .cs2 label.cs-btn { background: #fff; color: var(--green); border: 1.5px solid #cfe0d4; border-radius: 12px; min-height: 44px; padding: 0 16px; box-shadow: none; }
+body.site .cs2 button.cs-btn:hover, body.site .cs2 label.cs-btn:hover { background: #f1f8f3; border-color: var(--green); }
+body.site .cs2 button.cs-btn[aria-pressed="true"] { background: var(--green); color: #fff; border-color: var(--green); }
+body.site .cs2 button.cs-btn svg, body.site .cs2 label.cs-btn svg { flex: none; }
+body.site .cs2 .cs-back-t h3 { color: var(--gold); }
+body.site .cs2 .cs-back-t p, body.site .cs2 .cs-back-t li { color: rgba(255, 255, 255, .94); }
+body.site .cs2 .cs-back-foot { color: rgba(255, 255, 255, .8); }
+@media (max-width: 340px) { .cs-photo { width: 72px; height: 92px; } .cs-info { flex-basis: 108px; } .cs-name { font-size: .98rem; } .cs-face { padding: 12px 12px 14px; } }
+body.site .cs2 .cs-cta .btn { display: inline-flex; align-items: center; justify-content: center; min-height: 52px; text-align: center; }
+@media (max-width: 480px) {
+  .cs-sample { top: auto; bottom: 14px; right: 14px; }
+  body.site .cs2 .cs-cats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  body.site .cs2 .cs-cats button { padding: 8px 2px; font-size: .8rem; }
+}
+@media (max-width: 360px) { body.site .cs2 .cs-cats { grid-template-columns: repeat(2, 1fr); } }
