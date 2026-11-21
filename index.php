@@ -524,20 +524,44 @@ $csYear = date('Y');
 <?php endif; ?>
 
 <?php if ($on('campus') && ($spots || $campusVideo || $campusLink)): ?>
-<section class="home-section campus">
-  <div class="sec-head"><div><span class="eyebrow">Where it all began</span><h2><?= ct('home.campus_title') ?></h2></div>
-    <?php if ($campusLink): ?><a href="<?= e($campusLink) ?>" target="_blank" rel="noopener"><?= ct('home.campus_link_label') ?> &#8599;</a><?php endif; ?></div>
-  <div class="campus-intro"><?= cr('home.campus_text') ?></div>
-  <?php if ($campusVideo): ?><div style="max-width:860px;margin:0 auto 22px"><?= video_embed($campusVideo, 'Watch the campus tour') ?></div><?php endif; ?>
+<section class="home-section campus cp2" id="campus">
+  <div class="cp-hero">
+    <svg class="cp-skyline" viewBox="0 0 1200 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+      <g fill="rgba(255,255,255,.07)">
+        <path d="M0 220V150l60-22 60 22v70zM150 220V110h70v110zM250 220V135l55-30 55 30v85zM390 220V90h38V60h24v30h38v130zM540 220V120l70-45 70 45v100zM710 220V140h60v-24h40v24h60v80zM900 220V100l50-36 50 36v120zM1030 220V132h70v88zM1110 220V160l45-20 45 20v60z"/>
+      </g>
+      <g fill="rgba(242,184,7,.16)"><path d="M0 220c120-26 220-26 360 0s250 26 380 0 300-30 460 0v20H0z"/></g>
+    </svg>
+    <span class="cp-orb" aria-hidden="true"></span>
+    <div class="cp-text">
+      <span class="eyebrow">Where it all began</span>
+      <h2><?= ct('home.campus_title') ?></h2>
+      <div class="cp-intro"><?= cr('home.campus_text') ?></div>
+      <div class="cp-actions">
+        <?php if ($campusLink): ?><a class="cp-btn cp-primary" href="<?= e($campusLink) ?>" target="_blank" rel="noopener"><?= ct('home.campus_link_label') ?> <span aria-hidden="true">&#8599;</span></a><?php endif; ?>
+      </div>
+    </div>
+    <ul class="cp-links" aria-label="Plan your visit">
+      <li><a href="<?= url('contact.php#gmap') ?>"><span class="cp-ic"><?= icon('map-pin', 22) ?></span><span><b>Find your way</b><small>Map of Gulu with live directions</small></span><i aria-hidden="true">&rarr;</i></a></li>
+      <li><a href="<?= url('membership.php') ?>"><span class="cp-ic"><?= icon('id-card', 22) ?></span><span><b>Join the alumni family</b><small>Membership categories and your card</small></span><i aria-hidden="true">&rarr;</i></a></li>
+      <li><a href="<?= url('contact.php') ?>"><span class="cp-ic"><?= icon('mail', 22) ?></span><span><b>Visiting as alumni?</b><small>Ask the Secretariat to help</small></span><i aria-hidden="true">&rarr;</i></a></li>
+    </ul>
+  </div>
+
+  <?php if ($campusVideo): ?><div class="cp-video"><?= video_embed($campusVideo, 'Watch the campus tour') ?></div><?php endif; ?>
+
   <?php if ($spots): ?>
-  <div class="spot-grid">
+  <div class="cp-head"><h3>Places to explore</h3><span class="cp-swipe">Swipe or scroll &rarr;</span></div>
+  <div class="cp-rail">
     <?php foreach ($spots as $sp): $tag = $sp['link'] ? 'a' : 'div'; ?>
-      <<?= $tag ?> class="spot"<?= $sp['link'] ? ' href="' . e($sp['link']) . '" target="_blank" rel="noopener"' : '' ?>>
+      <<?= $tag ?> class="cp-spot"<?= $sp['link'] ? ' href="' . e($sp['link']) . '" target="_blank" rel="noopener"' : '' ?>>
         <?= $sp['image'] ? '<img src="' . e(url('uploads/' . rawurlencode($sp['image']))) . '" alt="" loading="lazy">' : '<div class="ph">' . icon('camera', 36) . '</div>' ?>
-        <div class="spot-body"><h3><?= e($sp['title']) ?></h3><?= $sp['description'] ? '<p>' . e($sp['description']) . '</p>' : '' ?></div>
+        <div class="cp-spot-b"><h3><?= e($sp['title']) ?></h3><?= $sp['description'] ? '<p>' . e($sp['description']) . '</p>' : '' ?><?= $sp['link'] ? '<span class="cp-more">Learn more &#8599;</span>' : '' ?></div>
       </<?= $tag ?>>
     <?php endforeach; ?>
   </div>
+  <?php elseif (is_staff()): ?>
+  <div class="cp-empty"><?= icon('camera', 22) ?><div><b>Show off the campus</b><span>Add places with photos in <a href="<?= url('admin/campus.php?new=1') ?>">Admin &rarr; Campus</a> and they appear here as a swipeable gallery. Only staff see this note.</span></div></div>
   <?php endif; ?>
 </section>
 <?php endif; ?>
