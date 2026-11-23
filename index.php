@@ -742,21 +742,194 @@ $ueCard = function (array $ev, bool $big) use ($ueTone, $ueIcon) {
 </section>
 <?php endif; ?>
 
-<?php if ($on('anthem')): $hasAnthem = $anthemAudio || $anthemVideo || $anthemLyrics; ?>
+<?php if ($on('anthem')):
+$hasAnthem = $anthemAudio || $anthemVideo || $anthemLyrics;
+$anthemList = q("SELECT slug, title, kicker, credit, lyrics, audio FROM anthems WHERE is_public = 1 AND audio IS NOT NULL AND audio <> '' ORDER BY (id = ?) DESC, sort_order, id", [(int) ($anthemRow['id'] ?? 0)])->fetchAll();
+?>
+<?php if ($anthemList): ?>
+<?php
+$anthemData = array_map(fn($a) => [
+    'slug' => $a['slug'], 'title' => $a['title'], 'kicker' => (string) $a['kicker'], 'credit' => (string) $a['credit'],
+    'lyrics' => trim((string) $a['lyrics']), 'audio' => url('uploads/' . rawurlencode($a['audio'])),
+], $anthemList);
+$short = fn($t) => trim(preg_replace('/\b(anthem|the)\b/i', '', $t)) ?: $t;
+?>
+<section class="home-section anthem an2" id="anthemShow" data-anthems="<?= e(json_encode($anthemData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ?>">
+  <div class="an2-card" id="an2Card">
+    <svg class="an2-staff" viewBox="0 0 800 200" preserveAspectRatio="none" aria-hidden="true" focusable="false"><g stroke="rgba(255,255,255,.07)" stroke-width="1.4" fill="none"><path d="M0 40h800M0 60h800M0 80h800M0 100h800M0 120h800"/><path d="M0 40c200-30 400 30 800-10M0 60c200-30 400 30 800-10M0 80c200-30 400 30 800-10M0 100c200-30 400 30 800-10M0 120c200-30 400 30 800-10" opacity=".6"/></g></svg>
+    <span class="an2-note n1" aria-hidden="true">&#9834;</span><span class="an2-note n2" aria-hidden="true">&#9835;</span><span class="an2-note n3" aria-hidden="true">&#9833;</span>
+    <button type="button" class="an2-close" id="an2Close" aria-label="Close full screen" hidden>&times;</button>
+
+    <div class="an2-stage">
+      <div class="an2-disc-wrap" id="an2Wrap">
+        <canvas id="an2Viz" aria-hidden="true"></canvas>
+        <div class="an2-disc" id="an2Disc"><span class="an2-grooves"></span><span class="an2-label"><img src="<?= e(logo_url()) ?>" alt="" width="120" height="120"></span></div>
+        <button type="button" class="an2-bigplay" id="an2Big" aria-label="Play the anthem"><svg viewBox="0 0 24 24" width="34" height="34" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+      </div>
+      <div class="an2-now" aria-live="polite"><span class="an2-state" id="an2State">Ready to play</span><b id="an2Title"><?= e($anthemData[0]['title']) ?></b><small id="an2Kicker"><?= e($anthemData[0]['kicker']) ?></small></div>
+    </div>
+
+    <div class="an2-main">
+      <span class="an2-eyebrow"><i></i>Sing with us</span>
+      <h2><?= ct('home.anthem_title') ?></h2>
+      <div class="an2-intro"><?= cr('home.anthem_text') ?></div>
+
+      <?php if (count($anthemData) > 1): ?>
+      <div class="an2-tabs" role="tablist" aria-label="Choose an anthem">
+        <?php foreach ($anthemData as $i => $a): ?><button type="button" role="tab" class="<?= $i === 0 ? 'on' : '' ?>" aria-selected="<?= $i === 0 ? 'true' : 'false' ?>" data-i="<?= $i ?>"><?= e($short($a['title'])) ?></button><?php endforeach; ?>
+      </div>
+      <?php endif; ?>
+
+      <div class="an2-player">
+        <div class="an2-row">
+          <button type="button" class="an2-play" id="an2Play" aria-label="Play the anthem"><svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor" aria-hidden="true" id="an2PlayIc"><path d="M8 5v14l11-7z"/></svg></button>
+          <div class="an2-prog">
+            <input type="range" id="an2Seek" min="0" max="1000" value="0" step="1" aria-label="Seek through the anthem">
+            <div class="an2-times"><span id="an2Cur">0:00</span><span id="an2Dur">0:00</span></div>
+          </div>
+        </div>
+        <div class="an2-ctrls">
+          <button type="button" id="an2Back" aria-label="Back 10 seconds" title="Back 10 seconds"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg><span>10</span></button>
+          <button type="button" id="an2Fwd" aria-label="Forward 10 seconds" title="Forward 10 seconds"><span>10</span><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"/><path d="M21 3v5h-5"/></svg></button>
+          <button type="button" id="an2Mute" aria-pressed="false" aria-label="Mute" title="Mute"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7" id="an2Wave"/></svg></button>
+          <button type="button" id="an2Loop" aria-pressed="false" aria-label="Repeat" title="Repeat"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg></button>
+          <span class="an2-sp"></span>
+          <button type="button" class="an2-txt" id="an2LyrBtn" aria-pressed="false" hidden><?= icon('file', 16) ?> Lyrics</button>
+          <button type="button" class="an2-txt" id="an2Full" aria-pressed="false"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M16 21h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg> Stand &amp; sing</button>
+        </div>
+      </div>
+
+      <div class="an2-lyrics" id="an2Lyrics" hidden>
+        <div class="an2-lyr-head"><b>Follow the words</b><small>The highlight moves with the song. Tap a verse to jump to it.</small></div>
+        <div class="an2-verses" id="an2Verses"></div>
+      </div>
+
+      <p class="an2-more"><a class="btn" href="<?= url('anthems.php') ?>">All anthems: Gulu University, Uganda and East Africa &rarr;</a></p>
+    </div>
+    <audio id="an2Audio" preload="metadata" playsinline></audio>
+  </div>
+</section>
+<script>
+(function () {
+  var root = document.getElementById('anthemShow'); if (!root) return;
+  var list = []; try { list = JSON.parse(root.getAttribute('data-anthems')); } catch (e) {} if (!list.length) return;
+  var $ = function (id) { return document.getElementById(id); };
+  var card = $('an2Card'), audio = $('an2Audio'), play = $('an2Play'), big = $('an2Big'), seek = $('an2Seek'), cur = $('an2Cur'), dur = $('an2Dur');
+  var state = $('an2State'), titleEl = $('an2Title'), kick = $('an2Kicker'), lyrBox = $('an2Lyrics'), verses = $('an2Verses'), lyrBtn = $('an2LyrBtn');
+  var PLAY = '<path d="M8 5v14l11-7z"/>', PAUSE = '<rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/>';
+  var idx = 0, seeking = false, vEls = [], activeV = -1, reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fmt(s) { if (!isFinite(s)) return '0:00'; s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  function icon(p) { $('an2PlayIc').innerHTML = p; big.querySelector('svg').innerHTML = p; }
+  function setPlaying(on) {
+    card.classList.toggle('playing', on); icon(on ? PAUSE : PLAY);
+    var l = on ? 'Pause the anthem' : 'Play the anthem'; play.setAttribute('aria-label', l); big.setAttribute('aria-label', l);
+    state.textContent = on ? 'Now playing' : (audio.currentTime > 1 && !audio.ended ? 'Paused' : 'Ready to play');
+    if (on) startViz(); else drawViz(true);
+  }
+  function renderLyrics(text) {
+    verses.innerHTML = ''; vEls = []; activeV = -1;
+    if (!text) { lyrBtn.hidden = true; lyrBox.hidden = true; lyrBtn.setAttribute('aria-pressed', 'false'); card.classList.remove('with-lyrics'); return; }
+    lyrBtn.hidden = false;
+    text.split(/\r?\n\s*\r?\n/).forEach(function (v, i) {
+      var d = document.createElement('div'); d.className = 'an2-v'; d.tabIndex = 0;
+      v.split(/\r?\n/).forEach(function (line, j) { if (j) d.appendChild(document.createElement('br')); d.appendChild(document.createTextNode(line.replace(/^[-*]\s+/, '').replace(/\*\*/g, ''))); });
+      d.addEventListener('click', function () { jump(i); });
+      d.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); jump(i); } });
+      verses.appendChild(d); vEls.push(d);
+    });
+    lyrBox.hidden = lyrBtn.getAttribute('aria-pressed') !== 'true'; card.classList.toggle('with-lyrics', !lyrBox.hidden);
+  }
+  function jump(i) { if (audio.duration) { audio.currentTime = (i / vEls.length) * audio.duration; if (audio.paused) audio.play(); } }
+  function load(i, autoplay) {
+    idx = i; var a = list[i];
+    audio.src = a.audio; audio.load();
+    titleEl.textContent = a.title; kick.textContent = a.kicker || ''; seek.value = 0; seek.style.setProperty('--p', '0%'); cur.textContent = '0:00'; dur.textContent = '0:00';
+    root.querySelectorAll('.an2-tabs button').forEach(function (b) { var on = +b.getAttribute('data-i') === i; b.classList.toggle('on', on); b.setAttribute('aria-selected', on ? 'true' : 'false'); });
+    renderLyrics(a.lyrics); setPlaying(false); state.textContent = 'Ready to play';
+    if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: a.title, artist: 'Gulu University Convocation', album: 'Anthems' }); } catch (e) {} }
+    if (autoplay) togglePlay();
+  }
+  function togglePlay() { if (audio.paused) { ensureAudio(); var p = audio.play(); if (p && p.catch) p.catch(function () { state.textContent = 'Press play to start'; }); } else { audio.pause(); } }
+  play.addEventListener('click', togglePlay); big.addEventListener('click', togglePlay);
+  audio.addEventListener('play', function () { setPlaying(true); }); audio.addEventListener('pause', function () { setPlaying(false); });
+  audio.addEventListener('ended', function () { setPlaying(false); state.textContent = 'Finished. Play again?'; });
+  audio.addEventListener('loadedmetadata', function () { dur.textContent = fmt(audio.duration); });
+  audio.addEventListener('timeupdate', function () {
+    if (!seeking && audio.duration) { seek.value = Math.round(audio.currentTime / audio.duration * 1000); seek.style.setProperty('--p', seek.value / 10 + '%'); }
+    cur.textContent = fmt(audio.currentTime);
+    if (vEls.length && audio.duration) {
+      var v = Math.min(vEls.length - 1, Math.floor(audio.currentTime / audio.duration * vEls.length));
+      if (v !== activeV) {
+        if (vEls[activeV]) vEls[activeV].classList.remove('on'); activeV = v; vEls[v].classList.add('on');
+        if (!lyrBox.hidden) { var box = verses, el = vEls[v]; box.scrollTo({ top: el.offsetTop - box.clientHeight / 3, behavior: reduce ? 'auto' : 'smooth' }); }
+      }
+    }
+  });
+  seek.addEventListener('input', function () { seeking = true; seek.style.setProperty('--p', seek.value / 10 + '%'); if (audio.duration) cur.textContent = fmt(seek.value / 1000 * audio.duration); });
+  seek.addEventListener('change', function () { if (audio.duration) audio.currentTime = seek.value / 1000 * audio.duration; seeking = false; });
+  $('an2Back').addEventListener('click', function () { audio.currentTime = Math.max(0, audio.currentTime - 10); });
+  $('an2Fwd').addEventListener('click', function () { audio.currentTime = Math.min(audio.duration || 0, audio.currentTime + 10); });
+  $('an2Mute').addEventListener('click', function () { audio.muted = !audio.muted; this.setAttribute('aria-pressed', audio.muted ? 'true' : 'false'); $('an2Wave').style.display = audio.muted ? 'none' : ''; });
+  $('an2Loop').addEventListener('click', function () { audio.loop = !audio.loop; this.setAttribute('aria-pressed', audio.loop ? 'true' : 'false'); });
+  lyrBtn.addEventListener('click', function () { var on = lyrBtn.getAttribute('aria-pressed') !== 'true'; lyrBtn.setAttribute('aria-pressed', on ? 'true' : 'false'); lyrBox.hidden = !on; card.classList.toggle('with-lyrics', on); });
+  root.querySelectorAll('.an2-tabs button').forEach(function (b) { b.addEventListener('click', function () { var i = +b.getAttribute('data-i'); if (i === idx) return; var was = !audio.paused; load(i, was); }); });
+  if ('mediaSession' in navigator) { try { navigator.mediaSession.setActionHandler('play', function () { audio.play(); }); navigator.mediaSession.setActionHandler('pause', function () { audio.pause(); }); } catch (e) {} }
+
+  // Stand & sing: a full-screen view of the same player.
+  var fullBtn = $('an2Full'), closeBtn = $('an2Close');
+  function isFull() { return card.classList.contains('an2-full'); }
+  function setFull(on) {
+    card.classList.toggle('an2-full', on); document.documentElement.classList.toggle('an2-lock', on); closeBtn.hidden = !on; fullBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    if (on && lyrBtn.getAttribute('aria-pressed') !== 'true' && !lyrBtn.hidden) lyrBtn.click();
+    try { if (on && card.requestFullscreen) card.requestFullscreen(); else if (!on && document.fullscreenElement) document.exitFullscreen(); } catch (e) {}
+    sizeViz(); drawViz(true);
+  }
+  fullBtn.addEventListener('click', function () { setFull(!isFull()); }); closeBtn.addEventListener('click', function () { setFull(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && isFull()) setFull(false); });
+  document.addEventListener('fullscreenchange', function () { if (!document.fullscreenElement && isFull()) setFull(false); });
+
+  // Circular visualiser around the disc.
+  var cv = $('an2Viz'), ctx = cv.getContext('2d'), wrap = $('an2Wrap'), ac = null, an = null, data = null, raf = 0, t0 = performance.now(), live = false;
+  function ensureAudio() {
+    if (ac || reduce) return;
+    try {
+      var AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
+      ac = new AC(); an = ac.createAnalyser(); an.fftSize = 128; an.smoothingTimeConstant = .82;
+      var src = ac.createMediaElementSource(audio); src.connect(an); an.connect(ac.destination); data = new Uint8Array(an.frequencyBinCount); live = true;
+    } catch (e) { ac = null; an = null; live = false; }
+    if (ac && ac.state === 'suspended') ac.resume();
+  }
+  function sizeViz() {
+    var r = wrap.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+  }
+  function drawViz(idle) {
+    var w = cv.width / (window.devicePixelRatio || 1), h = cv.height / (window.devicePixelRatio || 1), cx = w / 2, cy = h / 2;
+    var inner = Math.min(w, h) * .385, max = Math.min(w, h) * .115, n = 72, t = (performance.now() - t0) / 1000;
+    ctx.clearRect(0, 0, w, h);
+    var vals = null; if (!idle && live && an) { an.getByteFrequencyData(data); var sum = 0; for (var k = 0; k < data.length; k++) sum += data[k]; if (sum > 0) vals = data; }
+    for (var i = 0; i < n; i++) {
+      var a = (i / n) * Math.PI * 2 - Math.PI / 2, v;
+      if (idle) v = .06; else if (vals) { var bi = Math.floor(Math.abs(Math.sin(i / n * Math.PI)) * (vals.length * .7)); v = vals[bi] / 255; } else { v = .25 + .25 * Math.sin(t * 3 + i * .5) * Math.sin(t * 1.3 + i * .21); }
+      var len = 4 + v * max, x1 = cx + Math.cos(a) * inner, y1 = cy + Math.sin(a) * inner, x2 = cx + Math.cos(a) * (inner + len), y2 = cy + Math.sin(a) * (inner + len);
+      ctx.strokeStyle = i % 3 === 0 ? 'rgba(242,184,7,.95)' : 'rgba(255,255,255,.55)'; ctx.lineWidth = Math.max(2, w / 150); ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    }
+  }
+  function frame() { drawViz(false); raf = audio.paused ? 0 : requestAnimationFrame(frame); }
+  function startViz() { if (!raf) raf = requestAnimationFrame(frame); }
+  sizeViz(); drawViz(true); window.addEventListener('resize', function () { sizeViz(); drawViz(audio.paused); });
+  load(0, false);
+})();
+</script>
+<?php else: ?>
 <section class="home-section anthem">
   <div class="anthem-card">
     <div class="anthem-text">
       <span class="anthem-ic"><?= icon('music', 30) ?></span>
       <h2><?= ct('home.anthem_title') ?></h2>
       <?= cr('home.anthem_text') ?>
-      <?php if ($anthemAudio): ?>
-        <div class="anthem-player">
-          <button type="button" class="play" aria-label="Play the anthem"><?= icon('play', 30) ?></button>
-          <div><b>Play the anthem</b><small>Press play and sing along with the lyrics.</small></div>
-          <?php if (str_ends_with((string) ($anthemRow['audio'] ?? ''), '.mp4')): ?><video preload="metadata" playsinline controls class="anthem-audio anthem-mp4" src="<?= e($anthemAudio) ?>"></video>
-          <?php else: ?><audio preload="none" src="<?= e($anthemAudio) ?>" controls class="anthem-audio">Your browser does not support audio playback.</audio><?php endif; ?>
-        </div>
-      <?php elseif (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
+      <?php if (!$hasAnthem): ?><div class="anthem-soon"><span class="play"><?= icon('play', 30) ?></span><div><b>The anthem is coming soon</b><small>Come back to listen and sing along.</small></div></div><?php endif; ?>
       <p style="margin-top:16px"><a class="btn outline" href="<?= url('anthems.php') ?>">All anthems: Gulu University, Uganda and East Africa &rarr;</a></p>
       <?php if ($anthemLyrics && $anthemVideo): ?><details class="anthem-lyrics" open><summary>Lyrics</summary><div><?= render_text($anthemLyrics) ?></div></details><?php endif; ?>
     </div>
@@ -765,18 +938,6 @@ $ueCard = function (array $ev, bool $big) use ($ueTone, $ueIcon) {
     <?php else: ?><div class="anthem-video anthem-art" aria-hidden="true"><div class="eq"><?php for ($i = 0; $i < 18; $i++): ?><i style="animation-delay:<?= $i * 0.09 ?>s"></i><?php endfor; ?></div><span><?= icon('music', 44) ?></span></div><?php endif; ?>
   </div>
 </section>
-<?php if ($anthemAudio): ?>
-<script>
-(function () {
-  var box = document.querySelector('.anthem-player'); if (!box) return;
-  var a = box.querySelector('audio, video'), b = box.querySelector('.play'), t = box.querySelector('b');
-  var play = '<?= str_replace(["\r", "\n", "'"], ['', '', "\\'"], icon('play', 30)) ?>', pause = '<svg class="icon" width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
-  b.addEventListener('click', function () { a.paused ? a.play() : a.pause(); });
-  a.addEventListener('play', function () { b.innerHTML = pause; t.textContent = 'Now playing'; });
-  a.addEventListener('pause', function () { b.innerHTML = play; t.textContent = 'Play the anthem'; });
-  a.addEventListener('ended', function () { b.innerHTML = play; t.textContent = 'Play the anthem'; });
-})();
-</script>
 <?php endif; ?>
 <?php endif; ?>
 
