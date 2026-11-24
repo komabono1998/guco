@@ -1507,3 +1507,46 @@ body.site .an2 .an2-ctrls button[hidden], body.site .an2 .an2-close[hidden] { di
 body.site .an2 .an2-close { display: none; }
 body.site .an2 .an2-card.an2-full .an2-close { display: flex; }
 @media (min-width: 901px) { .an2-card.with-lyrics:not(.an2-full) .an2-stage { align-self: start; position: sticky; top: 110px; } }
+
+/* ---------- Home: GUCO at a glance (contained card) ---------- */
+.gl2 { padding: 0; background: none; border: 0; }
+.gl2-card { position: relative; overflow: hidden; border-radius: 28px; padding: clamp(24px, 4.5vw, 48px); color: #fff; background: radial-gradient(circle at 10% 0, rgba(242, 184, 7, .22), transparent 40%), radial-gradient(circle at 96% 100%, rgba(15, 118, 110, .5), transparent 46%), linear-gradient(135deg, #082a18, var(--green) 58%, #0b4a38); border-bottom: 7px solid var(--gold); box-shadow: 0 22px 48px rgba(15, 61, 34, .22); }
+.gl2-card::before { content: ""; position: absolute; right: -90px; top: -110px; width: 320px; height: 320px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .1); pointer-events: none; }
+.gl2-head { position: relative; display: flex; align-items: flex-end; justify-content: space-between; gap: 14px 24px; flex-wrap: wrap; margin-bottom: 26px; }
+.gl2-eyebrow { display: block; font-size: .76rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 800; color: var(--gold); }
+body.site .gl2 .gl2-head h2 { color: #fff; text-align: left; font-size: clamp(1.7rem, 3.6vw, 2.5rem); line-height: 1.1; margin: 4px 0 0; }
+.gl2-live { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: #d4e8db; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .16); padding: 6px 14px; border-radius: 99px; white-space: nowrap; }
+.gl2-live i { width: 9px; height: 9px; border-radius: 50%; background: #4ade80; animation: ue-pulse 1.8s infinite; }
+.gl2-grid { position: relative; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(176px, 100%), 1fr)); gap: 14px; }
+.gl2-cell { --c: #f2b807; min-width: 0; }
+.tone-gold.gl2-cell { --c: #f2b807; } .tone-teal.gl2-cell { --c: #5eead4; } .tone-blue.gl2-cell { --c: #93c5fd; }
+.tone-rose.gl2-cell { --c: #fda4af; } .tone-violet.gl2-cell { --c: #c4b5fd; } .tone-orange.gl2-cell { --c: #fdba74; }
+body.site .gl2 .gl2-item { position: relative; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 18px 18px 16px; border-radius: 20px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .14); color: #fff; text-decoration: none; transition: transform .22s, background .22s, border-color .22s, box-shadow .22s; }
+body.site .gl2 .gl2-item:hover, body.site .gl2 .gl2-item:focus-visible { transform: translateY(-5px); background: rgba(255, 255, 255, .15); border-color: var(--c); box-shadow: 0 16px 32px rgba(0, 0, 0, .25); }
+.gl2-ic { width: 44px; height: 44px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; background: color-mix(in srgb, var(--c) 22%, transparent); color: var(--c); margin-bottom: 6px; transition: .22s; }
+body.site .gl2 .gl2-item:hover .gl2-ic { background: var(--c); color: #0b2f1b; }
+.gl2-num { font-size: clamp(2.3rem, 4.2vw, 3.1rem); line-height: 1; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.01em; }
+.gl2-label { font-size: 1rem; font-weight: 700; color: #fff; margin-top: 2px; }
+.gl2-item small { color: rgba(255, 255, 255, .7); font-size: .8rem; line-height: 1.35; }
+.gl2-go { position: absolute; right: 16px; top: 18px; width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, .25); color: var(--c); font-size: 1rem; transition: .22s; }
+body.site .gl2 .gl2-item:hover .gl2-go { background: var(--c); color: #0b2f1b; border-color: var(--c); transform: translateX(3px); }
+.gl2-cta { position: relative; margin: 22px 0 0; padding-top: 18px; border-top: 1px solid rgba(255, 255, 255, .14); display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; color: rgba(255, 255, 255, .88); text-align: center; }
+body.site .gl2 .gl2-cta a { color: #1a1a1a; background: var(--gold); font-weight: 700; text-decoration: none; padding: 10px 20px; border-radius: 99px; min-height: 44px; display: inline-flex; align-items: center; transition: transform .15s; }
+body.site .gl2 .gl2-cta a:hover { transform: translateY(-2px); }
+
+@media (max-width: 860px) { .gl2-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 620px) {
+  .gl2-card { border-radius: 22px; padding: 22px 16px 22px; }
+  .gl2-head { margin-bottom: 18px; }
+  .gl2-live { white-space: normal; }
+  .gl2-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .gl2-grid > .gl2-cell:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  body.site .gl2 .gl2-item { padding: 14px 14px 14px; border-radius: 18px; }
+  .gl2-ic { width: 40px; height: 40px; }
+  .gl2-go { right: 12px; top: 14px; width: 28px; height: 28px; }
+  .gl2-item small { font-size: .76rem; }
+  body.site .gl2 .gl2-cta a { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .gl2-live i { animation: none; } body.site .gl2 .gl2-item, .gl2-ic, .gl2-go { transition: none; } }
+@media print { .gl2-cta { display: none; } }
+body.site .gl2 .gl2-label { line-height: 1.25; }

@@ -249,33 +249,49 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
 
 <?php if ($live):
 $glLinks = ['Members' => 'membership.php', 'Chapters' => 'chapters.php', 'Events listed' => 'events.php', 'Public documents' => 'resources.php', 'Award categories' => 'awards.php', 'News posts' => 'news.php'];
-$glTones = ['#f2b807', '#5eead4', '#93c5fd', '#fda4af', '#c4b5fd', '#fdba74'];
+$glOne = ['Members' => 'Member', 'Chapters' => 'Chapter', 'Events listed' => 'Event listed', 'Public documents' => 'Public document', 'Award categories' => 'Award category', 'News posts' => 'News post'];
+$glHint = ['Members' => 'Approved alumni and staff', 'Chapters' => 'Across Uganda and beyond', 'Events listed' => 'Upcoming and past', 'Public documents' => 'Open to everyone', 'Award categories' => 'Recognising excellence', 'News posts' => 'Stories and updates'];
+$glTone = ['gold', 'teal', 'blue', 'rose', 'violet', 'orange'];
 ?>
-<section class="band gl" aria-label="GUCO at a glance">
-  <div class="gl-head">
-    <span class="gl-eyebrow"><?= ct('home.glance_eyebrow') ?></span>
-    <h2><?= ct('home.glance_title') ?></h2>
-    <span class="gl-live"><i></i> Counted live from the website</span>
-  </div>
-  <div class="gl-grid">
-    <?php foreach ($live as $i => [$ic, $n, $label]): ?>
-      <a class="gl-item" href="<?= url($glLinks[$label] ?? 'index.php') ?>" style="--c:<?= $glTones[$i % 6] ?>;--d:<?= $i * 140 ?>ms" aria-label="<?= (int) $n ?> <?= e($label) ?>: open">
-        <span class="gl-ring">
-          <svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gl-track" cx="60" cy="60" r="52"/><circle class="gl-run" cx="60" cy="60" r="52"/></svg>
-          <span class="gl-ic"><?= icon($ic, 26) ?></span>
-        </span>
-        <b><?= (int) $n ?></b>
-        <span class="gl-label"><?= e($label) ?></span>
-        <span class="gl-go">View &rarr;</span>
-      </a>
-    <?php endforeach; ?>
-  </div>
-  <div class="gl-ticker" aria-hidden="true">
-    <div class="gl-roll">
-      <?php for ($k = 0; $k < 4; $k++): foreach ($live as [$ic, $n, $label]): ?><span><b><?= (int) $n ?></b> <?= e($label) ?></span><i></i><?php endforeach; endfor; ?>
+<section class="home-section gl2" id="glance" aria-labelledby="glTitle">
+  <div class="gl2-card">
+    <div class="gl2-head">
+      <div>
+        <span class="gl2-eyebrow"><?= ct('home.glance_eyebrow') ?></span>
+        <h2 id="glTitle"><?= ct('home.glance_title') ?></h2>
+      </div>
+      <span class="gl2-live"><i></i> Counted live from the website</span>
     </div>
+    <ul class="gl2-grid" role="list">
+      <?php foreach ($live as $i => [$ic, $n, $label]): $n = (int) $n; ?>
+      <li class="gl2-cell tone-<?= $glTone[$i % 6] ?>">
+        <a class="gl2-item" href="<?= url($glLinks[$label] ?? 'index.php') ?>" aria-label="<?= $n ?> <?= e($n === 1 ? ($glOne[$label] ?? $label) : $label) ?>. Open the page.">
+          <span class="gl2-ic"><?= icon($ic, 24) ?></span>
+          <b class="gl2-num" data-n="<?= $n ?>"><?= $n ?></b>
+          <span class="gl2-label"><?= e($n === 1 ? ($glOne[$label] ?? $label) : $label) ?></span>
+          <small><?= e($glHint[$label] ?? '') ?></small>
+          <span class="gl2-go" aria-hidden="true">&rarr;</span>
+        </a>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+    <p class="gl2-cta"><span>Be part of the numbers.</span> <a href="<?= url('register.php') ?>">Join GUCO &rarr;</a></p>
   </div>
 </section>
+<script>
+(function () {
+  var nums = document.querySelectorAll('#glance .gl2-num'); if (!nums.length) return;
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduce || !('IntersectionObserver' in window)) return;
+  function run(el) {
+    var n = +el.getAttribute('data-n'), t0 = null, dur = 1100 + Math.min(900, n * 8);
+    function step(t) { if (!t0) t0 = t; var p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3); el.textContent = Math.round(n * e); if (p < 1) requestAnimationFrame(step); }
+    el.textContent = '0'; requestAnimationFrame(step);
+  }
+  var io = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) { run(e.target); io.unobserve(e.target); } }); }, { threshold: .6 });
+  nums.forEach(function (n) { io.observe(n); });
+})();
+</script>
 <?php endif; ?>
 
 <?php if ($on('highlights')): $hl = c_pairs('home.highlights', 3); $tones = ['g', 'r', 'b', 'a', 'p', 't']; ?>
