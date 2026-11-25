@@ -2,6 +2,8 @@
 require_once __DIR__ . '/../includes/admin.php';
 crud([
     'table' => 'leaders', 'title' => 'Leadership profiles', 'perm' => 'leaders', 'order' => 'organ, sort_order, id',
+    'card' => ['title' => 'name', 'subtitle' => 'title', 'group' => 'organ', 'status' => 'is_public', 'image' => 'photo', 'empty_title' => 'To be announced', 'complete' => ['name', 'photo', 'bio', 'role_description']],
+    'view_url' => fn(array $r) => ($r['is_public'] && trim((string) $r['name']) !== '') ? url('leader.php?id=' . (int) $r['id']) : null,
     'fields' => [
         'name' => ['label' => 'Name', 'type' => 'text', 'list' => true, 'hint' => 'Leave blank to show "To be announced". Enter only formally confirmed office bearers.'],
         'title' => ['label' => 'Title / office', 'type' => 'text', 'required' => true, 'list' => true],

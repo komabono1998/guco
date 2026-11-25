@@ -394,6 +394,28 @@ function crud(array $c): void
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         csrf_check();
+        if (isset($_POST['toggle'])) {
+            $tf = (string) $_POST['toggle'];
+            $row = $limited ? null : $fetch((int) ($_POST['id'] ?? 0));
+            $ajax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'fetch';
+            if (!$row || !isset($fields[$tf]) || $fields[$tf]['type'] !== 'check') {
+                if ($ajax) {
+                    header('Content-Type: application/json');
+                    http_response_code(400);
+                    exit(json_encode(['ok' => false]));
+                }
+                $deny();
+            }
+            $nv = empty($row[$tf]) ? 1 : 0;
+            q("UPDATE `$t` SET `$tf` = ? WHERE id = ?", [$nv, $row['id']]);
+            audit("update_$t", "id {$row['id']} $tf=$nv");
+            if ($ajax) {
+                header('Content-Type: application/json');
+                exit(json_encode(['ok' => true, 'value' => $nv]));
+            }
+            flash('Saved.');
+            redirect($self);
+        }
         if (isset($_POST['delete'])) {
             $row = $limited ? null : $fetch((int) $_POST['delete']);
             if ($row) {
@@ -558,38 +580,146 @@ function crud(array $c): void
         $order = $c['order'] ?? 'id DESC';
         $rows = q("SELECT * FROM `$t` WHERE 1=1$scopeSql ORDER BY $order", $scopeArgs)->fetchAll();
         $cols = array_filter($fields, fn($f) => !empty($f['list']));
-        echo '<div class="toolbar"><input class="tbl-filter" type="search" placeholder="Filter this list..." aria-label="Filter this list"><span class="tbl-count">' . count($rows) . ' item' . (count($rows) === 1 ? '' : 's') . '</span><span class="spacer"></span>';
-        if (!$limited) {
-            echo '<a class="btn" href="' . e(url($self . '?new=1')) . '">+ Add new</a>';
-        }
-        echo '</div>';
-        echo '<div class="table-wrap"><table class="filterable"><tr>';
-        foreach ($cols as $f) {
-            echo '<th>' . e($f['label']) . '</th>';
-        }
-        foreach ($c['list_extra'] ?? [] as $xl => $xf) {
-            echo '<th>' . e($xl) . '</th>';
-        }
-        echo '<th></th></tr>';
+        $cfg = $c['card'] ?? [];
+        $useCards = ($cfg['enabled'] ?? true) !== false && count($rows) <= 400;
+        $firstOf = fn(callable $fn) => array_key_first(array_filter($fields, $fn));
+        $imgF = $cfg['image'] ?? $firstOf(fn($f) => $f['type'] === 'image');
+        $textCols = array_keys(array_filter($cols, fn($f) => in_array($f['type'], ['text', 'textarea'], true)));
+        $titleF = $cfg['title'] ?? ($textCols[0] ?? array_key_first($cols));
+        $subF = $cfg['subtitle'] ?? ($textCols[1] ?? null);
+        $groupF = $cfg['group'] ?? $firstOf(fn($f) => $f['type'] === 'select' && !empty($f['list']));
+        $statF = $cfg['status'] ?? $firstOf(fn($f) => $f['type'] === 'check' && !empty($f['list']));
+        $okey = $groupF ? array_keys($fields[$groupF]['options']) : [];
+        $fmt = function (array $f, $v): string {
+            if ($v === null || $v === '') {
+                return '';
+            }
+            return match ($f['type']) {
+                'check' => $v ? 'Yes' : 'No',
+                'select' => (string) ($f['options'][$v] ?? $v),
+                'datetime' => fmt_date($v, 'j M Y, g:ia'),
+                'date' => fmt_date($v),
+                'audio' => 'Audio added',
+                'image' => 'Photo added',
+                'doc' => 'Document added',
+                default => (string) $v,
+            };
+        };
+        $completeF = array_values(array_filter($cfg['complete'] ?? [], fn($n) => isset($fields[$n])));
+        $viewUrl = $c['view_url'] ?? null;
+        $groupCounts = [];
+        $onCount = 0;
         foreach ($rows as $r) {
-            echo '<tr>';
+            if ($groupF) {
+                $groupCounts[$r[$groupF]] = ($groupCounts[$r[$groupF]] ?? 0) + 1;
+            }
+            if ($statF && !empty($r[$statF])) {
+                $onCount++;
+            }
+        }
+        $tot = count($rows);
+        csrf_field();
+        $csrfTok = $_SESSION['csrf'];
+        ?>
+<div class="cl" id="crudList" data-table="<?= e($t) ?>" data-csrf="<?= e($csrfTok) ?>" data-self="<?= e(url($self)) ?>">
+  <div class="cl-bar">
+    <label class="cl-search"><?= icon('search', 18) ?><input class="crud-q" type="search" placeholder="Search this list..." aria-label="Search this list"></label>
+    <?php if ($useCards): ?>
+    <label class="cl-sort">Sort <select id="clSort" aria-label="Sort the list"><option value="order">Display order</option><option value="name">A to Z</option><?php if ($completeF): ?><option value="gaps">Needs attention first</option><?php endif; ?><option value="new">Newest first</option></select></label>
+    <div class="cl-view" role="group" aria-label="Change view"><button type="button" data-v="cards" class="on" aria-pressed="true" title="Cards"><?= icon('grid', 18) ?></button><button type="button" data-v="table" aria-pressed="false" title="Table"><?= icon('menu', 18) ?></button></div>
+    <?php endif; ?>
+    <?php if (!$limited): ?><a class="btn" href="<?= e(url($self . '?new=1')) ?>">+ Add new</a><?php endif; ?>
+  </div>
+  <div class="cl-stats">
+    <span class="cl-stat"><b id="clTotal"><?= $tot ?></b> total</span>
+    <?php if ($statF): ?><span class="cl-stat on"><b id="clOn"><?= $onCount ?></b> <?= e(strtolower($fields[$statF]['label'])) ?></span><span class="cl-stat off"><b id="clOff"><?= $tot - $onCount ?></b> hidden</span><?php endif; ?>
+    <span class="cl-stat shown"><b id="clShown"><?= $tot ?></b> shown</span>
+  </div>
+  <?php if ($groupF && count($groupCounts) > 1 || ($groupF && $tot > 0)): ?>
+  <div class="cl-chips" id="clChips" role="group" aria-label="Filter by <?= e(strtolower($fields[$groupF]['label'])) ?>">
+    <button type="button" class="on" data-g="">All <i><?= $tot ?></i></button>
+    <?php foreach ($okey as $gi => $gk): if (empty($groupCounts[$gk])) continue; ?><button type="button" class="g<?= $gi % 6 ?>" data-g="<?= e((string) $gk) ?>"><?= e($fields[$groupF]['options'][$gk]) ?> <i><?= (int) $groupCounts[$gk] ?></i></button><?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+
+  <?php if ($useCards): ?>
+  <div class="cl-cards" id="clCards">
+    <?php foreach ($rows as $ri => $r):
+        $gi = $groupF ? max(0, (int) array_search($r[$groupF], $okey, true)) : 0;
+        $tv = trim((string) ($r[$titleF] ?? ''));
+        $sv = $subF ? trim((string) ($r[$subF] ?? '')) : '';
+        $miss = [];
+        foreach ($completeF as $cn) {
+            if (trim((string) ($r[$cn] ?? '')) === '') {
+                $miss[] = $fields[$cn]['label'];
+            }
+        }
+        $pct = $completeF ? (int) round((count($completeF) - count($miss)) / count($completeF) * 100) : 100;
+        $q = strtolower(implode(' ', array_map(fn($v) => is_scalar($v) ? (string) $v : '', $r)));
+        $on = $statF ? !empty($r[$statF]) : true;
+        $ini = '';
+        foreach (preg_split('/\s+/', $tv) as $w) {
+            $ini .= $w !== '' && preg_match('/^\p{L}/u', $w) ? mb_strtoupper(mb_substr($w, 0, 1)) : '';
+        }
+        $ini = mb_substr($ini, 0, 2);
+        $others = array_filter($cols, fn($f, $n) => !in_array($n, [$titleF, $subF, $groupF, $statF, $imgF], true) && !in_array($f['type'], ['image'], true), ARRAY_FILTER_USE_BOTH);
+        $more = array_filter($fields, fn($f, $n) => !array_key_exists($n, $cols) && !in_array($n, [$imgF], true) && $fmt($f, $r[$n] ?? '') !== '', ARRAY_FILTER_USE_BOTH);
+        ?>
+    <article class="cl-card g<?= $gi ?><?= $on ? '' : ' is-off' ?>" data-id="<?= (int) $r['id'] ?>" data-i="<?= $ri ?>" data-g="<?= e((string) ($groupF ? $r[$groupF] : '')) ?>" data-name="<?= e(strtolower($tv)) ?>" data-gaps="<?= count($miss) ?>" data-q="<?= e($q) ?>">
+      <div class="cl-top">
+        <?php if ($imgF && !empty($r[$imgF])): ?><img class="cl-ph" src="<?= e(url('uploads/' . rawurlencode($r[$imgF]))) ?>" alt="" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="cl-ph cl-ini" aria-hidden="true" hidden><?= $ini !== '' ? e($ini) : icon('user', 26) ?></span>
+        <?php else: ?><span class="cl-ph cl-ini" aria-hidden="true"><?= $ini !== '' ? e($ini) : icon('user', 26) ?></span><?php endif; ?>
+        <div class="cl-id">
+          <h3><?= $tv !== '' ? e($tv) : '<em>' . e($cfg['empty_title'] ?? 'Untitled') . '</em>' ?></h3>
+          <?php if ($sv !== ''): ?><p><?= e(excerpt($sv, 90)) ?></p><?php endif; ?>
+          <?php if ($groupF && $fmt($fields[$groupF], $r[$groupF]) !== ''): ?><span class="cl-badge"><?= e($fmt($fields[$groupF], $r[$groupF])) ?></span><?php endif; ?>
+        </div>
+        <?php if ($statF && !$limited): ?>
+        <button type="button" class="cl-sw<?= $on ? ' on' : '' ?>" role="switch" aria-checked="<?= $on ? 'true' : 'false' ?>" data-f="<?= e($statF) ?>" data-id="<?= (int) $r['id'] ?>" title="<?= e($fields[$statF]['label']) ?>" aria-label="<?= e($fields[$statF]['label']) ?>"><i></i></button>
+        <?php elseif ($statF): ?><span class="cl-badge <?= $on ? 'ok' : 'off' ?>"><?= $on ? 'Visible' : 'Hidden' ?></span><?php endif; ?>
+      </div>
+      <?php if ($others || $completeF): ?>
+      <ul class="cl-meta">
+        <?php foreach ($others as $n => $f): $fv = $fmt($f, $r[$n] ?? ''); if ($fv === '') continue; ?><li><span><?= e($f['label']) ?></span><b><?= e(excerpt($fv, 60)) ?></b></li><?php endforeach; ?>
+        <?php foreach ($c['list_extra'] ?? [] as $xl => $xf): $xv = (string) $xf($r); if ($xv === '' || $xv === '-') continue; ?><li><span><?= e($xl) ?></span><b><?= e($xv) ?></b></li><?php endforeach; ?>
+      </ul>
+      <?php endif; ?>
+      <?php if ($completeF): ?>
+      <div class="cl-done<?= $pct === 100 ? ' full' : '' ?>"><div class="cl-bar2"><i style="width:<?= $pct ?>%"></i></div><small><?= $pct === 100 ? 'Profile complete' : 'Missing: ' . e(implode(', ', array_map('strtolower', $miss))) ?></small></div>
+      <?php endif; ?>
+      <?php if ($more): ?>
+      <details class="cl-more"><summary>More details</summary>
+        <dl><?php foreach ($more as $n => $f): ?><dt><?= e($f['label']) ?></dt><dd><?= e(excerpt($fmt($f, $r[$n] ?? ''), 420)) ?></dd><?php endforeach; ?></dl>
+      </details>
+      <?php endif; ?>
+      <div class="cl-act">
+        <a class="btn secondary" href="<?= e(url($self . '?id=' . $r['id'])) ?>">Edit</a>
+        <?php if ($viewUrl && ($vu = $viewUrl($r))): ?><a class="btn secondary" href="<?= e($vu) ?>" target="_blank" rel="noopener">View on site</a><?php endif; ?>
+        <?php if (!empty($c['extra_actions'])) { echo $c['extra_actions']($r); } ?>
+        <?php if (!$limited): ?><form method="post" class="cl-del"><?= csrf_field() ?><button class="danger" name="delete" value="<?= (int) $r['id'] ?>" onclick="return confirm('Delete this item? This cannot be undone.')">Delete</button></form><?php endif; ?>
+      </div>
+    </article>
+    <?php endforeach; ?>
+  </div>
+  <?php endif; ?>
+
+  <div class="table-wrap cl-table" id="clTable"<?= $useCards ? ' hidden' : '' ?>><table class="filterable"><tr>
+    <?php foreach ($cols as $f): ?><th><?= e($f['label']) ?></th><?php endforeach; ?>
+    <?php foreach ($c['list_extra'] ?? [] as $xl => $xf): ?><th><?= e($xl) ?></th><?php endforeach; ?>
+    <th></th></tr>
+<?php
+        foreach ($rows as $r) {
+            $q = strtolower(implode(' ', array_map(fn($v) => is_scalar($v) ? (string) $v : '', $r)));
+            echo '<tr data-q="' . e($q) . '" data-g="' . e((string) ($groupF ? $r[$groupF] : '')) . '">';
             foreach ($cols as $n => $f) {
                 $v = $r[$n] ?? '';
                 echo '<td>';
                 if ($f['type'] === 'check') {
                     echo $v ? 'Yes' : 'No';
-                } elseif ($f['type'] === 'select') {
-                    echo e($f['options'][$v] ?? $v);
-                } elseif ($f['type'] === 'datetime') {
-                    echo e(fmt_date($v, 'j M Y, g:ia'));
-                } elseif ($f['type'] === 'date') {
-                    echo e(fmt_date($v));
-                } elseif ($f['type'] === 'audio') {
-                    echo $v ? 'Audio added' : '-';
                 } elseif ($f['type'] === 'image') {
                     echo $v ? '<img src="' . e(url('uploads/' . rawurlencode($v))) . '" alt="" style="width:64px;height:48px;object-fit:cover;border-radius:4px">' : '';
                 } else {
-                    echo e(excerpt((string) $v, 80));
+                    echo e(excerpt($fmt($f, $v), 80));
                 }
                 echo '</td>';
             }
@@ -608,7 +738,67 @@ function crud(array $c): void
         if (!$rows) {
             echo '<tr><td colspan="' . (count($cols) + 1) . '">Nothing here yet.</td></tr>';
         }
-        echo '</table></div>';
+?>
+  </table></div>
+  <?php if (!$rows): ?><div class="cl-empty"><?= icon('file', 30) ?><b>Nothing here yet</b><span>Use "Add new" to create the first one.</span></div><?php endif; ?>
+  <p class="cl-none" id="clNone" hidden>Nothing matches. Clear the search or pick "All".</p>
+</div>
+<script>
+(function () {
+  var root = document.getElementById('crudList'); if (!root) return;
+  var cards = root.querySelector('#clCards'), table = root.querySelector('#clTable'), q = root.querySelector('.crud-q');
+  var chips = root.querySelector('#clChips'), sortSel = root.querySelector('#clSort'), key = 'adm-view-' + root.dataset.table;
+  var grp = '', term = '', view = 'cards';
+  function items() { return cards ? Array.prototype.slice.call(cards.children) : []; }
+  function apply() {
+    var shown = 0, tr = table.querySelectorAll('tr[data-q]');
+    items().forEach(function (c) { var ok = (!grp || c.dataset.g === grp) && (!term || c.dataset.q.indexOf(term) !== -1); c.hidden = !ok; if (ok) shown++; });
+    var n2 = 0; tr.forEach(function (r) { var ok = (!grp || r.dataset.g === grp) && (!term || r.dataset.q.indexOf(term) !== -1); r.style.display = ok ? '' : 'none'; if (ok) n2++; });
+    var count = (cards && view === 'cards') ? shown : n2;
+    root.querySelector('#clShown').textContent = count;
+    root.querySelector('#clNone').hidden = count > 0 || !tr.length;
+  }
+  function setView(v) {
+    if (!cards) return; view = v; cards.hidden = v !== 'cards'; table.hidden = v !== 'table';
+    root.querySelectorAll('.cl-view button').forEach(function (b) { var on = b.dataset.v === v; b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false'); });
+    try { localStorage.setItem(key, v); } catch (e) {} apply();
+  }
+  if (q) q.addEventListener('input', function () { term = q.value.trim().toLowerCase(); apply(); });
+  if (chips) chips.addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; grp = b.dataset.g; chips.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); apply(); });
+  if (sortSel && cards) sortSel.addEventListener('change', function () {
+    var by = sortSel.value, list = items();
+    list.sort(function (a, b) {
+      if (by === 'name') return (a.dataset.name || '￿').localeCompare(b.dataset.name || '￿');
+      if (by === 'new') return (+b.dataset.id) - (+a.dataset.id);
+      if (by === 'gaps') return (+b.dataset.gaps) - (+a.dataset.gaps) || (+a.dataset.i) - (+b.dataset.i);
+      return (+a.dataset.i) - (+b.dataset.i);
+    });
+    list.forEach(function (c) { cards.appendChild(c); });
+  });
+  root.querySelectorAll('.cl-view button').forEach(function (b) { b.addEventListener('click', function () { setView(b.dataset.v); }); });
+  // Switch a yes/no setting without leaving the page.
+  root.querySelectorAll('.cl-sw').forEach(function (sw) {
+    sw.addEventListener('click', function () {
+      var fd = new FormData(); fd.append('csrf', root.dataset.csrf); fd.append('toggle', sw.dataset.f); fd.append('id', sw.dataset.id);
+      sw.disabled = true;
+      fetch(root.dataset.self, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'fetch' }, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          if (!d || !d.ok) throw new Error('fail');
+          var on = !!d.value, card = sw.closest('.cl-card');
+          sw.classList.toggle('on', on); sw.setAttribute('aria-checked', on ? 'true' : 'false'); card.classList.toggle('is-off', !on);
+          var a = root.querySelector('#clOn'), b = root.querySelector('#clOff');
+          if (a && b) { a.textContent = +a.textContent + (on ? 1 : -1); b.textContent = +b.textContent + (on ? -1 : 1); }
+        })
+        .catch(function () { alert('Could not save the change. Please reload the page and try again.'); })
+        .then(function () { sw.disabled = false; });
+    });
+  });
+  var saved = null; try { saved = localStorage.getItem(key); } catch (e) {}
+  if (cards) setView(saved === 'table' ? 'table' : 'cards'); else apply();
+})();
+</script>
+<?php
     }
     admin_footer();
 }
