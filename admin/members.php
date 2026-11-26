@@ -102,6 +102,8 @@ if (isset($_GET['id'])) {
         <span class="badge <?= $m['status'] === 'approved' ? '' : ($m['status'] === 'pending' ? 'warn' : 'bad') ?>"><?= e($m['status']) ?></span>
         <span class="badge"><?= ($m['member_type'] ?? 'alumni') === 'staff' ? 'Staff' : 'Alumni' ?></span>
         <?= !empty($m['pay_later']) && !$pays ? '<span class="badge warn">will pay later</span>' : '' ?>
+        <?= str_contains((string) ($m['admin_notes'] ?? ''), 'POSSIBLE DUPLICATE') ? '<span class="badge bad">Possible duplicate: see the internal notes</span>' : '' ?>
+        <?= !empty($m['legacy_guco_no']) ? '<span class="badge">' . e($m['legacy_guco_no']) . '</span>' : '' ?>
         <?php if ($m['member_no']): ?> <span class="meta">Member no. <?= e(member_no_label($m['member_no'])) ?></span><?php endif; ?></div></div>
     <?php if (!empty($m['legacy_guco_no'])): ?><p><span class="badge">Existing GUCO member</span> GUCO No. <strong class="mono"><?= e($m['legacy_guco_no']) ?></strong> <span class="meta">(from the register of existing members)</span></p><?php endif; ?>
     <?php if ($m['membership_id']): ?><p>Membership ID: <strong class="mono"><?= e($m['membership_id']) ?></strong><br>Card: <span class="badge <?= $card['state'] === 'valid' ? '' : 'bad' ?>"><?= e($card['label']) ?></span>
@@ -197,7 +199,7 @@ if (isset($_GET['id'])) {
     exit;
 }
 
-$rows = q("SELECT u.id, u.full_name, u.email, u.role, u.status, u.created_at, p.member_no, p.membership_id, p.category, p.card_status, p.subscription_status, p.paid_until, p.approved_at, p.graduation_year, p.member_type, p.pay_later,
+$rows = q("SELECT u.id, u.full_name, u.email, u.role, u.status, u.created_at, p.member_no, p.membership_id, p.category, p.card_status, p.subscription_status, p.paid_until, p.approved_at, p.graduation_year, p.member_type, p.pay_later, p.admin_notes, p.legacy_guco_no,
     (SELECT COUNT(*) FROM member_payments mp WHERE mp.user_id = u.id AND mp.status = 'pending') AS pending_pay $base
     ORDER BY FIELD(u.status,'pending','approved','rejected'), u.created_at DESC", $args)->fetchAll();
 admin_header('Members & applications');
@@ -215,7 +217,7 @@ admin_header('Members & applications');
   <?php foreach ($rows as $r): $cs = card_state($r + ['status' => $r['status']]); ?>
   <tr>
     <td><?= e(member_no_label($r['member_no'])) ?></td>
-    <td><?= e($r['full_name']) ?><?= $r['role'] !== 'member' ? ' <span class="badge">' . e(ROLE_LABELS[$r['role']]) . '</span>' : '' ?><?= ($r['member_type'] ?? '') === 'staff' ? ' <span class="badge">Staff</span>' : '' ?><br><span class="meta"><?= e($r['email']) ?></span></td>
+    <td><?= e($r['full_name']) ?><?= str_contains((string) ($r['admin_notes'] ?? ''), 'POSSIBLE DUPLICATE') ? ' <span class="badge bad" title="The applicant says they are new, but similar records exist. Check the notes before approving.">Possible duplicate</span>' : '' ?><?= $r['role'] !== 'member' ? ' <span class="badge">' . e(ROLE_LABELS[$r['role']]) . '</span>' : '' ?><?= ($r['member_type'] ?? '') === 'staff' ? ' <span class="badge">Staff</span>' : '' ?><br><span class="meta"><?= e($r['email']) ?></span></td>
     <td class="mono"><?= e($r['membership_id']) ?></td><td><?= e(CATEGORY_LABELS[$r['category']] ?? '') ?></td>
     <td><span class="badge <?= $r['status'] === 'approved' ? '' : ($r['status'] === 'pending' ? 'warn' : 'bad') ?>"><?= e($r['status']) ?></span>
       <?= $r['pending_pay'] ? '<br><span class="badge warn">payment to verify</span>' : '' ?>

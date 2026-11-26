@@ -4,6 +4,7 @@ $admin = require_perm('members');
 $chapters = ['' => 'No chapter yet'] + q('SELECT id, name FROM chapters ORDER BY sort_order, name')->fetchAll(PDO::FETCH_KEY_PAIR);
 
 $created = null;
+$showDupeBox = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrf_check();
     $name = trim($_POST['full_name'] ?? '');
@@ -31,6 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } elseif (q('SELECT 1 FROM users WHERE email = ?', [$email])->fetch()) {
         $error = 'An account with that email already exists.';
     }
+    if (!$error && empty($_POST['confirm_dupe'])) {
+        $similar = dedupe_candidates($name, trim($_POST['phone'] ?? ''));
+        if ($similar) {
+            $error = 'Similar records already exist: ' . dedupe_note($similar) . '. If this is a different person, tick "Add anyway" and save again.';
+            $showDupeBox = true;
+        }
+    }
     if ($error) {
         flash($error, 'error');
     } else {
@@ -51,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $staff ? (isset(STAFF_STATUS[$_POST['staff_status'] ?? '']) ? $_POST['staff_status'] : 'current') : null,
             $staff ? 'Gulu University' : null, $staff ? trim($_POST['staff_position']) : null,
         ]);
+        $newNo = (int) q('SELECT member_no FROM member_profiles WHERE user_id = ?', [$uid])->fetchColumn();
+        assign_guco_number($uid, $newNo, ['full_name' => $name, 'gender' => '', 'member_type' => $type, 'programme' => trim($_POST['programme'] ?? ''), 'college' => trim($_POST['college'] ?? ''), 'graduation_series' => null, 'student_reg_no' => '', 'phone' => trim($_POST['phone'] ?? '')]);
         $cid = (int) ($_POST['chapter_id'] ?? 0);
         if ($cid && isset($chapters[$cid])) {
             q("INSERT INTO chapter_members (chapter_id, user_id, status, decided_by, decided_at) VALUES (?,?,'approved',?,NOW())", [$cid, $uid, $admin['id']]);
@@ -130,6 +140,7 @@ admin_header('Add a member', 'Create a member account on behalf of someone, with
   <fieldset><legend>Options</legend>
     <label class="check"><input type="checkbox" name="approve" checked> Approve now and issue the Membership ID (recorded as approved without a payment on file)</label>
     <label class="check"><input type="checkbox" name="send_email" checked> Email the login details to the member</label>
+    <?php if (!empty($showDupeBox)): ?><label class="check" style="background:#fff8e1;border:2px solid #f2b807;border-radius:12px;padding:10px 14px"><input type="checkbox" name="confirm_dupe" value="1"> <strong>Add anyway:</strong> this is a different person from the similar records listed above</label><?php endif; ?>
     <p class="hint">The member can change their password and complete their profile (photo, address, employment) from the Member Portal.</p>
   </fieldset>
   <button>Create member account</button>

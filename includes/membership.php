@@ -34,9 +34,12 @@ function member_no_label($n): string
 /** Next free member number. Retries on a unique-key collision. */
 function next_member_no(): int
 {
-    // Numbers on the register of existing members are reserved, so a new member never takes one.
-    return (int) db()->query("SELECT GREATEST(COALESCE((SELECT MAX(member_no) FROM member_profiles), 0),
-        COALESCE((SELECT MAX(CAST(SUBSTRING(guco_no, 6) AS UNSIGNED)) FROM legacy_members), 0)) + 1")->fetchColumn();
+    // Numbers already used anywhere (members, the register of existing members, numbers kept by claimed records) are reserved,
+    // so a new member always continues from the highest one.
+    return (int) db()->query("SELECT GREATEST(
+        COALESCE((SELECT MAX(member_no) FROM member_profiles), 0),
+        COALESCE((SELECT MAX(CAST(SUBSTRING(legacy_guco_no, 6) AS UNSIGNED)) FROM member_profiles WHERE legacy_guco_no LIKE 'GUCO-%'), 0),
+        COALESCE((SELECT MAX(CAST(SUBSTRING(guco_no, 6) AS UNSIGNED)) FROM legacy_members WHERE guco_no LIKE 'GUCO-%'), 0)) + 1")->fetchColumn();
 }
 
 /** Membership ID issued on approval, e.g. GUCO/ORD/2026/000012. */

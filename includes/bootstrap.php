@@ -422,6 +422,7 @@ require_once __DIR__ . '/mailer.php';
 require_once __DIR__ . '/photos.php';
 require_once __DIR__ . '/donations.php';
 require_once __DIR__ . '/legacy.php';
+require_once __DIR__ . '/dedupe.php';
 require_once __DIR__ . '/member_report.php';
 require_once __DIR__ . '/network.php';
 require_once __DIR__ . '/related.php';

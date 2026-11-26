@@ -9,6 +9,7 @@ $allowLater = setting('allow_pay_later', '1') === '1';
 $chapters = q('SELECT id, name FROM chapters WHERE is_public = 1 ORDER BY name')->fetchAll();
 // An existing GUCO member who found their record on claim.php registers under their existing number.
 $claim = legacy_pending_claim();
+$dupes = [];
 $pre = $claim ? [
     'full_name' => $claim['full_name'],
     'gender' => ['F' => 'female', 'M' => 'male'][$claim['sex'] ?? ''] ?? '',
@@ -43,6 +44,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $staffStatus = isset(STAFF_STATUS[$_POST['staff_status'] ?? '']) ? $_POST['staff_status'] : 'current';
     $hasProof = ($_FILES['proof']['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE;
     $error = null;
+    $dupes = [];
 
     $dobTs = strtotime($dob);
     if (is_spam()) {
@@ -77,6 +79,14 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'That email is already registered. Try logging in.';
     }
 
+    $dupes = [];
+    if (!$error && !$claim && empty($_POST['confirm_new']) && empty($_POST['dupe_ok'])) {
+        $dupes = dedupe_candidates($name, trim($_POST['phone'] ?? ''));
+        if ($dupes) {
+            $error = 'We found a record that looks like yours. Please check it below before you continue.';
+        }
+    }
+
     $proof = $photo = null;
     if (!$error && $hasProof && !$payLater) {
         $proof = save_private_file($_FILES['proof'], 'proof');
@@ -99,7 +109,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($claimNow && !q('SELECT 1 FROM member_profiles WHERE member_no = ?', [legacy_number($claimNow)])->fetch()) {
             $memNo = legacy_number($claimNow);
         }
-        q('INSERT INTO member_profiles (user_id, member_no, category, gender, date_of_birth, nationality, phone, address, location, country,
+        $insertProfile = fn(int $memNo) => q('INSERT INTO member_profiles (user_id, member_no, category, gender, date_of_birth, nationality, phone, address, location, country,
               college, programme, qualification_level, student_reg_no, graduation_year, eligibility_details,
               employment_status, employer, profession, interests, photo, chapter_id, directory_consent,
               member_type, staff_joined_on, staff_position, staff_department, staff_no, staff_terms, staff_status, pay_later)
@@ -115,6 +125,30 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
             $type === 'staff' ? trim($_POST['staff_department']) : null, $type === 'staff' ? (trim($_POST['staff_no'] ?? '') ?: null) : null,
             $type === 'staff' ? $terms : null, $type === 'staff' ? $staffStatus : null, $payLater ? 1 : 0,
         ]);
+        for ($try = 0; ; $try++) {
+            try {
+                $insertProfile($memNo);
+                break;
+            } catch (PDOException $e) {
+                // Two people registering at the same moment: take the next free number.
+                if ($claimNow || $try >= 5 || $e->getCode() !== '23000') {
+                    throw $e;
+                }
+                $memNo = next_member_no();
+            }
+        }
+        $gucoNo = '';
+        if (!$claimNow) {
+            $gucoNo = assign_guco_number($uid, $memNo, ['full_name' => $name, 'gender' => $gender, 'member_type' => $type, 'programme' => $type === 'staff' ? '' : trim($_POST['programme'] ?? ''),
+                'college' => $type === 'staff' ? '' : trim($_POST['college'] ?? ''), 'graduation_series' => $type === 'alumni' ? ((int) ($_POST['graduation_series'] ?? 0) ?: null) : null,
+                'student_reg_no' => $type === 'staff' ? '' : trim($_POST['student_reg_no'] ?? ''), 'phone' => trim($_POST['phone'] ?? '')]);
+            // The applicant said none of the similar records is theirs: leave a note for the Secretariat.
+            $similar = dedupe_candidates($name, trim($_POST['phone'] ?? ''), $uid);
+            if ($similar) {
+                q('UPDATE member_profiles SET admin_notes = CONCAT(COALESCE(admin_notes, \'\'), ?) WHERE user_id = ?', [
+                    'POSSIBLE DUPLICATE: the applicant confirmed they had not registered before, but similar records exist: ' . dedupe_note($similar) . ". Please check before approving.\n", $uid]);
+            }
+        }
         if ($claimNow) {
             // Link the register entry to this account; only one account can ever claim it.
             $linked = q("UPDATE legacy_members SET claimed_user_id = ?, claimed_at = NOW(), status = 'claimed' WHERE id = ? AND status = 'unclaimed' AND claimed_user_id IS NULL", [$uid, $claimNow['id']])->rowCount();
@@ -150,7 +184,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
         portal_welcome_mail([
             'mode' => 'applied', 'name' => $name, 'email' => $email,
             'facts' => array_filter([
-                'GUCO No.' => $claimNow ? $claimNow['guco_no'] . ' (your existing number, kept)' : '',
+                'GUCO No.' => $claimNow ? $claimNow['guco_no'] . ' (your existing number, kept)' : $gucoNo . ' (your new number)',
                 'Member no.' => member_no_label($memberNo), 'Member type' => MEMBER_TYPES[$type] ?? '', 'Category' => CATEGORY_LABELS[$cat] ?? '', 'Status' => 'Pending approval',
             ]),
             'next' => [
@@ -197,6 +231,15 @@ require __DIR__ . '/includes/header.php';
 
 <form method="post" enctype="multipart/form-data" class="stack wide">
   <?= csrf_field() ?><?= spam_fields() ?>
+  <?php if (!empty($dupes)): ?>
+  <div class="dupe-box" id="dupeBox" role="alert">
+    <h2>Have you registered with GUCO before?</h2>
+    <p>These records look like yours. Please check them so that you do not end up with two records.</p>
+    <ul><?php foreach ($dupes as $d): ?><li><strong><?= e($d['name']) ?></strong><?= $d['guco_no'] ? ' (' . e($d['guco_no']) . ')' : '' ?><?= $d['detail'] ? ', ' . e($d['detail']) : '' ?>: <?= $d['kind'] === 'register' && $d['status'] === 'unclaimed' ? 'on the GUCO register, not yet claimed' : 'already has an account' . ($d['email_hint'] ? ' (' . e($d['email_hint']) . ')' : '') ?></li><?php endforeach; ?></ul>
+    <p>If one of these is you, <a href="<?= url('claim.php') ?>">find your record</a> or <a href="<?= url('member/login.php') ?>">sign in</a>. Otherwise tick the box below and submit again. Please choose your photo and proof of payment again.</p>
+    <label class="check"><input type="checkbox" name="confirm_new" value="1"> I confirm that I have not registered with GUCO before and none of these records is me.</label>
+  </div>
+  <?php endif; ?>
 
   <fieldset><legend>Account</legend>
     <div class="cols">
@@ -357,6 +400,76 @@ require __DIR__ . '/includes/header.php';
   function pay() { var c = f.querySelector('input[name=pay_when]:checked'); if (pn) pn.hidden = !!c && c.value === 'later'; }
   [].forEach.call(pays, function (r) { r.addEventListener('change', pay); });
   sync(); pay();
+})();
+</script>
+<div class="dq" id="dupeModal" role="dialog" aria-modal="true" aria-labelledby="dqTitle" hidden>
+  <div class="dq-card">
+    <div class="dq-head"><span class="dq-ic"><?= icon('users', 26) ?></span><div><h2 id="dqTitle">Have you registered with GUCO before?</h2><p>We found records that look like yours. Please check them first, so that you do not end up with two records.</p></div></div>
+    <ul class="dq-list" id="dqList"></ul>
+    <div class="dq-actions">
+      <button type="button" class="dq-new" id="dqNew">No, none of these is me. Continue as a new member</button>
+      <button type="button" class="dq-back" id="dqBack">Go back and edit my form</button>
+    </div>
+    <p class="dq-note">If you continue as new, the Secretariat is told that similar records exist, so they can check for a duplicate before approving you.</p>
+  </div>
+</div>
+<script>
+(function () {
+  var f = document.querySelector('form.wide'); if (!f) return;
+  var modal = document.getElementById('dupeModal'), list = document.getElementById('dqList');
+  var csrf = f.querySelector('input[name=csrf]').value, url = <?= json_encode(url('register_check.php')) ?>;
+  var loginUrl = <?= json_encode(url('member/login.php')) ?>, forgotUrl = <?= json_encode(url('forgot.php')) ?>;
+  var skip = <?= json_encode((bool) $claim) ?>, busy = false, lastFocus = null;
+  var okInput = document.createElement('input'); okInput.type = 'hidden'; okInput.name = 'dupe_ok'; okInput.value = ''; f.appendChild(okInput);
+  function post(data) {
+    var fd = new FormData(); fd.append('csrf', csrf); Object.keys(data).forEach(function (k) { fd.append(k, data[k]); });
+    return fetch(url, { method: 'POST', body: fd, credentials: 'same-origin' }).then(function (r) { return r.json(); });
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; }
+  function render(matches) {
+    list.innerHTML = '';
+    matches.forEach(function (m) {
+      var li = el('li', 'dq-item');
+      var top = el('div', 'dq-top');
+      top.appendChild(el('span', 'dq-av', (m.name || '?').replace(/^(dr|prof|mr|mrs|ms|counsel|hon|eng)\.?\s+/i, '').charAt(0).toUpperCase()));
+      var who = el('div', 'dq-who'); who.appendChild(el('b', '', m.name));
+      var meta = el('small', '', [m.guco_no, m.detail].filter(Boolean).join(' · ')); who.appendChild(meta);
+      top.appendChild(who);
+      top.appendChild(el('span', 'dq-chip ' + (m.claimable ? 'free' : 'taken'), m.claimable ? 'On the GUCO register' : 'Already has an account'));
+      li.appendChild(top);
+      if (m.email_hint) li.appendChild(el('p', 'dq-hint', 'Account email: ' + m.email_hint));
+      var act = el('div', 'dq-act');
+      if (m.claimable) {
+        var b = el('button', 'dq-me', 'Yes, this is me. Use my existing GUCO number'); b.type = 'button';
+        b.addEventListener('click', function () {
+          b.disabled = true; b.textContent = 'One moment...';
+          post({ action: 'claim', id: m.id }).then(function (d) { if (d && d.ok) { window.location.href = d.redirect; } else { b.disabled = false; b.textContent = 'Yes, this is me. Use my existing GUCO number'; alert((d && d.error) || 'Please try again.'); } })
+            .catch(function () { b.disabled = false; b.textContent = 'Yes, this is me. Use my existing GUCO number'; });
+        });
+        act.appendChild(b);
+      } else {
+        var a = el('a', 'dq-me', 'Yes, this is me. Sign in'); a.href = loginUrl; act.appendChild(a);
+        var g = el('a', 'dq-alt', 'Forgot my password'); g.href = forgotUrl; act.appendChild(g);
+      }
+      li.appendChild(act); list.appendChild(li);
+    });
+  }
+  function open(matches) { lastFocus = document.activeElement; render(matches); modal.hidden = false; document.documentElement.classList.add('dq-lock'); var first = modal.querySelector('button, a'); if (first) first.focus(); }
+  function close() { modal.hidden = true; document.documentElement.classList.remove('dq-lock'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+  document.getElementById('dqBack').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !modal.hidden) close(); });
+  document.getElementById('dqNew').addEventListener('click', function () { okInput.value = '1'; close(); HTMLFormElement.prototype.submit.call(f); });
+  f.addEventListener('submit', function (e) {
+    if (skip || okInput.value === '1' || busy) return;
+    var name = (f.elements.full_name ? f.elements.full_name.value : '').trim(); if (name.length < 3) return;
+    if (!f.checkValidity()) return; // let the browser show its own messages first
+    e.preventDefault(); busy = true;
+    var btn = f.querySelector('button:not([type]), button[type=submit]'); var label = btn ? btn.textContent : ''; if (btn) { btn.disabled = true; btn.textContent = 'Checking your details...'; }
+    post({ action: 'check', full_name: name, phone: f.elements.phone ? f.elements.phone.value : '' }).then(function (d) {
+      busy = false; if (btn) { btn.disabled = false; btn.textContent = label; }
+      if (d && d.ok && d.matches && d.matches.length) { open(d.matches); } else { HTMLFormElement.prototype.submit.call(f); }
+    }).catch(function () { busy = false; if (btn) { btn.disabled = false; btn.textContent = label; } HTMLFormElement.prototype.submit.call(f); });
+  });
 })();
 </script>
 <?php endif; ?>
