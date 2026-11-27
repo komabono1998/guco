@@ -103,9 +103,9 @@ $progIcons = ['users', 'graduation', 'heart', 'award'];
   <div class="orb" id="orb">
     <div class="orb-in">
       <span class="orb-ring" aria-hidden="true"></span><span class="orb-ring r2" aria-hidden="true"></span>
-      <button type="button" class="orb-ph p0" aria-label="Show this photo larger"><img src="<?= e(dinner_src(19)) ?>" alt="Guests on stage at a GUCO event" loading="lazy"></button>
-      <button type="button" class="orb-ph p1" aria-label="Show this photo larger"><img src="<?= e(dinner_src(9)) ?>" alt="Alumni at a GUCO event" loading="lazy"></button>
-      <button type="button" class="orb-ph p2" aria-label="Show this photo larger"><img src="<?= e(dinner_src(7)) ?>" alt="Guests at the GUCO dinner" loading="lazy"></button>
+      <button type="button" class="orb-ph p0" aria-label="Show this photo larger"><img src="<?= e(dinner_src(4)) ?>" alt="A Certificate of Recognition presented at the GUCO dinner" loading="lazy"></button>
+      <button type="button" class="orb-ph p1" aria-label="Show this photo larger"><img src="<?= e(dinner_src(22)) ?>" alt="A speaker addressing guests at the GUCO dinner" loading="lazy"></button>
+      <button type="button" class="orb-ph p2" aria-label="Show this photo larger"><img src="<?= e(dinner_src(6)) ?>" alt="Guests sharing a meal at the GUCO dinner" loading="lazy"></button>
       <div class="orb-badge"><b>2023</b><span>Constitution in force</span></div>
     </div>
   </div>
