@@ -12,7 +12,7 @@ $newsletter = $on('news') ? q("SELECT title, slug, summary, published_at FROM ne
 $spots = $on('campus') ? q('SELECT * FROM campus_spots WHERE is_public = 1 ORDER BY sort_order, id')->fetchAll() : [];
 // The home page plays the anthem marked "show on the home page" in Admin > Anthems.
 $anthemRow = q('SELECT * FROM anthems WHERE show_home = 1 AND is_public = 1 ORDER BY sort_order, id LIMIT 1')->fetch() ?: [];
-$anthemAudio = !empty($anthemRow['audio']) ? url('uploads/' . rawurlencode($anthemRow['audio'])) : null;
+$anthemAudio = !empty($anthemRow['audio']) ? upload_url($anthemRow['audio']) : null;
 $anthemVideo = trim((string) ($anthemRow['video_url'] ?? ''));
 $anthemLyrics = trim((string) ($anthemRow['lyrics'] ?? ''));
 $campusLink = trim(c('home.campus_link'));
@@ -766,7 +766,7 @@ $anthemList = q("SELECT slug, title, kicker, credit, lyrics, audio FROM anthems 
 <?php
 $anthemData = array_map(fn($a) => [
     'slug' => $a['slug'], 'title' => $a['title'], 'kicker' => (string) $a['kicker'], 'credit' => (string) $a['credit'],
-    'lyrics' => trim((string) $a['lyrics']), 'audio' => url('uploads/' . rawurlencode($a['audio'])),
+    'lyrics' => trim((string) $a['lyrics']), 'audio' => upload_url($a['audio']),
 ], $anthemList);
 $short = fn($t) => trim(preg_replace('/\b(anthem|the)\b/i', '', $t)) ?: $t;
 ?>

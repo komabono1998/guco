@@ -183,6 +183,13 @@ function e($v): string
 }
 
 /** URL of a static file with its modification time, so browsers load updated CSS and JS at once. */
+/** Address of a file in the uploads folder. The version changes when the file does, so browsers and CDNs fetch the new one. */
+function upload_url(string $file): string
+{
+    $path = __DIR__ . '/../uploads/' . basename($file);
+    return url('uploads/' . rawurlencode($file)) . (is_file($path) ? '?v=' . filemtime($path) : '');
+}
+
 function asset(string $path): string
 {
     $file = __DIR__ . '/../' . ltrim($path, '/');

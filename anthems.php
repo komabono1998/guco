@@ -28,7 +28,7 @@ require __DIR__ . '/includes/header.php';
     <?php endforeach; ?>
   </div>
 
-  <?php foreach ($anthems as $i => $a): $vs = $verses((string) $a['lyrics']); $src = $a['audio'] ? url('uploads/' . rawurlencode($a['audio'])) : ''; $isVideo = $a['audio'] && str_ends_with((string) $a['audio'], '.mp4'); ?>
+  <?php foreach ($anthems as $i => $a): $vs = $verses((string) $a['lyrics']); $src = $a['audio'] ? upload_url($a['audio']) : ''; $isVideo = $a['audio'] && str_ends_with((string) $a['audio'], '.mp4'); ?>
     <article class="an-panel<?= $i === $active ? ' on' : '' ?>" id="an-p-<?= e($a['slug']) ?>" role="tabpanel" aria-labelledby="an-t-<?= e($a['slug']) ?>" style="--c:<?= $tones[$i % 5] ?>">
       <div class="an-side">
         <span class="an-kicker"><?= e($a['kicker']) ?><?= $a['body'] ? ' &middot; ' . e($a['body']) : '' ?></span>
