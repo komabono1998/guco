@@ -4,6 +4,7 @@
  * The page numbers point to the start of each route inside the PDF: update them if the guide is rewritten.
  */
 const GUIDE_PDF = 'assets/docs/GUCO-Membership-Registration-and-Renewal-Guide.pdf';
+const GUIDE_DOCX = 'assets/docs/GUCO-Membership-Registration-and-Renewal-Guide.docx';
 const GUIDE_PAGE_NEW = 2;       // Route A: new registration
 const GUIDE_PAGE_EXISTING = 4;  // Route B: existing GUCO members
 const GUIDE_PAGE_RENEW = 5;     // Route C: updating details and renewing
@@ -25,6 +26,7 @@ function guide_strip(string $focus = 'all'): string
     if (!is_file(__DIR__ . '/../' . GUIDE_PDF)) {
         return '';
     }
+    $v = (int) @filemtime(__DIR__ . '/../' . GUIDE_PDF);
     $btn = function (string $key, string $label, int $page) use ($focus): string {
         return '<a class="gs-btn' . ($focus === $key ? ' main' : '') . '" href="' . e(guide_url($page)) . '" target="_blank" rel="noopener">' . e($label) . '</a>';
     };
@@ -35,6 +37,7 @@ function guide_strip(string $focus = 'all'): string
         . $btn('new', 'I am new to GUCO', GUIDE_PAGE_NEW)
         . $btn('existing', 'I subscribed before', GUIDE_PAGE_EXISTING)
         . $btn('renew', 'Renew or update', GUIDE_PAGE_RENEW)
-        . '<a class="gs-btn full" href="' . e(guide_url(1)) . '" target="_blank" rel="noopener" download>Download the full guide</a>'
+        . '<a class="gs-btn full" href="' . e(url('guide_download.php?f=pdf&v=' . $v)) . '" download>Download PDF</a>'
+        . (is_file(__DIR__ . '/../' . GUIDE_DOCX) ? '<a class="gs-btn full" href="' . e(url('guide_download.php?f=docx&v=' . $v)) . '" download>Download Word</a>' : '')
         . '</div></section>';
 }
