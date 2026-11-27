@@ -4,7 +4,7 @@ $a = q('SELECT * FROM gallery_albums WHERE id = ? AND is_public = 1', [(int) ($_
 if (!$a) {
     http_response_code(404);
 }
-$photos = $a ? q('SELECT * FROM gallery WHERE album_id = ? ORDER BY sort_order, id', [$a['id']])->fetchAll() : [];
+$photos = $a ? array_values(array_filter(q('SELECT * FROM gallery WHERE album_id = ? ORDER BY sort_order, id', [$a['id']])->fetchAll(), fn($p) => gallery_file_exists((string) $p['filename']))) : [];
 $pageTitle = $a['title'] ?? 'Album not found';
 $pageDesc = $a ? ($a['description'] ?: 'Photo album from GUCO.') : null;
 require __DIR__ . '/includes/header.php';

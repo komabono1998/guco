@@ -8,7 +8,6 @@ const DINNER_PHOTOS = [
     5 => 'A guest at the dinner table',
     6 => 'Guests sharing a meal at the dinner',
     7 => 'Guests serving themselves at the dinner buffet',
-    8 => 'Portrait of a guest at the dinner',
     9 => 'Two alumni posing together at the dinner',
     10 => 'A guest seated near the stage',
     11 => 'A speaker addressing the dinner',
@@ -53,6 +52,12 @@ function dinner_figure(int $n, string $class = '', ?string $caption = null): str
 {
     $img = '<img src="' . e(dinner_src($n)) . '" alt="' . e(DINNER_PHOTOS[$n]) . '" loading="lazy">';
     return '<figure class="photo ' . e($class) . '">' . $img . ($caption ? '<figcaption>' . e($caption) . '</figcaption>' : '') . '</figure>';
+}
+
+/** False for a bundled picture (assets/...) whose file has been removed, so a deleted photo never shows as a broken image. */
+function gallery_file_exists(string $filename): bool
+{
+    return !str_starts_with($filename, 'assets/') || is_file(__DIR__ . '/../' . $filename);
 }
 
 /** URL of a gallery photo: bundled images are stored as assets/..., uploads as plain file names. */
