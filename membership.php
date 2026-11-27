@@ -41,6 +41,7 @@ $facts = array_slice(c_pairs('membership.facts'), 0, 4);
     <div class="mb-cta">
       <?php if ($open): ?><a class="btn gold" href="<?= $joinUrl() ?>">Join GUCO</a><?php else: ?><a class="btn gold" href="<?= url('contact.php?category=Membership') ?>">Contact the Secretariat</a><?php endif; ?>
       <a class="btn outline" href="#how">How it works</a>
+      <a class="btn outline" href="<?= e(guide_url()) ?>" target="_blank" rel="noopener">Registration guide (PDF)</a>
       <a class="btn outline" href="#verify">Verify a card</a>
     </div>
   </div>
@@ -69,6 +70,7 @@ $facts = array_slice(c_pairs('membership.facts'), 0, 4);
       </li>
     <?php endforeach; ?>
   </ol>
+  <?= guide_strip('all') ?>
   <div class="mb-note"><?= cr('membership.renew_note') ?></div>
 </section>
 

@@ -202,6 +202,7 @@ if ($open && $_SERVER['REQUEST_METHOD'] === 'POST') {
 require __DIR__ . '/includes/header.php';
 ?>
 <div class="page-head"><h1>Join GUCO</h1><p>Membership application and proof of payment</p></div>
+<?= guide_strip('new') ?>
 <?php if (!$open): ?>
   <p class="notice">Online applications are not open at the moment. Please <a href="<?= url('contact.php?category=Membership') ?>">contact the Secretariat</a>.</p>
 <?php else: ?>

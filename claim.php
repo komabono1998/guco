@@ -72,6 +72,8 @@ require __DIR__ . '/includes/header.php';
 ?>
 <div class="page-head"><h1>Existing member? Find your GUCO number</h1><p>Confirm your registration, renew your subscription and open your Member Portal</p></div>
 
+<?= guide_strip('existing') ?>
+
 <?php if ($found): ?>
   <div class="card accent" style="max-width:760px;margin-bottom:24px">
     <h2 style="margin-top:0"><?= e(legacy_display_name($found)) ?></h2>

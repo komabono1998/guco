@@ -53,6 +53,8 @@ portal_header('Payments & renewal');
   </table></div>
 </section>
 
+<p class="notice noprint">Need help? Read the <a href="<?= e(guide_url(GUIDE_PAGE_RENEW)) ?>" target="_blank" rel="noopener">renewal guide (PDF)</a>: it explains each step and what the statuses mean.</p>
+
 <section class="panel" id="renew">
   <h2>Renew or submit another payment</h2>
   <p class="meta">Ordinary members pay an annual subscription. Pay through the approved channel, then upload your proof here for verification.</p>
