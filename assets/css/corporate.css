@@ -1584,3 +1584,64 @@ body.site .dq .dq-back { min-height: 48px; padding: 0 18px; border-radius: 14px;
 .dupe-box ul { margin: 8px 0 12px; padding-left: 1.2em; }
 @media (max-width: 560px) { .dq { align-items: flex-end; padding: 0; } .dq-card { border-radius: 24px 24px 0 0; max-height: 92vh; } .dq-actions > * { flex: 1 1 100%; } body.site .dq .dq-me { width: 100%; } }
 @media (prefers-reduced-motion: reduce) { .dq-card { animation: none; } }
+
+/* ---------- Phones, round two: comfortable touch targets and readable small text.
+   Everything here applies to phone-sized screens or to touch devices only; desktop layouts are not touched. ---------- */
+
+/* Browsers that need help: iPhone Safari and older Android browsers */
+html { scroll-padding-top: 84px; }
+body.site { overflow-x: hidden; }
+@supports (overflow: clip) { body.site { overflow-x: clip; } }
+@supports (-webkit-touch-callout: none) {
+  /* iPhone: no inner shadow or odd rounding on text fields */
+  body.site input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="datetime-local"]):not([type="time"]):not([type="range"]):not([type="submit"]),
+  body.site textarea { -webkit-appearance: none; appearance: none; }
+  body.site input[type="date"] { min-height: 46px; }
+}
+.to-top { bottom: calc(22px + env(safe-area-inset-bottom, 0px)); right: calc(22px + env(safe-area-inset-right, 0px)); }
+.dq-card, .an2-card.an2-full { max-height: calc(100vh - 32px); }
+@supports (height: 100dvh) {
+  .dq-card { max-height: calc(100dvh - 32px); }
+}
+
+/* Hover lifts must not stick after a tap on a touch screen */
+@media (hover: none) {
+  body.site .ue-card:hover, body.site .gl2-item:hover, body.site .pt-tile:hover, body.site .cp-spot:hover, body.site .hero-stats > div:hover,
+  body.site a.hl:hover, body.site .lcard:hover, body.site .cp-links a:hover, body.site .cl-card:hover, .rp-jump a:hover { transform: none; }
+  body.site .ue-card:hover::after { opacity: 0; }
+}
+
+@media (max-width: 760px) {
+  /* Touch targets of at least 44px for text links and small buttons */
+  body.site .sec-head > a, body.site .cm-badge a, body.site .l-more, body.site .nb-form a, body.site .ft-legal a { display: inline-flex; align-items: center; min-height: 44px; padding-top: 0; padding-bottom: 0; }
+  body.site .op-reset { min-height: 44px; padding: 0 16px; }
+  .leaflet-touch .leaflet-bar a, .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+  /* Slider dots: keep their size, widen the area you can tap */
+  body.site .ov-dots { gap: 10px; }
+  body.site .ov-dots button { position: relative; }
+  body.site .ov-dots button::after { content: ""; position: absolute; inset: -17px -6px; }
+
+  /* Small print that was below a comfortable reading size */
+  body.site .hero2-text .eyebrow { font-size: .74rem; }
+  body.site .orb-badge span { font-size: .7rem; }
+  body.site .po-hub-s { font-size: .72rem; }
+  body.site .cs-head small { font-size: .68rem; }
+  body.site .cs-row span, body.site .cs-sample { font-size: .66rem; }
+  body.site .cs-back-foot { font-size: .7rem; }
+  body.site .sg-name { font-size: .72rem; }
+  body.site .lcard small, body.site .l-count small { font-size: .72rem; }
+  body.site .cs-qr small { font-size: .7rem; }
+}
+
+@media (max-width: 600px) {
+  /* Partnership tiles: the icon keeps its size and the text uses the rest of the row */
+  body.site .pt-tile { gap: 16px; }
+  .pt-ic { flex: none; width: 56px; height: 56px; }
+  .pt-text { flex: 1 1 auto; min-width: 0; }
+}
+
+@media (max-width: 760px) {
+  body.site .gs-count small, body.site .pw-hub-item span, body.site .mb-id-bottom small { font-size: .72rem; }
+  body.site .leaflet-touch .leaflet-bar a, body.site .leaflet-container .leaflet-bar a { width: 40px; height: 40px; line-height: 40px; }
+  body.site .an2 #an2Seek { height: 36px; }
+}

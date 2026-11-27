@@ -90,3 +90,15 @@ a.ex:hover { border-color: var(--green); box-shadow: 0 6px 18px rgba(15, 40, 28,
   input:not([type=checkbox]):not([type=radio]):not([type=hidden]), select { min-height: 46px; }
   button, .btn { min-height: 44px; }
 }
+
+/* Phones: comfortable touch targets and iPhone field styling */
+@media (max-width: 760px) {
+  .portal-user a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
+}
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="datetime-local"]):not([type="time"]):not([type="range"]), textarea { -webkit-appearance: none; appearance: none; }
+  input[type="date"] { min-height: 46px; }
+}
+html { scroll-padding-top: 76px; }
+
+@media (max-width: 760px) { .panel h2 a { display: inline-flex; align-items: center; min-height: 44px; } }

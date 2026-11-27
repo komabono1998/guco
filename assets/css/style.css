@@ -310,3 +310,6 @@ input[type=color] { padding: 2px; height: 42px; width: 84px; }
   .idqr { order: 3; width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; text-align: left; }
   .idqr small { margin-top: 0; }
 }
+
+/* Phones: the membership card labels stay readable */
+@media (max-width: 760px) { .idrow span { font-size: .68rem; } .idcard-head small { font-size: .7rem; } .idqr small { font-size: .68rem; } }

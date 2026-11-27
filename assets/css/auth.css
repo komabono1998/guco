@@ -68,3 +68,10 @@ body.authpage.member { background: #fff; }
   input, select, textarea { font-size: 16px; }
   input:not([type=checkbox]):not([type=radio]):not([type=hidden]) { min-height: 48px; }
 }
+
+/* Phones: bigger show-password button, full-height pages that respect the browser toolbar */
+@media (max-width: 760px) { .pw button.eye { width: 44px; height: 44px; min-height: 44px; right: 2px; display: inline-flex; align-items: center; justify-content: center; } }
+@supports (height: 100dvh) { body.authpage, .mem-wrap { min-height: 100dvh; } }
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="date"]):not([type="datetime-local"]):not([type="time"]):not([type="range"]) { -webkit-appearance: none; appearance: none; }
+}
